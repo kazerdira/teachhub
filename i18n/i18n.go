@@ -575,8 +575,10 @@ var Translations = map[string]map[string]string{
 	"chat":                {"en": "💬 Chat", "fr": "💬 Chat"},
 	"type_message":        {"en": "Type a message...", "fr": "Écrivez un message..."},
 	"send":                {"en": "Send", "fr": "Envoyer"},
-	"connecting":          {"en": "Connecting...", "fr": "Connexion..."},
-	"connection_failed":   {"en": "Connection Failed", "fr": "Connexion échouée"},
+	"connecting":              {"en": "Connecting...", "fr": "Connexion..."},
+	"connected_waiting":       {"en": "Connected ✓", "fr": "Connecté ✓"},
+	"connected_waiting_hint":  {"en": "Waiting for the teacher to share their screen or camera", "fr": "En attente que l'enseignant partage son écran ou sa caméra"},
+	"connection_failed":       {"en": "Connection Failed", "fr": "Connexion échouée"},
 	"end_class_confirm":   {"en": "End the live class for everyone?", "fr": "Terminer le cours en direct pour tout le monde ?"},
 	"teacher_label":       {"en": "Teacher", "fr": "Enseignant"},
 

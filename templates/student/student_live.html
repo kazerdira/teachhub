@@ -376,6 +376,9 @@ async function connectRoom() {
         await room.connect('{{.LKUrl}}', '{{.Token}}');
         console.log('Connected to room:', room.name);
         updateParticipantCount();
+        /* Update placeholder — connected but no video yet */
+        var ph = document.getElementById('placeholder');
+        if (ph) ph.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">&#9989;</div><p class="text-sm font-medium text-green-400">{{t .Lang "connected_waiting"}}</p><p class="text-xs text-gray-500 mt-1">{{t .Lang "connected_waiting_hint"}}</p></div>';
         await room.localParticipant.setMicrophoneEnabled(true);
     } catch(e) {
         console.error('Connection failed:', e);
