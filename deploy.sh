@@ -83,6 +83,7 @@ ufw default allow outgoing
 ufw allow 22/tcp    comment 'SSH'
 ufw allow 80/tcp    comment 'HTTP'
 ufw allow 443/tcp   comment 'HTTPS'
+ufw allow 7880/tcp  comment 'LiveKit WebSocket'
 ufw allow 7881/tcp  comment 'LiveKit TCP'
 ufw allow 7882:7892/udp comment 'LiveKit UDP/WebRTC'
 ufw --force enable

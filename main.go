@@ -33,7 +33,13 @@ func main() {
 	claudeKey := os.Getenv("ANTHROPIC_API_KEY")
 	lkApiKey := envOr("LIVEKIT_API_KEY", "teachhub")
 	lkApiSecret := envOr("LIVEKIT_API_SECRET", "teachhubsecretkey1234567890abc")
-	lkUrl := envOr("LIVEKIT_URL", "ws://localhost:7880")
+	// LiveKit URL for browser connections — derive from BASE_URL if not explicitly set
+	lkUrl := os.Getenv("LIVEKIT_PUBLIC_URL")
+	if lkUrl == "" {
+		// Derive: http://1.2.3.4 → ws://1.2.3.4:7880
+		host := strings.TrimPrefix(strings.TrimPrefix(baseURL, "https://"), "http://")
+		lkUrl = "ws://" + host + ":7880"
+	}
 
 	// In production (GIN_MODE=release), require critical secrets
 	if os.Getenv("GIN_MODE") == "release" {

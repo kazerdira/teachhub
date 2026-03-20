@@ -28,6 +28,7 @@ services:
     restart: unless-stopped
     command: ["--config", "/livekit.yaml"]
     ports:
+      - "7880:7880"
       - "7881:7881"
       - "7882-7892:7882-7892/udp"
     volumes:
