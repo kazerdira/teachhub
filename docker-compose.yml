@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: teachhub
       POSTGRES_USER: teachhub
-      POSTGRES_PASSWORD: teachhub
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-teachhub}
     ports:
       - "5433:5432"
     volumes:
@@ -36,7 +36,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgres://teachhub:teachhub@db:5432/teachhub?sslmode=disable
+      - DATABASE_URL=postgres://teachhub:${DB_PASSWORD:-teachhub}@db:5432/teachhub?sslmode=disable
       - BASE_URL=${BASE_URL:-http://localhost:8080}
       - GIN_MODE=release
       - SESSION_SECRET=${SESSION_SECRET}
