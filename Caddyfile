@@ -7,6 +7,6 @@
 #       reverse_proxy app:8080
 #   }
 
-:80 {
+teachhub.chickenkiller.com {
     reverse_proxy app:8080
 }
