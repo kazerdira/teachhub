@@ -8,7 +8,12 @@
 #   }
 
 teachhub.chickenkiller.com {
-    reverse_proxy app:8080
+    handle /rtc* {
+        reverse_proxy livekit:7880
+    }
+    handle {
+        reverse_proxy app:8080
+    }
 }
 
 :80 {

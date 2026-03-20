@@ -36,9 +36,15 @@ func main() {
 	// LiveKit URL for browser connections — derive from BASE_URL if not explicitly set
 	lkUrl := os.Getenv("LIVEKIT_PUBLIC_URL")
 	if lkUrl == "" {
-		// Derive: http://1.2.3.4 → ws://1.2.3.4:7880
-		host := strings.TrimPrefix(strings.TrimPrefix(baseURL, "https://"), "http://")
-		lkUrl = "ws://" + host + ":7880"
+		if strings.HasPrefix(baseURL, "https://") {
+			// HTTPS: route through Caddy reverse proxy (wss:// same domain)
+			host := strings.TrimPrefix(baseURL, "https://")
+			lkUrl = "wss://" + host
+		} else {
+			// HTTP: connect directly to LiveKit port
+			host := strings.TrimPrefix(baseURL, "http://")
+			lkUrl = "ws://" + host + ":7880"
+		}
 	}
 
 	// In production (GIN_MODE=release), require critical secrets
