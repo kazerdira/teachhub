@@ -46,8 +46,8 @@ services:
       - PLATFORM_PASS=${PLATFORM_PASS}
       - PLATFORM_PATH=${PLATFORM_PATH:-/ctrl-p-8x3kf}
       - LIVEKIT_HOST=livekit
-      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-devkey}
-      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-teachhub}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-teachhubsecretkey1234567890abc}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
       - uploads:/app/uploads
