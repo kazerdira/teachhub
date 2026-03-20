@@ -37,10 +37,18 @@ services:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgres://teachhub:teachhub@db:5432/teachhub?sslmode=disable
-      - BASE_URL=https://teachhub.chickenkiller.com
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+      - GIN_MODE=release
+      - SESSION_SECRET=${SESSION_SECRET}
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS}
+      - PLATFORM_USER=${PLATFORM_USER:-owner}
+      - PLATFORM_PASS=${PLATFORM_PASS}
+      - PLATFORM_PATH=${PLATFORM_PATH:-/ctrl-p-8x3kf}
       - LIVEKIT_HOST=livekit
       - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-devkey}
-      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-devsecret}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
       - uploads:/app/uploads
     expose:
