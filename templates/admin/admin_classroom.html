@@ -1,0 +1,381 @@
+{{template "admin_head" .}}
+
+<div class="mb-4">
+    <a href="/admin" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back"}}</a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{.Classroom.Name}}</h1>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/delete" onsubmit="return confirm('{{t .Lang "confirm_delete"}}')">
+{{csrfField $.CSRFToken}}
+        <button class="text-sm text-red-500 hover:underline">{{t .Lang "delete"}}</button>
+    </form>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-lg p-3 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm overflow-hidden">
+    <div class="min-w-0">
+        <span class="text-gray-500">{{t .Lang "join_link"}}</span> <a href="{{.JoinURL}}" class="text-indigo-600 font-mono text-xs sm:text-sm break-all" target="_blank">{{.JoinURL}}</a>
+    </div>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/regenerate-code" class="flex-shrink-0">
+{{csrfField $.CSRFToken}}
+        <button class="text-xs text-gray-500 hover:text-red-500 whitespace-nowrap">{{t .Lang "regenerate_code"}}</button>
+    </form>
+</div>
+
+<!-- Live Class Banner -->
+{{if .LiveSession}}
+<div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="flex items-center gap-3">
+        <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
+        <div>
+            <span class="font-semibold text-red-800">{{t .Lang "live_active"}}</span>
+            <span class="text-sm text-red-600 ml-2">{{t .Lang "live_started"}} {{.LiveSession.CreatedAt.Format "3:04 PM"}}</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-2 flex-shrink-0">
+        <a href="/admin/classroom/{{.Classroom.ID}}/live" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition">{{t .Lang "live_enter"}}</a>
+        <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/live/end" onsubmit="return confirm('{{t .Lang "live_end_confirm"}}')">
+{{csrfField $.CSRFToken}}
+            <button class="text-red-600 hover:text-red-800 text-sm font-medium">{{t .Lang "live_end"}}</button>
+        </form>
+    </div>
+</div>
+{{else}}
+<div class="mb-6">
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/live/start">
+{{csrfField $.CSRFToken}}
+        <button class="bg-gradient-to-r from-red-500 to-pink-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:from-red-600 hover:to-pink-700 transition shadow-sm hover:shadow-md flex items-center gap-2">
+            <span class="w-2 h-2 bg-white rounded-full"></span> {{t .Lang "live_start"}}
+        </button>
+    </form>
+</div>
+{{end}}
+
+<!-- Tabs -->
+<div class="flex gap-4 sm:gap-6 border-b border-gray-200 mb-6 text-sm overflow-x-auto">
+    <a href="?tab=resources" class="pb-2 {{if eq .Tab "resources"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "tab_resources"}}</a>
+    <a href="?tab=assignments" class="pb-2 {{if eq .Tab "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "tab_assignments"}}</a>
+    <a href="?tab=quizzes" class="pb-2 {{if eq .Tab "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "tab_quizzes"}}</a>
+    <a href="?tab=students" class="pb-2 flex items-center gap-1 {{if eq .Tab "students"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">
+        {{t .Lang "tab_students"}}
+        {{if .PendingStudents}}<span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-1.5 py-0.5 rounded-full">{{len .PendingStudents}}</span>{{end}}
+    </a>
+    <a href="/admin/classroom/{{.Classroom.ID}}/analytics" class="pb-2 flex items-center gap-1 text-gray-500 hover:text-gray-700">
+        {{t .Lang "tab_analytics"}}
+    </a>
+</div>
+
+<!-- RESOURCES TAB -->
+{{if eq .Tab "resources"}}
+<div class="mb-6">
+    <h3 class="font-medium text-gray-700 mb-2">{{t .Lang "res_categories"}}</h3>
+    <div class="flex flex-wrap gap-2 mb-3">
+        {{range .Categories}}
+        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+            {{.Name}}
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/category/{{.ID}}/delete" class="inline">
+{{csrfField $.CSRFToken}}
+                <button class="text-gray-400 hover:text-red-500 ml-1">&times;</button>
+            </form>
+        </span>
+        {{end}}
+    </div>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/category" class="flex gap-2">
+{{csrfField $.CSRFToken}}
+        <input type="text" name="name" placeholder="{{t .Lang "res_new_cat"}}" required class="input">
+        <button class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-300">{{t .Lang "add"}}</button>
+    </form>
+</div>
+
+<div class="card p-5 mb-6">
+    <h3 class="font-semibold text-gray-800 mb-3">{{t .Lang "res_upload"}}</h3>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/resource" enctype="multipart/form-data" class="space-y-3">
+{{csrfField $.CSRFToken}}
+        <input type="text" name="title" placeholder="{{t .Lang "title"}}" required class="input w-full">
+        <input type="text" name="description" placeholder="{{t .Lang "desc_optional"}}" class="input w-full">
+        <div class="flex flex-col sm:flex-row gap-3">
+            <select name="category_id" class="input">
+                <option value="0">{{t .Lang "no_category"}}</option>
+                {{range .Categories}}<option value="{{.ID}}">{{.Name}}</option>{{end}}
+            </select>
+            <input type="file" name="file" class="flex-1 text-sm">
+        </div>
+        <input type="text" name="external_url" placeholder="{{t .Lang "res_external_url"}}" class="input w-full">
+        <button class="btn-primary px-5 py-2.5 text-sm">{{t .Lang "upload"}}</button>
+    </form>
+</div>
+
+{{if .Resources}}
+<div class="space-y-2">
+    {{range .Resources}}
+    <div class="card p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-medium px-2 py-0.5 rounded
+                    {{if eq .FileType "pdf"}}bg-red-100 text-red-700
+                    {{else if eq .FileType "image"}}bg-green-100 text-green-700
+                    {{else if eq .FileType "video"}}bg-purple-100 text-purple-700
+                    {{else if eq .FileType "audio"}}bg-yellow-100 text-yellow-700
+                    {{else if eq .FileType "link"}}bg-blue-100 text-blue-700
+                    {{else}}bg-gray-100 text-gray-700{{end}}">{{.FileType}}</span>
+                <span class="font-medium text-gray-900 text-sm">{{.Title}}</span>
+            </div>
+            {{if .Description}}<p class="text-xs text-gray-500 mt-0.5">{{.Description}}</p>{{end}}
+            <p class="text-xs text-gray-400 mt-0.5">{{.CategoryName}}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/resource/{{.ID}}/download" class="text-indigo-600 text-sm hover:underline">{{t $.Lang "download"}}</a>
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/resource/{{.ID}}/delete" onsubmit="return confirm('{{t $.Lang "confirm_delete_item"}}')">
+{{csrfField $.CSRFToken}}
+                <button class="text-red-500 text-sm hover:underline">{{t $.Lang "delete"}}</button>
+            </form>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<p class="text-gray-400 text-center py-8">{{t .Lang "res_empty"}}</p>
+{{end}}
+{{end}}
+
+<!-- ASSIGNMENTS TAB -->
+{{if eq .Tab "assignments"}}
+<div class="card p-5 mb-6">
+    <h3 class="font-semibold text-gray-800 mb-4">{{t .Lang "assign_create"}}</h3>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/assignment" class="space-y-4">
+{{csrfField $.CSRFToken}}
+        <input type="text" name="title" placeholder="{{t .Lang "assign_title_ph"}}" required class="input w-full">
+        <textarea name="description" placeholder="{{t .Lang "assign_instructions"}}" rows="2" class="input w-full"></textarea>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "assign_response_type"}}</label>
+                <select name="response_type" id="responseType" onchange="toggleAssignmentFields()" class="input w-full">
+                    <option value="file">{{t .Lang "assign_file"}}</option>
+                    <option value="text">{{t .Lang "assign_text"}}</option>
+                    <option value="both">{{t .Lang "assign_both"}}</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "deadline_optional"}}</label>
+                <input type="datetime-local" name="deadline" class="input w-full">
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div id="fileSizeField">
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "max_file_size"}}</label>
+                <input type="number" name="max_file_size" value="10" min="1" max="100" class="input w-full">
+            </div>
+            <div id="maxCharsField" style="display:none">
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "max_chars"}}</label>
+                <input type="number" name="max_chars" value="0" min="0" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "max_grade"}}</label>
+                <input type="number" name="max_grade" value="20" step="0.5" min="0" class="input w-full">
+            </div>
+        </div>
+        <button class="btn-primary px-5 py-2.5 text-sm">{{t .Lang "create_assignment"}}</button>
+    </form>
+</div>
+<script>
+function toggleAssignmentFields() {
+    const rt = document.getElementById('responseType').value;
+    document.getElementById('fileSizeField').style.display = (rt === 'text') ? 'none' : 'block';
+    document.getElementById('maxCharsField').style.display = (rt === 'file') ? 'none' : 'block';
+}
+</script>
+
+{{if .Assignments}}
+<div class="space-y-3">
+    {{range .Assignments}}
+    <div class="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-semibold text-gray-900 text-sm">{{.Title}}</h4>
+                <span class="badge {{if eq .ResponseType "file"}}bg-blue-50 text-blue-600{{else if eq .ResponseType "text"}}bg-emerald-50 text-emerald-600{{else}}bg-purple-50 text-purple-600{{end}}">
+                    {{if eq .ResponseType "file"}}📎 file{{else if eq .ResponseType "text"}}📝 text{{else}}📎📝 both{{end}}
+                </span>
+            </div>
+            {{if .Description}}<p class="text-xs text-gray-500 mt-1">{{.Description}}</p>{{end}}
+            <p class="text-xs text-gray-400 mt-1">
+                {{.SubmissionCount}} {{t $.Lang "submissions"}} · {{.GradedCount}} {{t $.Lang "graded"}} · Max: {{.MaxGrade}}
+                {{if .Deadline}} · {{t $.Lang "due"}} {{.Deadline.Format "Jan 2, 2006 3:04 PM"}}{{end}}
+                {{if and (gt .MaxFileSize 0) (ne .ResponseType "text")}} · Max {{fileSizeMB .MaxFileSize}}MB{{end}}
+                {{if and (gt .MaxChars 0) (ne .ResponseType "file")}} · Max {{.MaxChars}} chars{{end}}
+            </p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/submissions" class="text-indigo-600 text-sm hover:underline font-medium">{{t $.Lang "view"}}</a>
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/delete" onsubmit="return confirm('{{t $.Lang "confirm_delete_item"}}')">
+{{csrfField $.CSRFToken}}
+                <button class="text-red-500 text-sm hover:underline">{{t $.Lang "delete"}}</button>
+            </form>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<p class="text-gray-400 text-center py-8">{{t .Lang "assign_empty"}}</p>
+{{end}}
+{{end}}
+
+<!-- QUIZZES TAB -->
+{{if eq .Tab "quizzes"}}
+<div class="card p-5 mb-6">
+    <h3 class="font-semibold text-gray-800 mb-3">{{t .Lang "quiz_create"}}</h3>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/quiz" class="space-y-3">
+{{csrfField $.CSRFToken}}
+        <input type="text" name="title" placeholder="{{t .Lang "quiz_title_ph"}}" required class="input w-full">
+        <input type="text" name="description" placeholder="{{t .Lang "desc_optional"}}" class="input w-full">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "deadline_optional"}}</label>
+                <input type="datetime-local" name="deadline" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "quiz_time_limit"}}</label>
+                <input type="number" name="time_limit_minutes" value="0" min="0" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "quiz_max_attempts"}}</label>
+                <input type="number" name="max_attempts" value="1" min="0" class="input w-full">
+            </div>
+        </div>
+        <button class="btn-primary px-5 py-2.5 text-sm">{{t .Lang "create"}}</button>
+    </form>
+</div>
+
+{{if .Quizzes}}
+<div class="space-y-3">
+    {{range .Quizzes}}
+    <div class="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-medium text-gray-900 text-sm">{{.Title}}</h4>
+                {{if .Published}}
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">{{t $.Lang "published"}}</span>
+                {{else}}
+                <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">{{t $.Lang "draft"}}</span>
+                {{end}}
+            </div>
+            <p class="text-xs text-gray-400 mt-0.5">{{.QuestionCount}} {{t $.Lang "questions"}} · {{.AttemptCount}} {{t $.Lang "attempts"}}{{if .Deadline}} · {{t $.Lang "due"}} {{.Deadline.Format "Jan 2"}}{{end}}{{if gt .TimeLimitMinutes 0}} · {{.TimeLimitMinutes}}min{{end}}{{if gt .MaxAttempts 0}} · {{.MaxAttempts}} {{t $.Lang "attempt"}}{{if gt .MaxAttempts 1}}s{{end}}{{else}} · ∞ {{t $.Lang "attempts"}}{{end}}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/admin/classroom/{{$.Classroom.ID}}/quiz/{{.ID}}/edit" class="text-indigo-600 text-sm hover:underline">{{t $.Lang "edit"}}</a>
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/quiz/{{.ID}}/toggle">
+{{csrfField $.CSRFToken}}
+                <button class="text-sm {{if .Published}}text-yellow-600{{else}}text-green-600{{end}} hover:underline">
+                    {{if .Published}}{{t $.Lang "unpublish"}}{{else}}{{t $.Lang "publish"}}{{end}}
+                </button>
+            </form>
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/quiz/{{.ID}}/delete" onsubmit="return confirm('{{t $.Lang "confirm_delete_item"}}')">
+{{csrfField $.CSRFToken}}
+                <button class="text-red-500 text-sm hover:underline">{{t $.Lang "delete"}}</button>
+            </form>
+        </div>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<p class="text-gray-400 text-center py-8">{{t .Lang "quiz_empty"}}</p>
+{{end}}
+{{end}}
+
+<!-- STUDENTS TAB -->
+{{if eq .Tab "students"}}
+
+<!-- Pending Approvals -->
+{{if .PendingStudents}}
+<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+    <h3 class="font-medium text-yellow-800 mb-3">{{t .Lang "students_pending"}} ({{len .PendingStudents}})</h3>
+    <div class="space-y-2">
+        {{range .PendingStudents}}
+        <div class="bg-white border border-yellow-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="min-w-0">
+                <span class="font-medium text-gray-900 text-sm">{{.Name}}</span>
+                {{if .Email}}<span class="text-xs text-gray-400 sm:ml-2 block sm:inline">{{.Email}}</span>{{end}}
+            </div>
+            <div class="flex items-center gap-2">
+                <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}/approve">
+{{csrfField $.CSRFToken}}
+                    <button class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">{{t $.Lang "approve"}}</button>
+                </form>
+                <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}/reject" onsubmit="return confirm('{{t $.Lang "reject_confirm"}}')">
+{{csrfField $.CSRFToken}}
+                    <button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">{{t $.Lang "reject"}}</button>
+                </form>
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+<!-- Approved Students -->
+<h3 class="font-medium text-gray-700 mb-3">{{t .Lang "students_approved"}} ({{len .Students}})</h3>
+{{if .Students}}
+<div class="space-y-2 mb-6">
+    {{range .Students}}
+    <div class="bg-white border border-gray-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="min-w-0">
+            <span class="font-medium text-gray-900 text-sm">{{.Name}}</span>
+            {{if .Email}}<span class="text-xs text-gray-400 sm:ml-2 block sm:inline">{{.Email}}</span>{{end}}
+        </div>
+        <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}/remove" onsubmit="return confirm('{{t $.Lang "remove_confirm"}}')">
+{{csrfField $.CSRFToken}}
+            <button class="text-red-500 text-sm hover:underline">{{t $.Lang "remove"}}</button>
+        </form>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<p class="text-gray-400 text-center py-4">{{t .Lang "students_empty"}}</p>
+{{end}}
+
+<!-- Allow List -->
+<div class="border-t border-gray-200 pt-6 mt-6">
+    <h3 class="font-medium text-gray-700 mb-1">{{t .Lang "students_preregistered"}}</h3>
+    <p class="text-xs text-gray-400 mb-4">{{t .Lang "students_prereg_help"}}</p>
+
+    <!-- Add single -->
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/allowed" class="flex flex-col sm:flex-row gap-2 mb-3">
+{{csrfField $.CSRFToken}}
+        <input type="email" name="email" placeholder="{{t .Lang "student_email_ph"}}" required class="input sm:flex-1">
+        <input type="text" name="name" placeholder="{{t .Lang "name_optional"}}" class="input">
+        <button class="btn-primary px-3 py-1.5 text-sm whitespace-nowrap">{{t .Lang "add"}}</button>
+    </form>
+
+    <!-- Bulk add -->
+    <details class="mb-4">
+        <summary class="text-sm text-indigo-600 cursor-pointer hover:underline">{{t .Lang "add_multiple"}}</summary>
+        <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/allowed/bulk" class="mt-2">
+{{csrfField $.CSRFToken}}
+            <textarea name="bulk_emails" rows="4" placeholder="{{t .Lang "add_multiple_help"}}" class="input w-full font-mono"></textarea>
+            <button class="btn-primary px-4 py-2 text-sm mt-2">{{t .Lang "add_all"}}</button>
+        </form>
+    </details>
+
+    <!-- List -->
+    {{if .AllowedStudents}}
+    <div class="space-y-1">
+        {{range .AllowedStudents}}
+        <div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-sm">
+            <div class="min-w-0">
+                <span class="text-gray-700 font-mono break-all">{{.Email}}</span>
+                {{if .Name}}<span class="text-gray-400 sm:ml-2 block sm:inline">{{.Name}}</span>{{end}}
+            </div>
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/allowed/{{.ID}}/delete" class="flex-shrink-0">
+{{csrfField $.CSRFToken}}
+                <button class="text-red-500 hover:underline text-xs">{{t $.Lang "remove"}}</button>
+            </form>
+        </div>
+        {{end}}
+    </div>
+    {{else}}
+    <p class="text-gray-400 text-center py-4 text-sm">{{t .Lang "prereg_empty"}}</p>
+    {{end}}
+</div>
+
+{{end}}
+
+{{template "admin_foot" .}}

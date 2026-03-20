@@ -1,0 +1,26 @@
+{{define "error_rate_limit.html"}}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Too Many Attempts — TeachHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-[Inter] flex items-center justify-center">
+    <div class="max-w-md mx-auto text-center px-6">
+        <div class="text-6xl mb-4">🛑</div>
+        <h1 class="text-2xl font-bold text-white mb-2">Too Many Attempts</h1>
+        <p class="text-slate-400 mb-6">
+            You've made too many login attempts. Please wait approximately
+            <span class="text-amber-400 font-semibold">{{.Minutes}} minute{{if gt .Minutes 1}}s{{end}}</span>
+            before trying again.
+        </p>
+        <a href="javascript:history.back()" class="inline-block bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium py-2.5 px-6 rounded-lg transition text-sm">
+            ← Go Back
+        </a>
+    </div>
+</body>
+</html>
+{{end}}

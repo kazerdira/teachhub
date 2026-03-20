@@ -1,0 +1,198 @@
+{{define "apply.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub — {{t .Lang "apply_title"}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 min-h-screen font-sans">
+    <!-- Nav -->
+    <nav class="border-b border-white/10 px-4 py-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <a href="/" class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                📚 TeachHub
+            </a>
+            <div class="flex items-center gap-3">
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-indigo-300 hover:text-white text-sm">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-indigo-300 hover:text-white text-sm">🇫🇷 FR</a>
+                {{end}}
+                <a href="/" class="text-indigo-300 hover:text-white text-sm">🎓 {{t .Lang "nav_student_portal"}}</a>
+                <a href="/admin/login" class="text-indigo-300 hover:text-white text-sm">{{t .Lang "apply_already_teacher"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-2xl mx-auto px-4 py-12">
+        <!-- Hero -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-white mb-3">{{t .Lang "apply_heading"}}</h1>
+            <p class="text-indigo-200 text-lg">{{t .Lang "apply_subheading"}}</p>
+        </div>
+
+        {{if eq .Error "name_email_required"}}
+        <div class="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-6 text-sm text-center">
+            {{t .Lang "apply_error_required"}}
+        </div>
+        {{end}}
+        {{if eq .Error "submit_failed"}}
+        <div class="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-6 text-sm text-center">
+            {{t .Lang "apply_error_failed"}}
+        </div>
+        {{end}}
+
+        <!-- Application Form -->
+        <form method="POST" action="/apply" class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 space-y-5">
+{{csrfField $.CSRFToken}}
+            <!-- Full Name -->
+            <div>
+                <label class="block text-sm font-medium text-indigo-200 mb-1.5">{{t .Lang "apply_full_name"}} <span class="text-red-400">*</span></label>
+                <input type="text" name="full_name" required
+                    class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition"
+                    placeholder="{{t .Lang "apply_name_ph"}}">
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-sm font-medium text-indigo-200 mb-1.5">{{t .Lang "apply_email"}} <span class="text-red-400">*</span></label>
+                <input type="email" name="email" required
+                    class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition"
+                    placeholder="{{t .Lang "apply_email_ph"}}">
+            </div>
+
+            <!-- Phone -->
+            <div>
+                <label class="block text-sm font-medium text-indigo-200 mb-1.5">{{t .Lang "apply_phone"}}</label>
+                <input type="tel" name="phone"
+                    class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition"
+                    placeholder="{{t .Lang "apply_phone_ph"}}">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- School -->
+                <div>
+                    <label class="block text-sm font-medium text-indigo-200 mb-1.5">{{t .Lang "apply_school"}}</label>
+                    <input type="text" name="school_name"
+                        class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition"
+                        placeholder="{{t .Lang "apply_school_ph"}}">
+                </div>
+
+                <!-- Wilaya -->
+                <div>
+                    <label class="block text-sm font-medium text-indigo-200 mb-1.5">{{t .Lang "apply_wilaya"}}</label>
+                    <select name="wilaya"
+                        class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition">
+                        <option value="" class="bg-slate-800">{{t .Lang "apply_select_wilaya"}}</option>
+                        <option value="01 - Adrar" class="bg-slate-800">01 - Adrar</option>
+                        <option value="02 - Chlef" class="bg-slate-800">02 - Chlef</option>
+                        <option value="03 - Laghouat" class="bg-slate-800">03 - Laghouat</option>
+                        <option value="04 - Oum El Bouaghi" class="bg-slate-800">04 - Oum El Bouaghi</option>
+                        <option value="05 - Batna" class="bg-slate-800">05 - Batna</option>
+                        <option value="06 - Béjaïa" class="bg-slate-800">06 - Béjaïa</option>
+                        <option value="07 - Biskra" class="bg-slate-800">07 - Biskra</option>
+                        <option value="08 - Béchar" class="bg-slate-800">08 - Béchar</option>
+                        <option value="09 - Blida" class="bg-slate-800">09 - Blida</option>
+                        <option value="10 - Bouira" class="bg-slate-800">10 - Bouira</option>
+                        <option value="11 - Tamanrasset" class="bg-slate-800">11 - Tamanrasset</option>
+                        <option value="12 - Tébessa" class="bg-slate-800">12 - Tébessa</option>
+                        <option value="13 - Tlemcen" class="bg-slate-800">13 - Tlemcen</option>
+                        <option value="14 - Tiaret" class="bg-slate-800">14 - Tiaret</option>
+                        <option value="15 - Tizi Ouzou" class="bg-slate-800">15 - Tizi Ouzou</option>
+                        <option value="16 - Alger" class="bg-slate-800">16 - Alger</option>
+                        <option value="17 - Djelfa" class="bg-slate-800">17 - Djelfa</option>
+                        <option value="18 - Jijel" class="bg-slate-800">18 - Jijel</option>
+                        <option value="19 - Sétif" class="bg-slate-800">19 - Sétif</option>
+                        <option value="20 - Saïda" class="bg-slate-800">20 - Saïda</option>
+                        <option value="21 - Skikda" class="bg-slate-800">21 - Skikda</option>
+                        <option value="22 - Sidi Bel Abbès" class="bg-slate-800">22 - Sidi Bel Abbès</option>
+                        <option value="23 - Annaba" class="bg-slate-800">23 - Annaba</option>
+                        <option value="24 - Guelma" class="bg-slate-800">24 - Guelma</option>
+                        <option value="25 - Constantine" class="bg-slate-800">25 - Constantine</option>
+                        <option value="26 - Médéa" class="bg-slate-800">26 - Médéa</option>
+                        <option value="27 - Mostaganem" class="bg-slate-800">27 - Mostaganem</option>
+                        <option value="28 - M'Sila" class="bg-slate-800">28 - M'Sila</option>
+                        <option value="29 - Mascara" class="bg-slate-800">29 - Mascara</option>
+                        <option value="30 - Ouargla" class="bg-slate-800">30 - Ouargla</option>
+                        <option value="31 - Oran" class="bg-slate-800">31 - Oran</option>
+                        <option value="32 - El Bayadh" class="bg-slate-800">32 - El Bayadh</option>
+                        <option value="33 - Illizi" class="bg-slate-800">33 - Illizi</option>
+                        <option value="34 - Bordj Bou Arréridj" class="bg-slate-800">34 - Bordj Bou Arréridj</option>
+                        <option value="35 - Boumerdès" class="bg-slate-800">35 - Boumerdès</option>
+                        <option value="36 - El Tarf" class="bg-slate-800">36 - El Tarf</option>
+                        <option value="37 - Tindouf" class="bg-slate-800">37 - Tindouf</option>
+                        <option value="38 - Tissemsilt" class="bg-slate-800">38 - Tissemsilt</option>
+                        <option value="39 - El Oued" class="bg-slate-800">39 - El Oued</option>
+                        <option value="40 - Khenchela" class="bg-slate-800">40 - Khenchela</option>
+                        <option value="41 - Souk Ahras" class="bg-slate-800">41 - Souk Ahras</option>
+                        <option value="42 - Tipaza" class="bg-slate-800">42 - Tipaza</option>
+                        <option value="43 - Mila" class="bg-slate-800">43 - Mila</option>
+                        <option value="44 - Aïn Defla" class="bg-slate-800">44 - Aïn Defla</option>
+                        <option value="45 - Naâma" class="bg-slate-800">45 - Naâma</option>
+                        <option value="46 - Aïn Témouchent" class="bg-slate-800">46 - Aïn Témouchent</option>
+                        <option value="47 - Ghardaïa" class="bg-slate-800">47 - Ghardaïa</option>
+                        <option value="48 - Relizane" class="bg-slate-800">48 - Relizane</option>
+                        <option value="49 - El M'Ghair" class="bg-slate-800">49 - El M'Ghair</option>
+                        <option value="50 - El Meniaa" class="bg-slate-800">50 - El Meniaa</option>
+                        <option value="51 - Ouled Djellal" class="bg-slate-800">51 - Ouled Djellal</option>
+                        <option value="52 - Bordj Badji Mokhtar" class="bg-slate-800">52 - Bordj Badji Mokhtar</option>
+                        <option value="53 - Béni Abbès" class="bg-slate-800">53 - Béni Abbès</option>
+                        <option value="54 - Timimoun" class="bg-slate-800">54 - Timimoun</option>
+                        <option value="55 - Touggourt" class="bg-slate-800">55 - Touggourt</option>
+                        <option value="56 - Djanet" class="bg-slate-800">56 - Djanet</option>
+                        <option value="57 - In Salah" class="bg-slate-800">57 - In Salah</option>
+                        <option value="58 - In Guezzam" class="bg-slate-800">58 - In Guezzam</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Message -->
+            <div>
+                <label class="block text-sm font-medium text-indigo-200 mb-1.5">{{t .Lang "apply_message"}}</label>
+                <textarea name="message" rows="4"
+                    class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/40 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 outline-none transition resize-none"
+                    placeholder="{{t .Lang "apply_message_ph"}}"></textarea>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 text-lg">
+                {{t .Lang "apply_submit"}}
+            </button>
+
+            <p class="text-center text-white/40 text-xs mt-2">
+                {{t .Lang "apply_footer"}}
+            </p>
+        </form>
+
+        <!-- Features -->
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-center">
+                <div class="text-3xl mb-2">🎓</div>
+                <h3 class="text-white font-semibold mb-1">{{t .Lang "apply_feat1_title"}}</h3>
+                <p class="text-indigo-300 text-sm">{{t .Lang "apply_feat1_desc"}}</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-center">
+                <div class="text-3xl mb-2">📊</div>
+                <h3 class="text-white font-semibold mb-1">{{t .Lang "apply_feat2_title"}}</h3>
+                <p class="text-indigo-300 text-sm">{{t .Lang "apply_feat2_desc"}}</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-5 text-center">
+                <div class="text-3xl mb-2">📹</div>
+                <h3 class="text-white font-semibold mb-1">{{t .Lang "apply_feat3_title"}}</h3>
+                <p class="text-indigo-300 text-sm">{{t .Lang "apply_feat3_desc"}}</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

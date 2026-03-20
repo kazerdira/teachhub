@@ -1,0 +1,13 @@
+# ─── LiveKit Production Config ───────────────────────────
+# IMPORTANT: Replace NODE_IP with your server's actual public IP
+# The deploy.sh script does this automatically.
+
+port: 7880
+rtc:
+  tcp_port: 7881
+  port_range_start: 7882
+  port_range_end: 7892
+  use_external_ip: true
+  node_ip: NODE_IP
+keys:
+  teachhub: LIVEKIT_SECRET

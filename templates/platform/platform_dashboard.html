@@ -1,0 +1,140 @@
+{{define "platform_dashboard.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+    </script>
+    <style>
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; transition: all 0.15s; }
+        .card:hover { border-color: rgba(139,92,246,0.4); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-sans text-white">
+    <nav class="bg-slate-900/80 backdrop-blur border-b border-white/10 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="{{.PlatformPath}}" class="text-lg font-bold tracking-tight flex items-center gap-2">
+                🏢 TeachHub <span class="text-purple-400 text-xs font-normal">Platform</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="{{.PlatformPath}}" class="text-white font-medium">{{t .Lang "plat_nav_dashboard"}}</a>
+                <a href="{{.PlatformPath}}/applications" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_applications"}}</a>
+                <a href="{{.PlatformPath}}/teachers" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_teachers"}}</a>
+                <a href="{{.PlatformPath}}/analytics" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_analytics"}}</a>
+                <span class="text-white/20">|</span>
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-purple-300 hover:text-white text-sm">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-purple-300 hover:text-white text-sm">🇫🇷 FR</a>
+                {{end}}
+                <a href="{{.PlatformPath}}/logout" class="text-slate-400 hover:text-red-400 transition">{{t .Lang "nav_logout"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold">{{t .Lang "plat_dash_heading"}}</h1>
+            <p class="text-slate-400 text-sm mt-1">{{t .Lang "plat_dash_subheading"}}</p>
+        </div>
+
+        <!-- Application Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-amber-400">{{.Pending}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_pending"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-blue-400">{{.Contacted}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_contacted"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-emerald-400">{{.Approved}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_approved"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-red-400">{{.Rejected}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_rejected"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-white">{{.Total}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_total"}}</div>
+            </div>
+        </div>
+
+        <!-- Teachers & Revenue Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-emerald-400">{{.ActiveTeachers}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_dash_active"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-red-400">{{.SuspendedTeachers}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_dash_suspended"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-purple-400">{{printf "%.0f" .TotalRevenue}} <span class="text-sm font-normal">DA</span></div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_dash_revenue"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-blue-400">{{printf "%.0f" .MonthlyRevenue}} <span class="text-sm font-normal">DA</span></div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_dash_monthly"}}</div>
+            </div>
+        </div>
+
+        <!-- Expiring Soon Alert -->
+        {{if gt .ExpiringSoon 0}}
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <div class="text-2xl">⚠️</div>
+            <div>
+                <div class="font-semibold text-amber-300">{{t .Lang "plat_dash_expiring_title"}}</div>
+                <div class="text-sm text-slate-400">{{.ExpiringSoon}} {{t .Lang "plat_dash_expiring_desc"}}</div>
+            </div>
+            <a href="{{.PlatformPath}}/teachers" class="ml-auto bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 px-4 py-2 rounded-lg text-sm font-medium transition">{{t .Lang "plat_dash_view_teachers"}} →</a>
+        </div>
+        {{end}}
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {{if gt .Pending 0}}
+            <a href="{{.PlatformPath}}/applications?status=pending" class="card p-6 flex items-center gap-4 hover:bg-white/5 transition group">
+                <div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center text-xl">⏳</div>
+                <div>
+                    <div class="font-semibold group-hover:text-amber-400 transition">{{t .Lang "plat_action_review"}}</div>
+                    <div class="text-slate-400 text-sm">{{.Pending}} {{t .Lang "plat_action_review_desc"}}</div>
+                </div>
+                <div class="ml-auto text-slate-500 group-hover:text-white transition">→</div>
+            </a>
+            {{end}}
+
+            <a href="{{.PlatformPath}}/applications" class="card p-6 flex items-center gap-4 hover:bg-white/5 transition group">
+                <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-xl">📋</div>
+                <div>
+                    <div class="font-semibold group-hover:text-purple-400 transition">{{t .Lang "plat_action_all_apps"}}</div>
+                    <div class="text-slate-400 text-sm">{{.Total}} {{t .Lang "plat_action_all_apps_desc"}}</div>
+                </div>
+                <div class="ml-auto text-slate-500 group-hover:text-white transition">→</div>
+            </a>
+
+            <a href="{{.PlatformPath}}/teachers" class="card p-6 flex items-center gap-4 hover:bg-white/5 transition group">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-xl">👨‍🏫</div>
+                <div>
+                    <div class="font-semibold group-hover:text-emerald-400 transition">{{t .Lang "plat_nav_teachers"}}</div>
+                    <div class="text-slate-400 text-sm">{{.TotalTeachers}} {{t .Lang "plat_action_teachers_desc"}}</div>
+                </div>
+                <div class="ml-auto text-slate-500 group-hover:text-white transition">→</div>
+            </a>
+        </div>
+    </main>
+</body>
+</html>
+{{end}}

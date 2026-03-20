@@ -1,0 +1,241 @@
+{{define "landing.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub — {{t .Lang "land_tagline"}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+            }
+        }
+    }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        .gradient-text { background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(120px); opacity: 0.15; pointer-events: none; }
+        .feature-card { background: white; border: 1px solid #e5e7eb; border-radius: 1rem; transition: all 0.25s ease; }
+        .feature-card:hover { border-color: #c7d2fe; box-shadow: 0 8px 30px rgba(99,102,241,0.12); transform: translateY(-4px); }
+        .step-line { position: absolute; top: 24px; left: 50%; width: calc(100% - 48px); height: 2px; background: linear-gradient(90deg, #c7d2fe, #ddd6fe); transform: translateX(-50%); z-index: 0; }
+        @media (max-width: 768px) { .step-line { display: none; } }
+    </style>
+</head>
+<body class="bg-white font-sans text-gray-900 antialiased">
+
+    <!-- ─── Nav ──────────────────────────────────────── -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg flex items-center justify-center shadow-sm">
+                    <span class="text-white text-sm">📚</span>
+                </div>
+                <span class="text-lg font-bold text-gray-900 tracking-tight">TeachHub</span>
+            </a>
+            <div class="flex items-center gap-3 sm:gap-4">
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-xs text-gray-400 hover:text-gray-600 transition">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-xs text-gray-400 hover:text-gray-600 transition">🇫🇷 FR</a>
+                {{end}}
+                <a href="/admin/login" class="text-sm text-gray-500 hover:text-indigo-600 transition hidden sm:inline">{{t .Lang "land_teacher_signin"}}</a>
+                <a href="/apply" class="text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-indigo-200 transition-all hover:-translate-y-0.5">
+                    {{t .Lang "land_apply_btn"}}
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ─── Hero ─────────────────────────────────────── -->
+    <section class="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28 px-4">
+        <!-- Background glows -->
+        <div class="hero-glow bg-indigo-400" style="top:-200px; left:-100px;"></div>
+        <div class="hero-glow bg-violet-400" style="top:-100px; right:-200px;"></div>
+
+        <div class="max-w-4xl mx-auto text-center relative z-10">
+            <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-6 border border-indigo-100">
+                <span>🇩🇿</span>
+                <span>{{t .Lang "land_badge"}}</span>
+            </div>
+
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight mb-6">
+                {{t .Lang "land_hero_1"}}
+                <span class="gradient-text">{{t .Lang "land_hero_highlight"}}</span>
+                {{t .Lang "land_hero_2"}}
+            </h1>
+
+            <p class="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+                {{t .Lang "land_hero_desc"}}
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                <a href="/apply" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold px-8 py-4 rounded-xl text-base hover:shadow-xl hover:shadow-indigo-200 transition-all hover:-translate-y-1">
+                    <span>👨‍🏫</span>
+                    {{t .Lang "land_cta_teacher"}}
+                </a>
+                <a href="#student-join" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-800 font-semibold px-8 py-4 rounded-xl text-base border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all hover:-translate-y-1">
+                    <span>🎓</span>
+                    {{t .Lang "land_cta_student"}}
+                </a>
+            </div>
+            <p class="text-sm text-gray-400">{{t .Lang "land_cta_free"}}</p>
+        </div>
+    </section>
+
+    <!-- ─── Student Quick Join ───────────────────────── -->
+    <section id="student-join" class="py-16 sm:py-20 bg-gray-50 px-4">
+        <div class="max-w-md mx-auto text-center">
+            <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-100">
+                <span class="text-2xl">🎓</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-2">{{t .Lang "land_student_title"}}</h2>
+            <p class="text-gray-500 mb-8">{{t .Lang "land_student_desc"}}</p>
+            <form action="/join-by-code" method="POST" class="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto">
+                {{csrfField $.CSRFToken}}
+                <input type="text" name="code" placeholder="{{t .Lang "home_code_ph"}}" required
+                    class="flex-1 text-center text-lg font-mono uppercase tracking-widest py-3 px-4 border-2 border-gray-200 rounded-xl outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition">
+                <button type="submit" class="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-emerald-200 transition-all hover:-translate-y-0.5">
+                    {{t .Lang "land_student_go"}}
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ─── How It Works ─────────────────────────────── -->
+    <section class="py-20 sm:py-28 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-3">{{t .Lang "land_how_title"}}</h2>
+                <p class="text-gray-500 text-lg">{{t .Lang "land_how_desc"}}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
+                <!-- Connector line (desktop only) -->
+                <div class="step-line hidden md:block" style="left:calc(16.66% + 24px); width:calc(66.66% - 48px);"></div>
+
+                <!-- Step 1 -->
+                <div class="text-center relative z-10">
+                    <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold ring-4 ring-white">1</div>
+                    <h3 class="font-bold text-lg mb-2">{{t .Lang "land_step1_title"}}</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">{{t .Lang "land_step1_desc"}}</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center relative z-10">
+                    <div class="w-12 h-12 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold ring-4 ring-white">2</div>
+                    <h3 class="font-bold text-lg mb-2">{{t .Lang "land_step2_title"}}</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">{{t .Lang "land_step2_desc"}}</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center relative z-10">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-4 text-lg font-bold ring-4 ring-white">3</div>
+                    <h3 class="font-bold text-lg mb-2">{{t .Lang "land_step3_title"}}</h3>
+                    <p class="text-gray-500 text-sm leading-relaxed">{{t .Lang "land_step3_desc"}}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── Features ─────────────────────────────────── -->
+    <section class="py-20 sm:py-28 bg-gray-50 px-4">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-3">{{t .Lang "land_feat_title"}}</h2>
+                <p class="text-gray-500 text-lg">{{t .Lang "land_feat_desc"}}</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Quizzes -->
+                <div class="feature-card p-6">
+                    <div class="w-11 h-11 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 text-xl">📝</div>
+                    <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_quiz_t"}}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_quiz_d"}}</p>
+                </div>
+
+                <!-- Assignments -->
+                <div class="feature-card p-6">
+                    <div class="w-11 h-11 bg-violet-50 rounded-xl flex items-center justify-center mb-4 text-xl">📋</div>
+                    <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_assign_t"}}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_assign_d"}}</p>
+                </div>
+
+                <!-- Live Sessions -->
+                <div class="feature-card p-6">
+                    <div class="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center mb-4 text-xl">🎥</div>
+                    <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_live_t"}}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_live_d"}}</p>
+                </div>
+
+                <!-- Resources -->
+                <div class="feature-card p-6">
+                    <div class="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 text-xl">📂</div>
+                    <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_res_t"}}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_res_d"}}</p>
+                </div>
+
+                <!-- AI Grading -->
+                <div class="feature-card p-6">
+                    <div class="w-11 h-11 bg-amber-50 rounded-xl flex items-center justify-center mb-4 text-xl">🤖</div>
+                    <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_ai_t"}}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_ai_d"}}</p>
+                </div>
+
+                <!-- Analytics -->
+                <div class="feature-card p-6">
+                    <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center mb-4 text-xl">📊</div>
+                    <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_stats_t"}}</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_stats_d"}}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── Final CTA ────────────────────────────────── -->
+    <section class="py-20 sm:py-28 px-4">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl sm:text-4xl font-bold mb-4">{{t .Lang "land_final_title"}}</h2>
+            <p class="text-gray-500 text-lg mb-10 max-w-xl mx-auto">{{t .Lang "land_final_desc"}}</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="/apply" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold px-8 py-4 rounded-xl text-base hover:shadow-xl hover:shadow-indigo-200 transition-all hover:-translate-y-1">
+                    {{t .Lang "land_cta_teacher"}}
+                </a>
+                <a href="/admin/login" class="text-indigo-600 font-semibold hover:underline">
+                    {{t .Lang "land_teacher_signin"}} →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── Footer ───────────────────────────────────── -->
+    <footer class="border-t border-gray-100 py-8 px-4">
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+            <div class="flex items-center gap-2">
+                <span>📚</span>
+                <span class="font-semibold text-gray-600">TeachHub</span>
+                <span>· {{t .Lang "land_footer_tagline"}}</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/apply" class="hover:text-indigo-600 transition">{{t .Lang "land_apply_btn"}}</a>
+                <span class="text-gray-200">|</span>
+                <a href="/admin/login" class="hover:text-indigo-600 transition">{{t .Lang "land_teacher_signin"}}</a>
+                <span class="text-gray-200">|</span>
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="hover:text-indigo-600 transition">🇬🇧 English</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="hover:text-indigo-600 transition">🇫🇷 Français</a>
+                {{end}}
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
+{{end}}

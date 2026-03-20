@@ -1,0 +1,53 @@
+{{template "admin_head" .}}
+
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">{{t .Lang "dash_heading"}}</h1>
+        <p class="text-sm text-gray-400 mt-0.5">{{t .Lang "dash_subheading"}}</p>
+    </div>
+</div>
+
+<!-- Create Classroom -->
+<form method="POST" action="/admin/classroom" class="card p-4 mb-8">
+{{csrfField $.CSRFToken}}
+    <div class="flex flex-col sm:flex-row gap-3">
+        <input type="text" name="name" placeholder="{{t .Lang "dash_placeholder"}}" required
+            class="input flex-1">
+        <button type="submit" class="btn-primary px-5 py-2 text-sm whitespace-nowrap">{{t .Lang "dash_create"}}</button>
+    </div>
+</form>
+
+<!-- Classroom List -->
+{{if .Classrooms}}
+<div class="grid gap-4">
+    {{range .Classrooms}}
+    <a href="/admin/classroom/{{.ID}}" class="card p-4 sm:p-5 block group">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="min-w-0">
+                <h3 class="font-semibold text-gray-900 group-hover:text-indigo-600 transition truncate">{{.Name}}</h3>
+                <div class="flex items-center gap-3 mt-1 sm:mt-2">
+                    <span class="inline-flex items-center gap-1 text-xs text-gray-500">
+                        <span class="font-mono bg-gray-100 px-2 py-0.5 rounded text-xs">{{.JoinCode}}</span>
+                    </span>
+                </div>
+            </div>
+            <div class="sm:text-right space-y-1 flex-shrink-0">
+                <div class="flex items-center gap-2 sm:justify-end flex-wrap">
+                    <span class="badge bg-indigo-50 text-indigo-700">{{.StudentCount}} {{t $.Lang "dash_students"}}</span>
+                    {{if .PendingCount}}<span class="badge bg-yellow-100 text-yellow-700 animate-pulse">{{.PendingCount}} {{t $.Lang "dash_pending"}}</span>{{end}}
+                </div>
+                <div class="text-xs text-gray-400">{{.ResourceCount}} {{t $.Lang "dash_resources"}} · {{.QuizCount}} {{t $.Lang "dash_quizzes_n"}}</div>
+            </div>
+        </div>
+    </a>
+    {{end}}
+</div>
+{{else}}
+<div class="text-center py-20">
+    <div class="text-5xl mb-4 opacity-50">📚</div>
+    <p class="text-lg text-gray-400 font-medium">{{t .Lang "dash_empty"}}</p>
+    <p class="text-sm text-gray-300 mt-1">{{t .Lang "dash_empty_sub"}}</p>
+</div>
+{{end}}
+
+{{template "admin_foot" .}}

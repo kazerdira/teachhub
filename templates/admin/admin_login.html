@@ -1,0 +1,73 @@
+{{define "admin_login.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub — {{t .Lang "login_heading"}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+    </script>
+    <style>
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; }
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
+        .btn-primary:hover { box-shadow: 0 4px 12px rgba(99,102,241,0.35); transform: translateY(-1px); }
+        .input { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; width: 100%; outline: none; transition: all 0.15s; }
+        .input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans flex items-center justify-center">
+    <div class="w-full max-w-sm mx-auto px-4">
+        <div class="text-center mb-8">
+            <div class="text-5xl mb-3">📚</div>
+            <h1 class="text-2xl font-bold text-gray-900">{{t .Lang "login_heading"}}</h1>
+            <p class="text-sm text-gray-400 mt-1">{{t .Lang "login_subheading"}}</p>
+        </div>
+        {{if eq .Error "suspended"}}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+            <span>🚫</span> {{t .Lang "login_error_suspended"}}
+        </div>
+        {{else if eq .Error "expired"}}
+        <div class="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+            <span>⏰</span> {{t .Lang "login_error_expired"}}
+        </div>
+        {{else if .Error}}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+            <span>⚠️</span> {{t .Lang "login_error"}}
+        </div>
+        {{end}}
+        <div class="card p-6">
+            <form method="POST" action="/admin/login" class="space-y-4">
+{{csrfField $.CSRFToken}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{t .Lang "login_username"}}</label>
+                    <input type="text" name="username" required autofocus class="input">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">{{t .Lang "login_password"}}</label>
+                    <input type="password" name="password" required class="input">
+                </div>
+                <button type="submit" class="btn-primary w-full py-2.5 text-sm">{{t .Lang "login_submit"}}</button>
+            </form>
+        </div>
+
+        <div class="mt-6 flex items-center justify-center gap-4 text-sm">
+            {{if eq .Lang "fr"}}<a href="/set-lang?lang=en" class="text-gray-400 hover:text-indigo-600 transition">🇬🇧 EN</a>{{else}}<a href="/set-lang?lang=fr" class="text-gray-400 hover:text-indigo-600 transition">🇫🇷 FR</a>{{end}}
+        </div>
+
+        <div class="mt-4 flex items-center justify-center gap-4 text-sm">
+            <a href="/" class="text-gray-400 hover:text-indigo-600 transition">🎓 {{t .Lang "nav_student_portal"}}</a>
+            <span class="text-gray-200">|</span>
+            <a href="/apply" class="text-gray-400 hover:text-emerald-600 transition">📝 {{t .Lang "nav_become_teacher"}}</a>
+            <span class="text-gray-200">|</span>
+
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

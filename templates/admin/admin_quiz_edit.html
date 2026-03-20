@@ -1,0 +1,252 @@
+{{template "admin_head" .}}
+
+<div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <a href="/admin/classroom/{{.Classroom.ID}}?tab=quizzes" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back_to"}} {{.Classroom.Name}}</a>
+    <div class="flex items-center gap-2">
+        <span class="text-sm font-medium text-gray-500">{{t .Lang "status"}}</span>
+        <span class="badge {{if .Quiz.Published}}bg-emerald-50 text-emerald-700{{else}}bg-amber-50 text-amber-700{{end}}">
+            {{if .Quiz.Published}}{{t .Lang "published"}}{{else}}{{t .Lang "draft"}}{{end}}
+        </span>
+    </div>
+</div>
+
+<!-- Quiz Info Card -->
+<div class="card p-6 mb-6 border-l-4 border-l-indigo-500">
+    <h1 class="text-2xl font-bold text-gray-900 mb-1">{{.Quiz.Title}}</h1>
+    {{if .Quiz.Description}}<p class="text-gray-600 mb-3">{{.Quiz.Description}}</p>{{end}}
+    <div class="flex flex-wrap gap-2 text-xs">
+        {{if .Quiz.Deadline}}<span class="badge bg-red-50 text-red-600">⏰ {{t .Lang "deadline"}} {{.Quiz.Deadline.Format "Jan 2, 2006 3:04 PM"}}</span>{{end}}
+        {{if gt .Quiz.TimeLimitMinutes 0}}<span class="badge bg-blue-50 text-blue-600">⏱ {{.Quiz.TimeLimitMinutes}} min {{t .Lang "time_limit"}}</span>{{end}}
+        <span class="badge bg-gray-100 text-gray-600">🔄 {{if eq .Quiz.MaxAttempts 0}}{{t .Lang "unlimited_attempts"}}{{else}}{{.Quiz.MaxAttempts}} {{if ne .Quiz.MaxAttempts 1}}{{t .Lang "attempts"}}{{else}}{{t .Lang "attempt"}}{{end}}{{end}}</span>
+    </div>
+</div>
+
+<!-- Quiz Settings -->
+<details class="card mb-6">
+    <summary class="p-4 cursor-pointer font-semibold text-gray-800 hover:bg-gray-50 rounded-xl flex items-center gap-2">{{t .Lang "quiz_settings"}}</summary>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/quiz/{{.Quiz.ID}}/settings" class="p-5 pt-0 space-y-4 border-t border-gray-100">
+{{csrfField $.CSRFToken}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "title"}}</label>
+                <input type="text" name="title" value="{{.Quiz.Title}}" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "quiz_desc_label"}}</label>
+                <input type="text" name="description" value="{{.Quiz.Description}}" class="input w-full">
+            </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "quiz_deadline_label"}}</label>
+                <input type="datetime-local" name="deadline" value="{{if .Quiz.Deadline}}{{.Quiz.Deadline.Format "2006-01-02T15:04"}}{{end}}" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "quiz_time_label"}}</label>
+                <input type="number" name="time_limit_minutes" value="{{.Quiz.TimeLimitMinutes}}" min="0" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "quiz_attempts_label"}}</label>
+                <input type="number" name="max_attempts" value="{{.Quiz.MaxAttempts}}" min="0" class="input w-full">
+            </div>
+        </div>
+        <button class="btn-primary px-5 py-2 text-sm">{{t .Lang "save_settings"}}</button>
+    </form>
+</details>
+
+<!-- Questions -->
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-gray-800">{{t .Lang "questions_heading"}} ({{len .Questions}})</h2>
+</div>
+
+{{if .Questions}}
+<div class="space-y-4 mb-8">
+    {{range $i, $q := .Questions}}
+    <div class="card p-5 relative overflow-hidden">
+        <div class="absolute top-0 right-0 bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-400 rounded-bl-lg">
+            Q{{add $i 1}} · {{.QuestionType}} · {{.Points}}pt
+        </div>
+        <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="font-medium text-gray-900 pr-20">{{.Content}}</h3>
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/quiz/{{$.Quiz.ID}}/question/{{.ID}}/delete" onsubmit="return confirm('{{t $.Lang "delete_question"}}')">
+{{csrfField $.CSRFToken}}
+                <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition" title="Delete">✕</button>
+            </form>
+        </div>
+
+        {{if eq .QuestionType "mcq"}}
+        <div class="space-y-1 pl-4 border-l-2 border-gray-100">
+            {{range $opt := .Options}}
+            <div class="flex items-center gap-2 text-sm {{if eq $opt $q.CorrectAnswer}}text-emerald-700 font-medium bg-emerald-50 rounded px-2 py-1{{else}}text-gray-600 px-2 py-1{{end}}">
+                {{if eq $opt $q.CorrectAnswer}}✓{{else}}○{{end}} {{$opt}}
+            </div>
+            {{end}}
+        </div>
+        {{else if eq .QuestionType "true_false"}}
+        <div class="flex gap-3 pl-4">
+            <span class="text-sm {{if eq .CorrectAnswer "True"}}text-emerald-700 font-medium bg-emerald-50 px-3 py-1 rounded{{else}}text-gray-500 px-3 py-1{{end}}">{{t $.Lang "true"}}</span>
+            <span class="text-sm {{if eq .CorrectAnswer "False"}}text-emerald-700 font-medium bg-emerald-50 px-3 py-1 rounded{{else}}text-gray-500 px-3 py-1{{end}}">{{t $.Lang "false"}}</span>
+        </div>
+        {{else if eq .QuestionType "fill_blank"}}
+        <div class="pl-4 text-sm">
+            <span class="text-gray-500">{{t $.Lang "answer"}}</span>
+            <span class="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">{{.CorrectAnswer}}</span>
+        </div>
+        {{else if eq .QuestionType "open_ended"}}
+        <div class="pl-4 text-sm text-gray-500 italic">
+            {{t $.Lang "open_ended_review"}}
+            {{if .CorrectAnswer}}<br><span class="text-gray-400">{{t $.Lang "sample"}} {{.CorrectAnswer}}</span>{{end}}
+        </div>
+        {{else if eq .QuestionType "file_upload"}}
+        <div class="pl-4 text-sm text-gray-500 italic">{{t $.Lang "file_upload_review"}}</div>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed mb-8">
+    <p class="text-gray-500">{{t .Lang "no_questions"}}</p>
+</div>
+{{end}}
+
+<!-- Add Question Form -->
+<div class="card p-6 bg-indigo-50/30 border-dashed border-indigo-200 mb-8">
+    <h3 class="font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+        <span class="bg-indigo-100 text-indigo-600 w-6 h-6 rounded-full inline-flex items-center justify-center text-sm">+</span>
+        {{t .Lang "add_question"}}
+    </h3>
+
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/quiz/{{.Quiz.ID}}/question" class="space-y-4">
+{{csrfField $.CSRFToken}}
+        <div>
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block">{{t .Lang "question_text"}}</label>
+            <input type="text" name="content" required class="input w-full" placeholder="{{t .Lang "question_text_ph"}}">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block">{{t .Lang "type"}}</label>
+                <select name="question_type" id="newQType" onchange="toggleQTypeFields()" class="input w-full">
+                    <option value="mcq">{{t .Lang "type_mcq"}}</option>
+                    <option value="true_false">{{t .Lang "type_tf"}}</option>
+                    <option value="fill_blank">{{t .Lang "type_fill"}}</option>
+                    <option value="open_ended">{{t .Lang "type_open"}}</option>
+                    <option value="file_upload">{{t .Lang "type_file"}}</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block">{{t .Lang "points"}}</label>
+                <input type="number" name="points" value="1" min="1" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block">{{t .Lang "sort_order"}}</label>
+                <input type="number" name="sort_order" value="{{add (len .Questions) 1}}" min="0" class="input w-full">
+            </div>
+        </div>
+
+        <div id="mcqFields">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2 block">{{t .Lang "options"}}</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input type="text" name="option_1" class="input w-full" placeholder="{{t .Lang "option_a"}}">
+                <input type="text" name="option_2" class="input w-full" placeholder="{{t .Lang "option_b"}}">
+                <input type="text" name="option_3" class="input w-full" placeholder="{{t .Lang "option_c"}}">
+                <input type="text" name="option_4" class="input w-full" placeholder="{{t .Lang "option_d"}}">
+            </div>
+        </div>
+
+        <div id="correctAnswerField">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block"><span class="text-emerald-500">✓</span> {{t .Lang "correct_answer"}}</label>
+            <input type="text" name="correct_answer" id="correctAnswerInput" class="input w-full border-emerald-300" placeholder="{{t .Lang "correct_match"}}">
+        </div>
+
+        <div id="sampleAnswerField" style="display:none">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block">{{t .Lang "sample_answer"}}</label>
+            <input type="text" name="correct_answer" class="input w-full" placeholder="{{t .Lang "sample_answer_ph"}}">
+        </div>
+
+        <button class="btn-primary px-6 py-2 mt-2">{{t .Lang "add_question_btn"}}</button>
+    </form>
+</div>
+
+<!-- AI Generation -->
+<details class="card mb-8">
+    <summary class="p-4 cursor-pointer font-semibold text-purple-900 hover:bg-purple-50/50 rounded-xl flex items-center gap-2">{{t .Lang "ai_generate"}}</summary>
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/quiz/{{.Quiz.ID}}/generate" class="p-5 pt-2 space-y-4 border-t border-purple-100">
+{{csrfField $.CSRFToken}}
+        <textarea name="topic" required class="input w-full" rows="2" placeholder="{{t .Lang "ai_topic_ph"}}"></textarea>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "ai_num_questions"}}</label>
+                <input type="number" name="num_questions" value="5" min="1" max="20" class="input w-full">
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "ai_difficulty"}}</label>
+                <select name="difficulty" class="input w-full">
+                    <option value="easy">{{t .Lang "ai_easy"}}</option>
+                    <option value="intermediate" selected>{{t .Lang "ai_intermediate"}}</option>
+                    <option value="hard">{{t .Lang "ai_hard"}}</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "ai_types"}}</label>
+                <input type="text" name="question_types" value="mcq,true_false,fill_blank" class="input w-full">
+            </div>
+        </div>
+        <button class="bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition">{{t .Lang "ai_generate_btn"}}</button>
+    </form>
+</details>
+
+<!-- Attempts -->
+{{if .Attempts}}
+<h2 class="text-lg font-semibold text-gray-800 mb-4">{{t .Lang "student_attempts"}} ({{len .Attempts}})</h2>
+<div class="space-y-3 mb-8">
+    {{range .Attempts}}
+    <div class="card p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="min-w-0">
+                <span class="font-medium text-gray-900">{{.StudentName}}</span>
+                <span class="text-xs text-gray-400 ml-2">{{.StartedAt.Format "Jan 2, 3:04 PM"}}</span>
+                {{if .FinishedAt}}<span class="text-xs text-gray-400">→ {{.FinishedAt.Format "3:04 PM"}}</span>{{end}}
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span class="font-semibold {{if .Reviewed}}text-emerald-600{{else}}text-indigo-600{{end}}">
+                    {{if .Score}}{{deref .Score}}{{else}}—{{end}} / {{if .MaxScore}}{{deref .MaxScore}}{{else}}—{{end}}
+                </span>
+                {{if .Reviewed}}<span class="badge bg-emerald-50 text-emerald-600 text-xs">{{t $.Lang "reviewed"}}</span>{{end}}
+                <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/quiz/{{$.Quiz.ID}}/attempt/{{.ID}}/review" class="flex items-center gap-2">
+{{csrfField $.CSRFToken}}
+                    <input type="number" name="score" value="{{if .Score}}{{deref .Score}}{{end}}" min="0" class="input w-16 py-1 text-center text-sm">
+                    <button class="text-indigo-600 hover:underline text-sm font-medium">{{t $.Lang "save"}}</button>
+                </form>
+            </div>
+        </div>
+        <details class="mt-2">
+            <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700">{{t $.Lang "view_answers"}}</summary>
+            <div class="mt-2 space-y-1 text-sm">
+                {{range $qID, $ans := .Answers}}
+                <div class="flex gap-2 text-gray-600"><span class="text-gray-400 font-mono text-xs">Q{{$qID}}:</span> {{$ans}}</div>
+                {{end}}
+                {{range $qID, $fa := .FileAnswers}}
+                <div class="flex gap-2 text-gray-600"><span class="text-gray-400 font-mono text-xs">Q{{$qID}}:</span> <span class="text-blue-600">📎 {{mapGet $fa "file_name"}}</span></div>
+                {{end}}
+            </div>
+        </details>
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+<script>
+function toggleQTypeFields() {
+    const t = document.getElementById('newQType').value;
+    document.getElementById('mcqFields').style.display = (t === 'mcq') ? 'block' : 'none';
+    document.getElementById('correctAnswerField').style.display = (['mcq','true_false','fill_blank'].includes(t)) ? 'block' : 'none';
+    document.getElementById('sampleAnswerField').style.display = (t === 'open_ended') ? 'block' : 'none';
+    const inp = document.getElementById('correctAnswerInput');
+    if (t === 'true_false') inp.placeholder = '{{t .Lang "correct_tf"}}';
+    else if (t === 'fill_blank') inp.placeholder = '{{t .Lang "correct_text"}}';
+    else inp.placeholder = '{{t .Lang "correct_match"}}';
+}
+</script>
+
+{{template "admin_foot" .}}

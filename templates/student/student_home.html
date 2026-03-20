@@ -1,0 +1,90 @@
+{{template "student_head" .}}
+
+{{if .Student}}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">{{t .Lang "my_classrooms"}}</h1>
+</div>
+
+{{if .Classrooms}}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {{range .Classrooms}}
+    <a href="/classroom/{{.ID}}" class="card block p-6 hover:border-indigo-300 hover:ring-2 hover:ring-indigo-100 transition group cursor-pointer">
+        <h3 class="font-semibold text-lg text-gray-900 group-hover:text-indigo-700 transition">{{.Name}}</h3>
+        <p class="text-sm text-gray-500 mt-2">{{t $.Lang "go_to_classroom"}}</p>
+    </a>
+    {{end}}
+</div>
+{{else}}
+<div class="card p-12 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-500 mb-2 text-lg">{{t .Lang "no_classrooms_joined"}}</p>
+    <p class="text-sm text-gray-400">{{t .Lang "use_join_code"}}</p>
+</div>
+{{end}}
+
+<div class="mt-12 max-w-md">
+    <div class="card p-6">
+        <h2 class="font-semibold text-gray-800 mb-1">{{t .Lang "join_classroom"}}</h2>
+        <p class="text-sm text-gray-500 mb-4">{{t .Lang "join_code_desc"}}</p>
+        <form action="/join-by-code" method="POST" class="flex gap-2">
+{{csrfField $.CSRFToken}}
+            <input type="text" name="code" placeholder="{{t .Lang "join_code_ph"}}" required class="input flex-1 font-mono uppercase">
+            <button class="btn-primary px-5 py-2">{{t .Lang "join"}}</button>
+        </form>
+    </div>
+</div>
+
+{{else}}
+
+<div class="max-w-md mx-auto mt-20">
+    <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
+            <span class="text-3xl">📚</span>
+        </div>
+        <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700 mb-3">{{t .Lang "home_heading"}}</h1>
+        <p class="text-lg text-gray-500">{{t .Lang "home_subheading"}}</p>
+    </div>
+
+    <div class="card p-8 shadow-xl shadow-gray-100/50">
+        <h2 class="font-semibold text-gray-800 mb-2">{{t .Lang "home_access"}}</h2>
+        <p class="text-sm text-gray-500 mb-6">{{t .Lang "home_access_desc"}}</p>
+        <form action="/join-by-code" method="POST" class="space-y-4">
+{{csrfField $.CSRFToken}}
+            <div>
+                <input type="text" name="code" placeholder="{{t .Lang "home_code_ph"}}" required class="input w-full text-center text-lg font-mono uppercase tracking-widest py-3">
+            </div>
+            <button class="btn-primary w-full py-3 text-base">{{t .Lang "home_enter"}}</button>
+        </form>
+    </div>
+
+    <!-- Other portals -->
+    <div class="mt-8 space-y-3">
+        <div class="text-center">
+            <p class="text-xs text-gray-400 uppercase tracking-wider mb-3">{{t .Lang "nav_or"}}</p>
+        </div>
+        <a href="/admin/login" class="flex items-center gap-3 card p-4 hover:border-indigo-300 hover:ring-2 hover:ring-indigo-100 transition group cursor-pointer">
+            <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-lg">👨‍🏫</div>
+            <div>
+                <div class="font-semibold text-gray-800 group-hover:text-indigo-700 text-sm">{{t .Lang "nav_teacher_login"}}</div>
+                <div class="text-xs text-gray-400">{{t .Lang "nav_teacher_login_desc"}}</div>
+            </div>
+        </a>
+        <a href="/apply" class="flex items-center gap-3 card p-4 hover:border-emerald-300 hover:ring-2 hover:ring-emerald-100 transition group cursor-pointer">
+            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-lg">📝</div>
+            <div>
+                <div class="font-semibold text-gray-800 group-hover:text-emerald-700 text-sm">{{t .Lang "nav_become_teacher"}}</div>
+                <div class="text-xs text-gray-400">{{t .Lang "nav_become_teacher_desc"}}</div>
+            </div>
+        </a>
+        <a href="/platform/login" class="flex items-center gap-3 card p-4 hover:border-purple-300 hover:ring-2 hover:ring-purple-100 transition group cursor-pointer">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-lg">🏢</div>
+            <div>
+                <div class="font-semibold text-gray-800 group-hover:text-purple-700 text-sm">{{t .Lang "nav_platform_admin"}}</div>
+                <div class="text-xs text-gray-400">{{t .Lang "nav_platform_admin_desc"}}</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+{{end}}
+
+{{template "student_foot" .}}

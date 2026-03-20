@@ -1,0 +1,95 @@
+# Production docker-compose — deploy with:
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Prerequisites:
+#   1. Copy env.example → .env and fill in real values
+#   2. Run deploy.sh on fresh server (handles everything automatically)
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: teachhub
+      POSTGRES_USER: teachhub
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teachhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  livekit:
+    image: livekit/livekit-server:v1.7.2
+    restart: unless-stopped
+    command: ["--config", "/livekit.yaml"]
+    ports:
+      - "7881:7881"
+      - "7882-7892:7882-7892/udp"
+    volumes:
+      - ./livekit-prod.yaml:/livekit.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7880"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - internal
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - internal
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      GIN_MODE: release
+      DATABASE_URL: postgres://teachhub:${DB_PASSWORD}@db:5432/teachhub?sslmode=disable
+      SESSION_SECRET: ${SESSION_SECRET}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS}
+      PLATFORM_USER: ${PLATFORM_USER:-owner}
+      PLATFORM_PASS: ${PLATFORM_PASS}
+      BASE_URL: ${BASE_URL}
+      UPLOAD_DIR: /app/uploads
+      LIVEKIT_API_KEY: teachhub
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_URL: ws://livekit:7880
+      PLATFORM_PATH: ${PLATFORM_PATH:-/ctrl-p-8x3kf}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      livekit:
+        condition: service_healthy
+    networks:
+      - internal
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:
+
+networks:
+  internal:
+    driver: bridge

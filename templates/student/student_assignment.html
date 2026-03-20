@@ -1,0 +1,116 @@
+{{template "student_head" .}}
+
+<div class="mb-4">
+    <a href="/classroom/{{.Classroom.ID}}?tab=assignments" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back"}}</a>
+</div>
+
+<h1 class="text-2xl font-bold text-gray-900 mb-2">{{.Assignment.Title}}</h1>
+{{if .Assignment.Description}}<p class="text-gray-600 mb-4">{{.Assignment.Description}}</p>{{end}}
+
+<div class="flex flex-wrap items-center gap-3 mb-6">
+    {{if .Assignment.Deadline}}
+    <span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded font-medium">⏰ {{t .Lang "due"}} {{.Assignment.Deadline.Format "Jan 2, 2006 3:04 PM"}}</span>
+    {{end}}
+    <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+        {{t .Lang "type"}}: {{if eq .Assignment.ResponseType "file"}}{{t .Lang "assign_file"}}{{else if eq .Assignment.ResponseType "text"}}{{t .Lang "assign_text"}}{{else}}{{t .Lang "assign_both"}}{{end}}
+    </span>
+    <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded font-medium">{{t .Lang "max_grade"}}: {{.Assignment.MaxGrade}}</span>
+</div>
+
+{{if .Error}}
+<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center justify-between">
+    <p class="text-sm">{{.Error}}</p>
+</div>
+{{end}}
+
+<!-- Submit Form -->
+{{if and .Assignment.Deadline (not (eq (.Assignment.Deadline.Format "2006") "0001"))}}
+{{if gt (.Assignment.Deadline.Unix) 0}}
+<div id="deadlineCheck"></div>
+<script>
+(function(){
+    var deadline = new Date("{{.Assignment.Deadline.Format "2006-01-02T15:04:05Z07:00"}}");
+    var now = new Date();
+    if (now > deadline) {
+        var el = document.getElementById('deadlineCheck');
+        el.innerHTML = '<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm font-medium">{{t .Lang "deadline_passed"}}</div>';
+    }
+})();
+</script>
+{{end}}
+{{end}}
+<div class="card p-5 mb-8">
+    <h3 class="font-semibold text-gray-800 mb-4">{{t .Lang "submit_work"}}</h3>
+    <form method="POST" action="/classroom/{{.Classroom.ID}}/assignment/{{.Assignment.ID}}/submit" enctype="multipart/form-data" class="space-y-4">
+{{csrfField $.CSRFToken}}
+        
+        {{if or (eq .Assignment.ResponseType "text") (eq .Assignment.ResponseType "both")}}
+        <div>
+            <div class="flex justify-between items-end mb-1">
+                <label class="text-sm font-medium text-gray-700">{{t .Lang "your_answer"}}</label>
+                {{if gt .Assignment.MaxChars 0}}
+                <span class="text-xs text-gray-400" id="charCount">0 / {{.Assignment.MaxChars}} chars</span>
+                {{end}}
+            </div>
+            <textarea name="text_content" id="textContent" rows="5" class="input w-full"
+                {{if gt .Assignment.MaxChars 0}}maxlength="{{.Assignment.MaxChars}}" onkeyup="document.getElementById('charCount').innerText = this.value.length + ' / {{.Assignment.MaxChars}} chars'"{{end}}
+                placeholder="{{t .Lang "type_answer_ph"}}"></textarea>
+        </div>
+        {{end}}
+
+        {{if or (eq .Assignment.ResponseType "file") (eq .Assignment.ResponseType "both")}}
+        <div>
+            <label class="text-sm font-medium text-gray-700 mb-1 block">{{t .Lang "attach_file"}}</label>
+            <input type="file" name="file" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+            {{if gt .Assignment.MaxFileSize 0}}
+            <p class="text-xs text-gray-400 mt-1">{{t .Lang "max_file_help"}} {{fileSizeMB .Assignment.MaxFileSize}}MB</p>
+            {{end}}
+        </div>
+        {{end}}
+
+        <div class="pt-2">
+            <button class="btn-primary w-full sm:w-auto px-6 py-2">{{t .Lang "submit_assignment"}}</button>
+        </div>
+    </form>
+</div>
+
+<!-- Previous submissions -->
+{{if .Submissions}}
+<h3 class="font-semibold text-gray-800 mb-3">{{t .Lang "your_submissions"}}</h3>
+<div class="space-y-4">
+    {{range .Submissions}}
+    <div class="card p-4">
+        <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+            <span class="text-xs text-gray-400">{{.SubmittedAt.Format "Jan 2, 2006 3:04 PM"}}</span>
+            <div class="flex items-center gap-2">
+                <span class="badge {{if eq .Status "submitted"}}bg-blue-50 text-blue-600{{else if eq .Status "reviewed"}}bg-emerald-50 text-emerald-600{{else}}bg-amber-50 text-amber-600{{end}}">
+                    {{if eq .Status "reviewed"}}{{t $.Lang "s_reviewed"}}{{else if eq .Status "needs_revision"}}{{t $.Lang "s_revision"}}{{else}}{{t $.Lang "s_submitted"}}{{end}}
+                </span>
+                {{if .Grade}}
+                <span class="badge bg-indigo-50 text-indigo-700 font-bold">{{formatGrade .Grade}} / {{formatGrade .MaxGrade}}</span>
+                {{end}}
+            </div>
+        </div>
+        
+        {{if .TextContent}}
+        <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap mb-2 border border-gray-100 font-mono">{{.TextContent}}</div>
+        {{end}}
+
+        {{if .FileName}}
+        <div class="flex items-center text-sm text-gray-700 bg-gray-50 p-2 rounded border border-gray-100 inline-block">
+            📎 {{.FileName}}
+        </div>
+        {{end}}
+
+        {{if .Feedback}}
+        <div class="mt-4 bg-indigo-50/50 border border-indigo-100 rounded-lg p-3 text-sm">
+            <span class="font-medium text-indigo-800 block mb-1">{{t $.Lang "teacher_feedback_label"}}</span>
+            <span class="text-indigo-900">{{.Feedback}}</span>
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+
+{{template "student_foot" .}}

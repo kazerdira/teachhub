@@ -1,0 +1,161 @@
+{{define "platform_app_detail.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub Platform — {{.App.FullName}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+    </script>
+    <style>
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-sans text-white">
+    <nav class="bg-slate-900/80 backdrop-blur border-b border-white/10 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="{{.PlatformPath}}" class="text-lg font-bold tracking-tight flex items-center gap-2">
+                🏢 TeachHub <span class="text-purple-400 text-xs font-normal">Platform</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="{{.PlatformPath}}" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_dashboard"}}</a>
+                <a href="{{.PlatformPath}}/applications" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_applications"}}</a>
+                <a href="{{.PlatformPath}}/teachers" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_teachers"}}</a>
+                <a href="{{.PlatformPath}}/analytics" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_analytics"}}</a>
+                <span class="text-white/20">|</span>
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-purple-300 hover:text-white text-sm">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-purple-300 hover:text-white text-sm">🇫🇷 FR</a>
+                {{end}}
+                <a href="{{.PlatformPath}}/logout" class="text-slate-400 hover:text-red-400 transition">{{t .Lang "nav_logout"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto px-4 py-8">
+        <a href="{{.PlatformPath}}/applications" class="text-purple-400 hover:text-purple-300 text-sm mb-4 inline-block">← {{t .Lang "plat_nav_applications"}}</a>
+
+        {{if eq .Saved "1"}}
+        <div class="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-lg mb-4 text-sm text-center">
+            ✅ {{t .Lang "plat_detail_saved"}}
+        </div>
+        {{end}}
+
+        <!-- Applicant Info -->
+        <div class="card p-6 mb-6">
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center text-2xl font-bold text-purple-300">
+                    {{printf "%.1s" .App.FullName}}
+                </div>
+                <div class="flex-1">
+                    <h1 class="text-xl font-bold">{{.App.FullName}}</h1>
+                    <div class="text-slate-400 text-sm mt-0.5">
+                        {{t .Lang "plat_detail_applied"}} {{.App.CreatedAt.Format "02 Jan 2006 at 15:04"}}
+                    </div>
+                </div>
+                <div>
+                    {{if eq .App.Status "pending"}}
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">⏳ {{t .Lang "plat_pending"}}</span>
+                    {{else if eq .App.Status "contacted"}}
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">📞 {{t .Lang "plat_contacted"}}</span>
+                    {{else if eq .App.Status "approved"}}
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">✅ {{t .Lang "plat_approved"}}</span>
+                    {{else}}
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-red-500/20 text-red-300 border border-red-500/30">❌ {{t .Lang "plat_rejected"}}</span>
+                    {{end}}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "apply_email"}}</div>
+                    <div class="text-white">{{.App.Email}}</div>
+                </div>
+                {{if .App.Phone}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "apply_phone"}}</div>
+                    <div class="text-white">{{.App.Phone}}</div>
+                </div>
+                {{end}}
+                {{if .App.SchoolName}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "apply_school"}}</div>
+                    <div class="text-white">{{.App.SchoolName}}</div>
+                </div>
+                {{end}}
+                {{if .App.Wilaya}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "apply_wilaya"}}</div>
+                    <div class="text-white">{{.App.Wilaya}}</div>
+                </div>
+                {{end}}
+            </div>
+
+            {{if .App.Message}}
+            <div class="mt-4 pt-4 border-t border-white/10">
+                <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "apply_message"}}</div>
+                <div class="text-slate-300 text-sm leading-relaxed">{{.App.Message}}</div>
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Update Status Form -->
+        <div class="card p-6">
+            <h2 class="text-lg font-semibold mb-4">{{t .Lang "plat_detail_update"}}</h2>
+
+            <form method="POST" action="{{.PlatformPath}}/applications/{{.App.ID}}/status" class="space-y-4">
+{{csrfField $.CSRFToken}}
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">{{t .Lang "status_label"}}</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="pending" class="peer sr-only" {{if eq .App.Status "pending"}}checked{{end}}>
+                            <div class="peer-checked:bg-amber-500/20 peer-checked:border-amber-500/50 peer-checked:text-amber-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-center text-sm text-slate-400 transition hover:bg-white/10">
+                                ⏳ {{t .Lang "plat_pending"}}
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="contacted" class="peer sr-only" {{if eq .App.Status "contacted"}}checked{{end}}>
+                            <div class="peer-checked:bg-blue-500/20 peer-checked:border-blue-500/50 peer-checked:text-blue-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-center text-sm text-slate-400 transition hover:bg-white/10">
+                                📞 {{t .Lang "plat_contacted"}}
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="approved" class="peer sr-only" {{if eq .App.Status "approved"}}checked{{end}}>
+                            <div class="peer-checked:bg-emerald-500/20 peer-checked:border-emerald-500/50 peer-checked:text-emerald-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-center text-sm text-slate-400 transition hover:bg-white/10">
+                                ✅ {{t .Lang "plat_approved"}}
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" value="rejected" class="peer sr-only" {{if eq .App.Status "rejected"}}checked{{end}}>
+                            <div class="peer-checked:bg-red-500/20 peer-checked:border-red-500/50 peer-checked:text-red-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-center text-sm text-slate-400 transition hover:bg-white/10">
+                                ❌ {{t .Lang "plat_rejected"}}
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">{{t .Lang "plat_detail_notes"}}</label>
+                    <textarea name="admin_notes" rows="4"
+                        class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2.5 text-white placeholder-white/30 focus:border-purple-400 focus:ring-1 focus:ring-purple-400 outline-none transition resize-none text-sm"
+                        placeholder="{{t .Lang "plat_detail_notes_ph"}}">{{.App.AdminNotes}}</textarea>
+                </div>
+
+                <button type="submit"
+                    class="bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold py-2.5 px-6 rounded-lg transition-all shadow-lg shadow-purple-500/20 text-sm">
+                    {{t .Lang "plat_detail_save"}}
+                </button>
+            </form>
+        </div>
+    </main>
+</body>
+</html>
+{{end}}

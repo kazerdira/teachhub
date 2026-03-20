@@ -1,0 +1,286 @@
+{{define "platform_teacher_detail.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub Platform — {{.Teacher.Username}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+    </script>
+    <style>
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-sans text-white">
+    <nav class="bg-slate-900/80 backdrop-blur border-b border-white/10 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="{{.PlatformPath}}" class="text-lg font-bold tracking-tight flex items-center gap-2">
+                🏢 TeachHub <span class="text-purple-400 text-xs font-normal">Platform</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="{{.PlatformPath}}" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_dashboard"}}</a>
+                <a href="{{.PlatformPath}}/applications" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_applications"}}</a>
+                <a href="{{.PlatformPath}}/teachers" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_teachers"}}</a>
+                <a href="{{.PlatformPath}}/analytics" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_analytics"}}</a>
+                <span class="text-white/20">|</span>
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-purple-300 hover:text-white text-sm">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-purple-300 hover:text-white text-sm">🇫🇷 FR</a>
+                {{end}}
+                <a href="{{.PlatformPath}}/logout" class="text-slate-400 hover:text-red-400 transition">{{t .Lang "nav_logout"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <a href="{{.PlatformPath}}/teachers" class="text-purple-400 hover:text-purple-300 text-sm mb-4 inline-block">← {{t .Lang "plat_nav_teachers"}}</a>
+
+        {{if eq .Saved "1"}}
+        <div class="bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 px-4 py-2.5 rounded-lg mb-4 text-sm text-center">
+            ✅ {{t .Lang "plat_detail_saved"}}
+        </div>
+        {{end}}
+
+        <!-- Teacher Info -->
+        <div class="card p-6 mb-6">
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center text-2xl font-bold text-purple-300">
+                    {{printf "%.1s" .Teacher.Username}}
+                </div>
+                <div class="flex-1">
+                    <h1 class="text-xl font-bold">{{.Teacher.Username}}</h1>
+                    <div class="text-slate-400 text-sm mt-0.5">{{.Teacher.Email}} {{if .Teacher.SchoolName}}· {{.Teacher.SchoolName}}{{end}}</div>
+                </div>
+                <div>
+                    {{if eq .Teacher.SubscriptionStatus "active"}}
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">✅ {{t .Lang "plat_sub_active"}}</span>
+                    {{else if eq .Teacher.SubscriptionStatus "suspended"}}
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-red-500/20 text-red-300 border border-red-500/30">🚫 {{t .Lang "plat_sub_suspended"}}</span>
+                    {{else}}
+                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">⏰ {{t .Lang "plat_sub_expired"}}</span>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Subscription Info -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {{if .Teacher.SubscriptionStart}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "plat_teacher_start"}}</div>
+                    <div class="text-white text-sm">{{.Teacher.SubscriptionStart.Format "02 Jan 2006"}}</div>
+                </div>
+                {{end}}
+                {{if .Teacher.SubscriptionEnd}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "plat_teacher_end"}}</div>
+                    <div class="text-white text-sm">{{.Teacher.SubscriptionEnd.Format "02 Jan 2006"}}</div>
+                </div>
+                {{end}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "plat_pay_total_paid"}}</div>
+                    <div class="text-emerald-300 text-sm font-semibold">{{printf "%.0f" .TotalPaid}} DA</div>
+                </div>
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "plat_pay_count"}}</div>
+                    <div class="text-white text-sm">{{.PaymentCount}}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="card p-4 text-center">
+                <div class="text-2xl font-bold text-purple-400">{{.Classrooms}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_teachers_classrooms"}}</div>
+            </div>
+            <div class="card p-4 text-center">
+                <div class="text-2xl font-bold text-blue-400">{{.Students}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_teachers_students"}}</div>
+            </div>
+            <div class="card p-4 text-center">
+                <div class="text-2xl font-bold text-emerald-400">{{.Quizzes}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_teachers_quizzes"}}</div>
+            </div>
+            <div class="card p-4 text-center">
+                <div class="text-2xl font-bold text-amber-400">{{.Resources}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_teachers_resources"}}</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Subscription Management -->
+            <div class="card p-6">
+                <h2 class="text-lg font-semibold mb-4">📅 {{t .Lang "plat_sub_manage"}}</h2>
+
+                <!-- Quick extend buttons -->
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-400 mb-2">{{t .Lang "plat_sub_extend_quick"}}</label>
+                    <div class="flex gap-2">
+                        <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/subscription" class="flex-1">
+{{csrfField $.CSRFToken}}
+                            <input type="hidden" name="months" value="1">
+                            <button type="submit" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-2 text-sm transition">+1 {{t .Lang "plat_sub_month"}}</button>
+                        </form>
+                        <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/subscription" class="flex-1">
+{{csrfField $.CSRFToken}}
+                            <input type="hidden" name="months" value="3">
+                            <button type="submit" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-3 py-2 text-sm transition">+3 {{t .Lang "plat_sub_months"}}</button>
+                        </form>
+                        <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/subscription" class="flex-1">
+{{csrfField $.CSRFToken}}
+                            <input type="hidden" name="months" value="12">
+                            <button type="submit" class="w-full bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 rounded-lg px-3 py-2 text-sm transition font-medium">+1 {{t .Lang "plat_sub_year"}}</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Custom end date -->
+                <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/subscription" class="mb-4">
+{{csrfField $.CSRFToken}}
+                    <label class="block text-sm text-slate-400 mb-1">{{t .Lang "plat_sub_set_end"}}</label>
+                    <div class="flex gap-2">
+                        <input type="date" name="end_date" class="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-purple-400">
+                        <button type="submit" class="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-4 py-2 text-sm transition">{{t .Lang "plat_sub_set"}}</button>
+                    </div>
+                </form>
+
+                <div class="border-t border-white/10 pt-4 mt-4">
+                    <div class="flex flex-wrap gap-2">
+                        {{if eq .Teacher.SubscriptionStatus "active"}}
+                        <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/toggle" onsubmit="return confirm('{{t .Lang "plat_teacher_confirm_suspend"}}')">
+{{csrfField $.CSRFToken}}
+                            <input type="hidden" name="action" value="suspend">
+                            <button type="submit" class="bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 text-red-300 font-medium py-2 px-3 rounded-lg transition text-sm">
+                                🚫 {{t .Lang "plat_teacher_suspend"}}
+                            </button>
+                        </form>
+                        {{else}}
+                        <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/toggle">
+{{csrfField $.CSRFToken}}
+                            <input type="hidden" name="action" value="activate">
+                            <button type="submit" class="bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-emerald-300 font-medium py-2 px-3 rounded-lg transition text-sm">
+                                ✅ {{t .Lang "plat_teacher_activate"}}
+                            </button>
+                        </form>
+                        {{end}}
+                        <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/reset-password" onsubmit="return confirm('{{t .Lang "plat_teacher_confirm_reset"}}')">
+{{csrfField $.CSRFToken}}
+                            <button type="submit" class="bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-medium py-2 px-3 rounded-lg transition text-sm">
+                                🔑 {{t .Lang "plat_teacher_reset_pw"}}
+                            </button>
+                        </form>
+                        {{if .HasPendingPW}}
+                        <a href="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/credentials"
+                           class="bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-300 font-medium py-2 px-3 rounded-lg transition text-sm inline-flex items-center gap-1">
+                            👁️ {{if eq .Lang "fr"}}Voir identifiants{{else}}View Credentials{{end}}
+                        </a>
+                        {{end}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Record Payment -->
+            <div class="card p-6">
+                <h2 class="text-lg font-semibold mb-4">💰 {{t .Lang "plat_pay_record"}}</h2>
+                <form method="POST" action="{{.PlatformPath}}/teachers/{{.Teacher.ID}}/payment" class="space-y-3">
+{{csrfField $.CSRFToken}}
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">{{t .Lang "plat_pay_amount"}} (DA)</label>
+                        <input type="number" name="amount" step="0.01" min="0" required
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-purple-400 placeholder-white/30"
+                            placeholder="5000">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">{{t .Lang "plat_pay_method"}}</label>
+                        <select name="method" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-purple-400">
+                            <option value="cash">💵 {{t .Lang "plat_pay_cash"}}</option>
+                            <option value="ccp">📮 CCP</option>
+                            <option value="baridi_mob">📱 BaridiMob</option>
+                            <option value="other">📋 {{t .Lang "plat_pay_other"}}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">{{t .Lang "plat_pay_reference"}}</label>
+                        <input type="text" name="reference"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-purple-400 placeholder-white/30"
+                            placeholder="{{t .Lang "plat_pay_ref_ph"}}">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">{{t .Lang "plat_detail_notes"}}</label>
+                        <input type="text" name="notes"
+                            class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-purple-400 placeholder-white/30"
+                            placeholder="{{t .Lang "plat_pay_notes_ph"}}">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 text-white font-semibold py-2.5 rounded-lg transition text-sm shadow-lg shadow-emerald-500/20">
+                        💰 {{t .Lang "plat_pay_submit"}}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="card p-6">
+            <h2 class="text-lg font-semibold mb-4">📋 {{t .Lang "plat_pay_history"}} <span class="text-slate-400 font-normal text-sm">({{.PaymentCount}})</span></h2>
+
+            {{if .Payments}}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-slate-500 text-xs uppercase tracking-wider border-b border-white/10">
+                            <th class="text-left pb-3 pr-4">{{t .Lang "plat_pay_date"}}</th>
+                            <th class="text-left pb-3 pr-4">{{t .Lang "plat_pay_amount"}}</th>
+                            <th class="text-left pb-3 pr-4">{{t .Lang "plat_pay_method"}}</th>
+                            <th class="text-left pb-3 pr-4">{{t .Lang "plat_pay_reference"}}</th>
+                            <th class="text-left pb-3 pr-4">{{t .Lang "plat_detail_notes"}}</th>
+                            <th class="text-right pb-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Payments}}
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                            <td class="py-3 pr-4 text-slate-300">{{.RecordedAt.Format "02 Jan 2006"}}</td>
+                            <td class="py-3 pr-4 text-emerald-300 font-medium">{{printf "%.0f" .Amount}} DA</td>
+                            <td class="py-3 pr-4">
+                                {{if eq .Method "cash"}}💵 {{t $.Lang "plat_pay_cash"}}
+                                {{else if eq .Method "ccp"}}📮 CCP
+                                {{else if eq .Method "baridi_mob"}}📱 BaridiMob
+                                {{else}}📋 {{t $.Lang "plat_pay_other"}}{{end}}
+                            </td>
+                            <td class="py-3 pr-4 text-slate-400">{{if .Reference}}{{.Reference}}{{else}}—{{end}}</td>
+                            <td class="py-3 pr-4 text-slate-400">{{if .Notes}}{{.Notes}}{{else}}—{{end}}</td>
+                            <td class="py-3 text-right">
+                                <form method="POST" action="{{$.PlatformPath}}/teachers/{{.TeacherID}}/payment/{{.ID}}/delete" class="inline" onsubmit="return confirm('{{t $.Lang "plat_pay_confirm_delete"}}')">
+{{csrfField $.CSRFToken}}
+                                    <button type="submit" class="text-red-400/60 hover:text-red-400 transition text-xs">✕</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                    <tfoot>
+                        <tr class="border-t border-white/10">
+                            <td class="pt-3 pr-4 font-semibold text-slate-300">{{t .Lang "plat_pay_total_label"}}</td>
+                            <td class="pt-3 pr-4 font-bold text-emerald-300">{{printf "%.0f" $.TotalPaid}} DA</td>
+                            <td colspan="4"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {{else}}
+            <div class="text-center py-8 text-slate-500">
+                <div class="text-3xl mb-2">💰</div>
+                {{t .Lang "plat_pay_empty"}}
+            </div>
+            {{end}}
+        </div>
+    </main>
+</body>
+</html>
+{{end}}

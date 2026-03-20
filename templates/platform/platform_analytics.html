@@ -1,0 +1,181 @@
+{{define "platform_analytics.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub Platform — {{t .Lang "plat_analytics_title"}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+    </script>
+    <style>
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; }
+        .bar { background: linear-gradient(90deg, #8b5cf6, #a78bfa); border-radius: 0.25rem; min-width: 2px; transition: width 0.5s; }
+        .bar-green { background: linear-gradient(90deg, #10b981, #34d399); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-sans text-white">
+    <nav class="bg-slate-900/80 backdrop-blur border-b border-white/10 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="{{.PlatformPath}}" class="text-lg font-bold tracking-tight flex items-center gap-2">
+                🏢 TeachHub <span class="text-purple-400 text-xs font-normal">Platform</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="{{.PlatformPath}}" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_dashboard"}}</a>
+                <a href="{{.PlatformPath}}/applications" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_applications"}}</a>
+                <a href="{{.PlatformPath}}/teachers" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_teachers"}}</a>
+                <a href="{{.PlatformPath}}/analytics" class="text-white font-medium">{{t .Lang "plat_nav_analytics"}}</a>
+                <span class="text-white/20">|</span>
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-purple-300 hover:text-white text-sm">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-purple-300 hover:text-white text-sm">🇫🇷 FR</a>
+                {{end}}
+                <a href="{{.PlatformPath}}/logout" class="text-slate-400 hover:text-red-400 transition">{{t .Lang "nav_logout"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold">📊 {{t .Lang "plat_analytics_title"}}</h1>
+                <p class="text-slate-400 text-sm mt-1">{{t .Lang "plat_analytics_subtitle"}}</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{{.PlatformPath}}/export/teachers" class="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-4 py-2 text-sm transition">📥 {{t .Lang "plat_export_teachers"}}</a>
+                <a href="{{.PlatformPath}}/export/payments" class="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-4 py-2 text-sm transition">📥 {{t .Lang "plat_export_payments"}}</a>
+            </div>
+        </div>
+
+        <!-- Platform Overview -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-purple-400">{{.TotalTeachers}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_analytics_teachers"}}</div>
+                <div class="text-xs mt-1">
+                    <span class="text-emerald-400">{{.ActiveTeachers}} ✅</span>
+                    <span class="text-red-400 ml-1">{{.SuspendedTeachers}} 🚫</span>
+                    <span class="text-amber-400 ml-1">{{.ExpiredTeachers}} ⏰</span>
+                </div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-blue-400">{{.TotalStudents}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_analytics_students"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-emerald-400">{{.TotalClassrooms}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_analytics_classrooms"}}</div>
+            </div>
+            <div class="card p-5 text-center">
+                <div class="text-3xl font-bold text-amber-400">{{.TotalQuizzes}}</div>
+                <div class="text-slate-400 text-xs mt-1">{{t .Lang "plat_analytics_quizzes"}}</div>
+            </div>
+        </div>
+
+        <!-- Revenue -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="card p-6">
+                <h2 class="text-lg font-semibold mb-1">💰 {{t .Lang "plat_analytics_revenue"}}</h2>
+                <div class="flex items-baseline gap-3 mb-4">
+                    <span class="text-3xl font-bold text-emerald-400">{{printf "%.0f" .TotalRevenue}} <span class="text-sm font-normal">DA</span></span>
+                    <span class="text-slate-400 text-sm">{{t .Lang "plat_analytics_total"}}</span>
+                </div>
+                <div class="flex items-baseline gap-3 mb-4">
+                    <span class="text-xl font-semibold text-blue-400">{{printf "%.0f" .MonthlyRevenue}} <span class="text-sm font-normal">DA</span></span>
+                    <span class="text-slate-400 text-sm">{{t .Lang "plat_dash_monthly"}}</span>
+                </div>
+
+                <!-- Revenue Chart (horizontal bars) -->
+                <div class="space-y-2 mt-4">
+                    {{range .RevenueBreakdown}}
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-16 text-slate-400 text-xs">{{.Month}}</div>
+                        <div class="flex-1 bg-white/5 rounded h-5 overflow-hidden">
+                            {{if gt .Revenue 0}}
+                            <div class="bar-green h-full flex items-center px-2">
+                                <span class="text-xs text-white font-medium">{{printf "%.0f" .Revenue}} DA</span>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Applications Trend -->
+            <div class="card p-6">
+                <h2 class="text-lg font-semibold mb-4">📋 {{t .Lang "plat_analytics_app_trend"}}</h2>
+                <div class="space-y-2">
+                    {{range .AppTrend}}
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-16 text-slate-400 text-xs">{{.Month}}</div>
+                        <div class="flex-1 bg-white/5 rounded h-5 overflow-hidden">
+                            {{if gt .Count 0}}
+                            <div class="bar h-full flex items-center px-2">
+                                <span class="text-xs text-white font-medium">{{.Count}}</span>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Teachers -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-lg font-semibold mb-4">🏆 {{t .Lang "plat_analytics_top_teachers"}}</h2>
+            {{if .TopTeachers}}
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-slate-500 text-xs uppercase tracking-wider border-b border-white/10">
+                            <th class="text-left pb-3 pr-4">{{t .Lang "plat_analytics_teacher"}}</th>
+                            <th class="text-left pb-3 pr-4">{{t .Lang "plat_analytics_school"}}</th>
+                            <th class="text-center pb-3 pr-4">{{t .Lang "plat_analytics_status"}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .TopTeachers}}
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                            <td class="py-3 pr-4">
+                                <a href="{{$.PlatformPath}}/teachers/{{.ID}}" class="text-purple-400 hover:text-purple-300 font-medium">{{.Username}}</a>
+                                <div class="text-slate-500 text-xs">{{.Email}}</div>
+                            </td>
+                            <td class="py-3 pr-4 text-slate-300">{{.SchoolName}}</td>
+                            <td class="py-3 pr-4 text-center">
+                                {{if eq .SubscriptionStatus "active"}}
+                                    <span class="text-emerald-400 text-xs">✅ {{t $.Lang "plat_sub_active"}}</span>
+                                {{else if eq .SubscriptionStatus "suspended"}}
+                                    <span class="text-red-400 text-xs">🚫 {{t $.Lang "plat_sub_suspended"}}</span>
+                                {{else}}
+                                    <span class="text-amber-400 text-xs">⏰ {{t $.Lang "plat_sub_expired"}}</span>
+                                {{end}}
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+            {{else}}
+            <div class="text-center py-8 text-slate-500">
+                <div class="text-3xl mb-2">👨‍🏫</div>
+                {{t .Lang "plat_teachers_empty"}}
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Quick Links -->
+        <div class="flex flex-wrap gap-3">
+            <a href="{{.PlatformPath}}/password" class="bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg px-4 py-2 text-sm transition">🔑 {{t .Lang "plat_change_password"}}</a>
+        </div>
+    </main>
+</body>
+</html>
+{{end}}

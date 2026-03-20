@@ -1,0 +1,210 @@
+{{template "student_head" .}}
+
+<div class="mb-4">
+    <a href="/classroom/{{.Classroom.ID}}?tab=quizzes" class="text-indigo-600 text-sm hover:underline font-medium">{{t .Lang "back_to"}} {{.Classroom.Name}}</a>
+</div>
+
+<div class="card p-6 mb-6 border-l-4 border-l-indigo-500">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{.Quiz.Title}}</h1>
+    {{if .Quiz.Description}}<p class="text-gray-600 mb-3">{{.Quiz.Description}}</p>{{end}}
+    <div class="flex flex-wrap gap-2 text-xs">
+        <span class="badge bg-gray-100 text-gray-700">{{len .Questions}} {{t .Lang "questions"}}</span>
+        {{if .Quiz.Deadline}}
+        <span class="badge bg-red-50 text-red-600">⏰ {{t .Lang "due"}} {{.Quiz.Deadline.Format "Jan 2, 2006 3:04 PM"}}</span>
+        {{end}}
+        {{if gt .Quiz.TimeLimitMinutes 0}}
+        <span class="badge bg-amber-50 text-amber-700">⏱ {{.Quiz.TimeLimitMinutes}} min {{t .Lang "time_limit"}}</span>
+        {{end}}
+        {{if gt .Quiz.MaxAttempts 0}}
+        <span class="badge bg-indigo-50 text-indigo-700">{{.AttemptCount}}/{{.Quiz.MaxAttempts}} {{t .Lang "attempts_used"}}</span>
+        {{else}}
+        <span class="badge bg-indigo-50 text-indigo-700">{{.AttemptCount}} {{t .Lang "attempts"}}</span>
+        {{end}}
+    </div>
+</div>
+
+<!-- Message banner (deadline passed / attempts used) -->
+{{if .Message}}
+<div class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl mb-6 text-sm font-medium">
+    ⚠ {{.Message}}
+</div>
+{{end}}
+
+<!-- Previous Attempts -->
+{{if .Attempts}}
+<div class="mb-8">
+    <h2 class="font-semibold text-gray-800 mb-3">{{t .Lang "previous_attempts"}}</h2>
+    <div class="space-y-3">
+        {{range $i, $a := .Attempts}}
+        <details class="card overflow-hidden group">
+            <summary class="p-4 cursor-pointer hover:bg-gray-50 transition flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-gray-700">{{t $.Lang "attempt_n"}} #{{add $i 1}}</span>
+                    <span class="text-xs text-gray-400">{{if $a.FinishedAt}}{{$a.FinishedAt.Format "Jan 2, 3:04 PM"}}{{end}}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    {{if $a.Score}}
+                    <span class="badge bg-indigo-50 text-indigo-700 font-bold text-sm">{{deref $a.Score}}/{{deref $a.MaxScore}}</span>
+                    {{else}}
+                    <span class="badge bg-gray-100 text-gray-500 text-sm">{{t $.Lang "pending_review"}}</span>
+                    {{end}}
+                    <svg class="w-4 h-4 text-gray-400 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+            </summary>
+            <div class="border-t border-gray-100 p-4 space-y-3 bg-gray-50/50">
+                {{range $.Questions}}
+                <div class="bg-white rounded-lg p-3 border border-gray-100">
+                    <p class="text-sm font-medium text-gray-800 mb-1">{{.Content}}</p>
+                    <p class="text-xs text-gray-500 mb-1">{{t $.Lang "type"}}: {{.QuestionType}} · {{.Points}} pts</p>
+                    {{if eq .QuestionType "file_upload"}}
+                        {{$fa := fileMapGet $a.FileAnswers (printf "%d" .ID)}}
+                        {{if $fa}}
+                        <p class="text-sm text-indigo-600">📎 {{mapGet $fa "file_name"}}</p>
+                        {{else}}
+                        <p class="text-sm text-gray-400 italic">{{t $.Lang "no_file_uploaded"}}</p>
+                        {{end}}
+                    {{else}}
+                        <p class="text-sm"><span class="text-gray-500">{{t $.Lang "your_answer_label"}}</span> <span class="font-medium">{{mapGet $a.Answers (printf "%d" .ID)}}</span></p>
+                        {{if and (ne .QuestionType "open_ended") (ne .CorrectAnswer "")}}
+                        <p class="text-sm"><span class="text-gray-500">{{t $.Lang "correct_label"}}</span> <span class="font-medium text-emerald-600">{{.CorrectAnswer}}</span></p>
+                        {{end}}
+                    {{end}}
+                </div>
+                {{end}}
+            </div>
+        </details>
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+<!-- Quiz Form -->
+{{if .CanTake}}
+<form method="POST" action="/classroom/{{.Classroom.ID}}/quiz/{{.Quiz.ID}}/submit" enctype="multipart/form-data" class="space-y-6" id="quizForm">
+{{csrfField $.CSRFToken}}
+
+    {{if gt .Quiz.TimeLimitMinutes 0}}
+    <!-- Timer -->
+    <div id="timerBar" class="sticky top-0 z-20 bg-white/90 backdrop-blur-md border border-gray-200 rounded-xl p-3 shadow-sm flex items-center justify-between">
+        <span class="text-sm font-medium text-gray-700">{{t .Lang "time_remaining"}}</span>
+        <span id="timerDisplay" class="text-lg font-bold text-red-600 font-mono">{{.Quiz.TimeLimitMinutes}}:00</span>
+    </div>
+    {{end}}
+
+    {{range $i, $q := .Questions}}
+    <div class="card p-6">
+        <div class="flex items-start justify-between mb-4">
+            <h3 class="font-semibold text-gray-800 text-lg"><span class="text-indigo-500 mr-2">{{add $i 1}}.</span> {{.Content}}</h3>
+            <span class="badge bg-gray-100 text-gray-500 text-xs ml-2 flex-shrink-0">{{.Points}} pts</span>
+        </div>
+
+        {{if eq .QuestionType "mcq"}}
+        <!-- Multiple Choice -->
+        <div class="space-y-2 pl-2">
+            {{range $opt := .Options}}
+            <label class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-indigo-50 hover:border-indigo-200 cursor-pointer transition">
+                <input type="radio" name="q_{{$q.ID}}" value="{{$opt}}" required class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                <span class="text-gray-700">{{$opt}}</span>
+            </label>
+            {{end}}
+        </div>
+
+        {{else if eq .QuestionType "true_false"}}
+        <!-- True/False -->
+        <div class="flex gap-4 pl-2">
+            <label class="flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 cursor-pointer transition text-center">
+                <input type="radio" name="q_{{$q.ID}}" value="True" required class="w-4 h-4 text-emerald-600 border-gray-300 focus:ring-emerald-500">
+                <span class="font-medium text-gray-700">{{t $.Lang "true_label"}}</span>
+            </label>
+            <label class="flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border border-gray-200 hover:bg-red-50 hover:border-red-300 cursor-pointer transition text-center">
+                <input type="radio" name="q_{{$q.ID}}" value="False" required class="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500">
+                <span class="font-medium text-gray-700">{{t $.Lang "false_label"}}</span>
+            </label>
+        </div>
+
+        {{else if eq .QuestionType "fill_blank"}}
+        <!-- Fill in the Blank -->
+        <div class="pl-2">
+            <input type="text" name="q_{{$q.ID}}" required placeholder="{{t $.Lang "fill_blank_ph"}}" class="input w-full text-lg py-3">
+        </div>
+
+        {{else if eq .QuestionType "open_ended"}}
+        <!-- Open Ended -->
+        <div class="pl-2">
+            <textarea name="q_{{$q.ID}}" rows="4" required placeholder="{{t $.Lang "open_ended_ph"}}" class="input w-full"></textarea>
+        </div>
+
+        {{else if eq .QuestionType "file_upload"}}
+        <!-- File Upload -->
+        <div class="pl-2">
+            <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-indigo-300 transition">
+                <div class="text-3xl mb-2">📄</div>
+                <p class="text-sm text-gray-600 mb-3">{{t $.Lang "file_upload_label"}}</p>
+                <input type="file" name="q_{{$q.ID}}" required class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer mx-auto">
+            </div>
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+
+    <div class="sticky bottom-4 z-10 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-200 flex justify-between items-center">
+        <span class="text-sm text-gray-500 font-medium">{{len .Questions}} {{t .Lang "questions_to_complete"}}</span>
+        <button type="submit" class="btn-primary px-8 py-2.5 text-base shadow-md shadow-indigo-200 hover:-translate-y-0.5 transition-transform" id="submitBtn">{{t .Lang "submit_quiz"}}</button>
+    </div>
+</form>
+
+{{if gt .Quiz.TimeLimitMinutes 0}}
+<script>
+(function() {
+    const totalSeconds = {{.Quiz.TimeLimitMinutes}} * 60;
+    const startKey = 'quiz_timer_{{.Quiz.ID}}_{{.Student.ID}}';
+    let startTime = localStorage.getItem(startKey);
+    if (!startTime) {
+        startTime = Date.now();
+        localStorage.setItem(startKey, startTime);
+    } else {
+        startTime = parseInt(startTime);
+    }
+
+    const display = document.getElementById('timerDisplay');
+    const form = document.getElementById('quizForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const timesUpMsg = '{{t .Lang "times_up"}}';
+
+    function tick() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const remaining = Math.max(0, totalSeconds - elapsed);
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        display.textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+        if (remaining <= 60) {
+            display.classList.add('text-red-600', 'animate-pulse');
+        }
+        if (remaining <= 0) {
+            localStorage.removeItem(startKey);
+            submitBtn.textContent = timesUpMsg;
+            submitBtn.disabled = true;
+            form.submit();
+            return;
+        }
+        setTimeout(tick, 1000);
+    }
+    tick();
+
+    form.addEventListener('submit', function() {
+        localStorage.removeItem(startKey);
+    });
+})();
+</script>
+{{end}}
+
+{{else if not .Attempts}}
+<!-- No attempts yet and can't take -->
+<div class="card p-8 text-center bg-gray-50">
+    <div class="w-16 h-16 bg-gray-200 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🔒</div>
+    <p class="text-gray-500">{{if .Message}}{{.Message}}{{else}}{{t .Lang "quiz_locked"}}{{end}}</p>
+</div>
+{{end}}
+
+{{template "student_foot" .}}

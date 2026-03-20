@@ -1,0 +1,125 @@
+{{template "student_head" .}}
+
+<div class="mb-4">
+    <a href="/" class="text-indigo-600 text-sm hover:underline">← My Classrooms</a>
+</div>
+
+<h1 class="text-3xl font-extrabold text-gray-900 mb-6">{{.Classroom.Name}}</h1>
+
+<!-- Live Class Banner -->
+{{if .LiveSession}}
+<div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between animate-pulse-slow">
+    <div class="flex items-center gap-3">
+        <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+        <div>
+            <span class="font-semibold text-red-800">{{t .Lang "live_in_progress"}}</span>
+            <span class="text-sm text-red-600 ml-2">{{t .Lang "live_started"}} {{.LiveSession.CreatedAt.Format "3:04 PM"}}</span>
+        </div>
+    </div>
+    <a href="/classroom/{{.Classroom.ID}}/live" class="bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
+        {{t .Lang "join_now"}}
+    </a>
+</div>
+{{end}}
+
+<!-- Tabs -->
+<div class="flex gap-6 border-b border-gray-200 mb-6 text-sm overflow-x-auto pb-1">
+    <a href="?tab=resources" class="pb-2 whitespace-nowrap {{if eq .Tab "resources"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "stab_resources"}}</a>
+    <a href="?tab=assignments" class="pb-2 whitespace-nowrap flex items-center gap-1 {{if eq .Tab "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">
+        {{t .Lang "stab_assignments"}}
+        {{if .Assignments}}<span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{{len .Assignments}}</span>{{end}}
+    </a>
+    <a href="?tab=quizzes" class="pb-2 whitespace-nowrap {{if eq .Tab "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "stab_quizzes"}}</a>
+    <a href="/classroom/{{.Classroom.ID}}/dashboard" class="pb-2 whitespace-nowrap {{if eq .Tab "dashboard"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "tab_my_progress"}}</a>
+</div>
+
+<!-- RESOURCES -->
+{{if eq .Tab "resources"}}
+{{if .Resources}}
+<div class="space-y-3">
+    {{range .Resources}}
+    <div class="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+            <span class="badge shrink-0 mt-0.5 sm:mt-0
+                {{if eq .FileType "pdf"}}bg-red-50 text-red-700
+                {{else if eq .FileType "image"}}bg-emerald-50 text-emerald-700
+                {{else if eq .FileType "video"}}bg-purple-50 text-purple-700
+                {{else if eq .FileType "audio"}}bg-amber-50 text-amber-700
+                {{else if eq .FileType "link"}}bg-blue-50 text-blue-700
+                {{else}}bg-gray-100 text-gray-700{{end}}">{{.FileType}}</span>
+            <div class="min-w-0">
+                <span class="text-base font-semibold text-gray-900 block truncate">{{.Title}}</span>
+                {{if .Description}}<p class="text-sm text-gray-500 truncate mt-0.5">{{.Description}}</p>{{end}}
+                <p class="text-xs text-indigo-500 font-medium mt-1">{{.CategoryName}}</p>
+            </div>
+        </div>
+        <a href="/resource/{{.ID}}/download" class="btn-primary px-4 py-2 text-sm shrink-0 flex items-center justify-center">⬇ {{t $.Lang "download"}}</a>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-500">{{t .Lang "no_resources_avail"}}</p>
+</div>
+{{end}}
+{{end}}
+
+<!-- ASSIGNMENTS -->
+{{if eq .Tab "assignments"}}
+{{if .Assignments}}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {{range .Assignments}}
+    <a href="/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}" class="card block p-5 hover:border-indigo-300 hover:ring-2 hover:ring-indigo-50 transition group">
+        <div class="flex justify-between items-start mb-2">
+            <h4 class="font-semibold text-gray-900 text-lg group-hover:text-indigo-700 transition">{{.Title}}</h4>
+            <span class="badge {{if eq .ResponseType "file"}}bg-blue-50 text-blue-600{{else if eq .ResponseType "text"}}bg-emerald-50 text-emerald-600{{else}}bg-purple-50 text-purple-600{{end}}">
+                {{if eq .ResponseType "file"}}📎{{else if eq .ResponseType "text"}}📝{{else}}📎📝{{end}}
+            </span>
+        </div>
+        {{if .Description}}<p class="text-sm text-gray-500 mb-4 line-clamp-2">{{.Description}}</p>{{end}}
+        <div class="mt-auto flex items-center justify-between border-t border-gray-100 pt-3">
+            {{if .Deadline}}
+            <p class="text-xs font-medium text-red-500 flex items-center gap-1">⏰ {{t $.Lang "due"}} {{.Deadline.Format "Jan 2, 3:04 PM"}}</p>
+            {{else}}
+            <p class="text-xs text-gray-400">{{t $.Lang "no_deadline"}}</p>
+            {{end}}
+            <span class="text-indigo-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition">{{t $.Lang "view_arrow"}}</span>
+        </div>
+    </a>
+    {{end}}
+</div>
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-500">{{t .Lang "no_assignments_avail"}}</p>
+</div>
+{{end}}
+{{end}}
+
+<!-- QUIZZES -->
+{{if eq .Tab "quizzes"}}
+{{if .Quizzes}}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {{range .Quizzes}}
+    <a href="/classroom/{{$.Classroom.ID}}/quiz/{{.ID}}" class="card block p-5 hover:border-indigo-300 hover:ring-2 hover:ring-indigo-50 transition group">
+        <h4 class="font-semibold text-gray-900 text-lg mb-2 group-hover:text-indigo-700 transition">❓ {{.Title}}</h4>
+        {{if .Description}}<p class="text-sm text-gray-500 line-clamp-2 mb-2">{{.Description}}</p>{{end}}
+        <div class="flex flex-wrap gap-1.5 mb-3">
+            <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-medium">{{.QuestionCount}} {{t $.Lang "questions"}}</span>
+            {{if .Deadline}}<span class="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded font-medium">⏰ {{.Deadline.Format "Jan 2, 3:04 PM"}}</span>{{end}}
+            {{if gt .TimeLimitMinutes 0}}<span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-medium">⏱ {{.TimeLimitMinutes}}min</span>{{end}}
+            {{if gt .MaxAttempts 0}}<span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-medium">{{.MaxAttempts}} {{t $.Lang "attempts"}}</span>{{end}}
+        </div>
+        <div class="text-right">
+            <span class="text-indigo-600 text-sm font-medium group-hover:underline">{{t $.Lang "take_quiz"}}</span>
+        </div>
+    </a>
+    {{end}}
+</div>
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-500">{{t .Lang "no_quizzes_avail"}}</p>
+</div>
+{{end}}
+{{end}}
+
+{{template "student_foot" .}}

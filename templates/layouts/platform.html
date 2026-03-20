@@ -1,0 +1,56 @@
+{{define "platform.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+            }
+        }
+    }
+    </script>
+    <style>
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; transition: all 0.15s; }
+        .card:hover { border-color: rgba(139,92,246,0.4); }
+        .btn-primary { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
+        .btn-primary:hover { box-shadow: 0 4px 12px rgba(124,58,237,0.35); transform: translateY(-1px); }
+        .input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: white; outline: none; transition: all 0.15s; }
+        .input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+        .input::placeholder { color: rgba(255,255,255,0.3); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-sans text-white">
+    <nav class="bg-slate-900/80 backdrop-blur border-b border-white/10 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="/platform" class="text-lg font-bold tracking-tight flex items-center gap-2">
+                🏢 TeachHub <span class="text-purple-400 text-xs font-normal">Platform</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="/platform" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_dashboard"}}</a>
+                <a href="/platform/applications" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_applications"}}</a>
+                <span class="text-white/20">|</span>
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-purple-300 hover:text-white text-sm">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-purple-300 hover:text-white text-sm">🇫🇷 FR</a>
+                {{end}}
+                <a href="/platform/logout" class="text-slate-400 hover:text-red-400 transition">{{t .Lang "nav_logout"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        {{template "platform_content" .}}
+    </main>
+</body>
+</html>
+{{end}}

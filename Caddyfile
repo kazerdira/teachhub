@@ -1,0 +1,12 @@
+# ─── TeachHub Caddy Config ───────────────────────────────
+# Without a domain: HTTP only on port 80
+# With a domain: replace :80 with your domain for auto-HTTPS
+#
+# Example with domain:
+#   teachhub.com {
+#       reverse_proxy app:8080
+#   }
+
+:80 {
+    reverse_proxy app:8080
+}

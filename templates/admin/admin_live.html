@@ -1,0 +1,526 @@
+{{template "admin_live_head" .}}
+
+<!-- Toast notification container -->
+<div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+<div class="flex h-full md:gap-2">
+    <!-- Sidebar: Participants & Controls (Desktop only) -->
+    <div id="desktopSidebar" class="hidden md:flex md:w-80 flex-shrink-0 flex-col gap-2 overflow-hidden">
+        <!-- Back & End buttons -->
+        <div class="flex items-center justify-between">
+            <a href="/admin/classroom/{{.Classroom.ID}}" class="text-indigo-400 text-sm hover:underline font-medium">&larr; Back</a>
+            <button onclick="endClassForAll()" class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-red-700 transition flex items-center gap-1.5">
+                <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> {{t .Lang "end_class"}}
+            </button>
+        </div>
+
+        <!-- Camera Requests -->
+        <div id="camRequestsCard" class="card p-0 hidden">
+            <div class="px-4 py-2 bg-amber-50 border-b border-amber-100">
+                <h3 class="font-semibold text-amber-800 text-sm flex items-center gap-2">
+                    {{t .Lang "cam_requests"}} <span id="camReqCount" class="bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-full">0</span>
+                </h3>
+            </div>
+            <div id="camRequestsList" class="divide-y divide-gray-100 max-h-32 overflow-y-auto"></div>
+        </div>
+
+        <!-- Participants List -->
+        <div class="card p-0 overflow-hidden flex flex-col" style="max-height:28vh">
+            <div class="px-3 py-2 bg-gray-50 border-b flex items-center justify-between">
+                <h3 class="font-semibold text-gray-700 text-xs flex items-center gap-2">
+                    {{t .Lang "participants"}} <span id="pCount" class="bg-gray-200 text-gray-600 text-xs px-1.5 py-0.5 rounded-full">1</span>
+                </h3>
+                <button onclick="muteAllStudents()" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 transition" title="Mute all students">
+                    {{t .Lang "mute_all"}}
+                </button>
+            </div>
+            <div id="participantList" class="divide-y divide-gray-100 overflow-y-auto flex-1">
+                <div class="px-3 py-2 flex items-center justify-between bg-indigo-50/50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold">T</div>
+                        <span class="text-sm font-medium text-gray-800">{{t .Lang "you_teacher"}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Chat -->
+        <div class="card p-0 flex-1 overflow-hidden flex flex-col min-h-0">
+            <div class="px-3 py-2 bg-gray-50 border-b">
+                <h3 class="font-semibold text-gray-700 text-xs flex items-center gap-2">
+                    {{t .Lang "chat"}} <span id="chatUnread" class="bg-indigo-500 text-white text-xs px-1.5 py-0.5 rounded-full hidden">0</span>
+                </h3>
+            </div>
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-2 bg-white min-h-0"></div>
+            <div class="border-t p-2 flex gap-2">
+                <input id="chatInput" type="text" placeholder="{{t .Lang "type_message"}}" class="input flex-1 text-sm py-1.5" onkeydown="if(event.key==='Enter')sendChatMessage()">
+                <button onclick="sendChatMessage()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700 transition">{{t .Lang "send"}}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main area: Video + Controls -->
+    <div class="flex-1 flex flex-col overflow-hidden md:rounded-xl">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-3 py-2 md:px-5 md:py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
+                <h1 class="font-bold text-sm md:text-lg truncate">{{.Classroom.Name}}</h1>
+            </div>
+            <!-- Mobile actions -->
+            <div class="flex items-center gap-1 md:hidden">
+                <button onclick="toggleMobilePanel('participants')" class="text-gray-300 hover:text-white p-1.5 relative" title="Participants">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span id="mPCount" class="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">1</span>
+                </button>
+                <button onclick="toggleMobilePanel('chat')" class="text-gray-300 hover:text-white p-1.5 relative" title="Chat">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <span id="mChatBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full items-center justify-center hidden">0</span>
+                </button>
+                <button onclick="endClassForAll()" class="text-red-400 hover:text-red-300 p-1.5" title="{{t .Lang "end_class"}}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Video grid -->
+        <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 p-1 bg-gray-900 flex-1 min-h-0 overflow-y-auto">
+            <div id="placeholder" class="col-span-full flex items-center justify-center text-gray-500 py-20">
+                <div class="text-center">
+                    <div class="text-4xl mb-3">&#128249;</div>
+                    <p class="text-base font-medium text-gray-400">{{t .Lang "connecting"}}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls bar -->
+        <div class="bg-gray-900 border-t border-gray-800 px-3 py-2 md:px-6 md:py-3 flex items-center justify-center gap-3 md:gap-4">
+            <button id="toggleMic" onclick="toggleMicrophone()" class="bg-gray-700 hover:bg-gray-600 text-white p-2.5 md:p-3 rounded-full transition" title="Microphone">
+                <svg id="micOn" class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
+                <svg id="micOff" class="w-5 h-5 md:w-6 md:h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+            </button>
+            <button id="toggleCam" onclick="toggleCamera()" class="bg-gray-700 hover:bg-gray-600 text-white p-2.5 md:p-3 rounded-full transition" title="Camera">
+                <svg id="camOn" class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <svg id="camOff" class="w-5 h-5 md:w-6 md:h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            </button>
+            <button onclick="toggleScreenShare()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 md:p-3 rounded-full transition" title="Share Screen">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </button>
+            <a href="/admin/classroom/{{.Classroom.ID}}" class="hidden md:block text-indigo-400 text-xs hover:underline ml-2">Back</a>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Participants Overlay -->
+<div id="mobileParticipants" class="fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 bg-black/40" onclick="toggleMobilePanel('participants')"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-[85vw] max-w-sm bg-white flex flex-col shadow-2xl transform transition-transform">
+        <div class="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
+            <h3 class="font-semibold text-gray-800 text-sm">{{t .Lang "participants"}}</h3>
+            <button onclick="toggleMobilePanel('participants')" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+        <!-- Camera Requests (mobile) -->
+        <div id="mCamRequestsCard" class="hidden border-b">
+            <div class="px-4 py-2 bg-amber-50 border-b border-amber-100">
+                <h4 class="font-semibold text-amber-800 text-xs">{{t .Lang "cam_requests"}} <span id="mCamReqCount" class="bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-full">0</span></h4>
+            </div>
+            <div id="mCamRequestsList" class="divide-y divide-gray-100 max-h-32 overflow-y-auto"></div>
+        </div>
+        <div class="px-4 py-2 border-b flex items-center justify-between">
+            <span class="text-xs text-gray-500"><span id="mPCount2">1</span> participants</span>
+            <button onclick="muteAllStudents()" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">{{t .Lang "mute_all"}}</button>
+        </div>
+        <div id="mParticipantList" class="divide-y divide-gray-100 overflow-y-auto flex-1"></div>
+    </div>
+</div>
+
+<!-- Mobile Chat Overlay -->
+<div id="mobileChat" class="fixed inset-0 z-40 hidden flex flex-col justify-end">
+    <div class="absolute inset-0 bg-black/40" onclick="toggleMobilePanel('chat')"></div>
+    <div class="relative bg-white rounded-t-2xl w-full flex flex-col shadow-2xl" style="max-height:65vh">
+        <div class="flex items-center justify-between px-4 py-3 border-b bg-gray-50 rounded-t-2xl">
+            <h3 class="font-semibold text-gray-800 text-sm">{{t .Lang "chat"}}</h3>
+            <button onclick="toggleMobilePanel('chat')" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+        <div id="mChatMessages" class="flex-1 overflow-y-auto p-3 space-y-2" style="min-height:200px"></div>
+        <div class="border-t p-2 flex gap-2 pb-safe">
+            <input id="mChatInput" type="text" placeholder="{{t .Lang "type_message"}}" class="input flex-1 text-sm py-1.5" onkeydown="if(event.key==='Enter')sendChatMessage()">
+            <button onclick="sendChatMessage()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-indigo-700">{{t .Lang "send"}}</button>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for ending class server-side -->
+<form id="endClassForm" method="POST" action="/admin/classroom/{{.Classroom.ID}}/live/end" class="hidden">{{csrfField $.CSRFToken}}</form>
+
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.js"></script>
+<script>
+const LK = LivekitClient;
+const room = new LK.Room({ adaptiveStream: true, dynacast: true });
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+let micEnabled = true, camEnabled = true, screenEnabled = false;
+const participants = new Map();
+const camRequests = [];
+let mobilePanelOpen = null;
+let mobileUnread = 0;
+
+const msgJoined = '{{t .Lang "toast_joined"}}';
+const msgLeft = '{{t .Lang "toast_left"}}';
+const msgMuted = '{{t .Lang "toast_muted"}}';
+const msgUnmuted = '{{t .Lang "toast_unmuted"}}';
+const msgAllMuted = '{{t .Lang "toast_all_muted"}}';
+const msgCamApproved = '{{t .Lang "toast_cam_approved"}}';
+const msgCamDenied = '{{t .Lang "toast_cam_denied"}}';
+const msgCamOff = '{{t .Lang "toast_cam_off"}}';
+
+function isMobile() { return window.innerWidth < 768; }
+
+/* ─── Toast ─────────────────────────────────────── */
+function showToast(msg, type) {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    const cl = {info:'bg-blue-500',success:'bg-green-500',warning:'bg-amber-500',error:'bg-red-500'};
+    t.className = (cl[type]||cl.info)+' text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium transition-all transform translate-x-full';
+    t.textContent = msg; c.appendChild(t);
+    requestAnimationFrame(() => t.classList.remove('translate-x-full'));
+    setTimeout(() => { t.classList.add('translate-x-full'); setTimeout(() => t.remove(), 300); }, 4000);
+}
+
+/* ─── Mobile Panels ─────────────────────────────── */
+function toggleMobilePanel(panel) {
+    if (mobilePanelOpen === panel) {
+        document.getElementById(panel === 'participants' ? 'mobileParticipants' : 'mobileChat').classList.add('hidden');
+        mobilePanelOpen = null;
+        return;
+    }
+    if (mobilePanelOpen) {
+        document.getElementById(mobilePanelOpen === 'participants' ? 'mobileParticipants' : 'mobileChat').classList.add('hidden');
+    }
+    document.getElementById(panel === 'participants' ? 'mobileParticipants' : 'mobileChat').classList.remove('hidden');
+    mobilePanelOpen = panel;
+    if (panel === 'chat') {
+        mobileUnread = 0;
+        document.getElementById('mChatBadge').classList.add('hidden');
+        var mc = document.getElementById('mChatMessages');
+        mc.scrollTop = mc.scrollHeight;
+        document.getElementById('mChatInput').focus();
+    }
+}
+
+/* ─── Data Channel ──────────────────────────────── */
+function sendCommand(action, targetIdentity) {
+    const msg = JSON.stringify({ action: action, target: targetIdentity || '' });
+    const opts = { reliable: true };
+    if (targetIdentity) opts.destinationIdentities = [targetIdentity];
+    room.localParticipant.publishData(encoder.encode(msg), opts);
+}
+
+function broadcastCommand(action) {
+    room.localParticipant.publishData(encoder.encode(JSON.stringify({ action: action })), { reliable: true });
+}
+
+/* ─── Participant List ──────────────────────────── */
+function addParticipantToList(p) {
+    if (p.identity === 'admin') return;
+    participants.set(p.identity, { sid: p.sid, name: p.name || p.identity, micMuted: false, camOff: true });
+    renderParticipantList();
+}
+
+function removeParticipantFromList(p) {
+    participants.delete(p.identity);
+    const idx = camRequests.findIndex(r => r.identity === p.identity);
+    if (idx !== -1) { camRequests.splice(idx, 1); renderCamRequests(); }
+    renderParticipantList();
+}
+
+function buildParticipantHTML() {
+    var html = '';
+    participants.forEach(function(info, identity) {
+        var initial = info.name.charAt(0).toUpperCase();
+        var micIcon = info.micMuted
+            ? '<svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>'
+            : '<svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>';
+        var micTitle = info.micMuted ? 'Unmute' : 'Mute';
+        html += '<div class="px-3 py-2 flex items-center justify-between hover:bg-gray-50 transition">'
+            + '<div class="flex items-center gap-2">'
+            + '<div class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">' + initial + '</div>'
+            + '<span class="text-sm text-gray-700">' + info.name + '</span>'
+            + '</div>'
+            + '<div class="flex items-center gap-1">'
+            + '<button onclick="toggleStudentMic(\'' + identity + '\')" class="p-1 rounded hover:bg-gray-200 transition" title="' + micTitle + ' mic">' + micIcon + '</button>'
+            + '<button onclick="forceStudentCamOff(\'' + identity + '\')" class="p-1 rounded hover:bg-gray-200 transition" title="Turn off camera">'
+            + '<svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>'
+            + '</button>'
+            + '</div></div>';
+    });
+    return html;
+}
+
+function renderParticipantList() {
+    var teacherRow = '<div class="px-3 py-2 flex items-center justify-between bg-indigo-50/50"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-xs font-bold">T</div><span class="text-sm font-medium text-gray-800">{{t .Lang "you_teacher"}}</span></div></div>';
+    var studentRows = buildParticipantHTML();
+    var count = participants.size + 1;
+
+    /* Desktop */
+    document.getElementById('participantList').innerHTML = teacherRow + studentRows;
+    document.getElementById('pCount').textContent = count;
+    /* Mobile */
+    document.getElementById('mParticipantList').innerHTML = teacherRow + studentRows;
+    document.getElementById('mPCount').textContent = count;
+    document.getElementById('mPCount2').textContent = count;
+}
+
+/* ─── Camera Requests ───────────────────────────── */
+function buildCamRequestsHTML(idPrefix) {
+    var html = '';
+    camRequests.forEach(function(req, i) {
+        html += '<div class="px-4 py-2 flex items-center justify-between">'
+            + '<span class="text-sm text-gray-700">&#128247; ' + req.name + '</span>'
+            + '<div class="flex gap-1">'
+            + '<button onclick="approveCam(' + i + ')" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200">&#10003;</button>'
+            + '<button onclick="denyCam(' + i + ')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">&#10007;</button>'
+            + '</div></div>';
+    });
+    return html;
+}
+
+function renderCamRequests() {
+    var hasRequests = camRequests.length > 0;
+    /* Desktop */
+    var card = document.getElementById('camRequestsCard');
+    card.classList.toggle('hidden', !hasRequests);
+    if (hasRequests) {
+        document.getElementById('camReqCount').textContent = camRequests.length;
+        document.getElementById('camRequestsList').innerHTML = buildCamRequestsHTML('d');
+    }
+    /* Mobile */
+    var mCard = document.getElementById('mCamRequestsCard');
+    mCard.classList.toggle('hidden', !hasRequests);
+    if (hasRequests) {
+        document.getElementById('mCamReqCount').textContent = camRequests.length;
+        document.getElementById('mCamRequestsList').innerHTML = buildCamRequestsHTML('m');
+    }
+}
+
+function approveCam(index) {
+    var req = camRequests[index]; if (!req) return;
+    sendCommand('cam-approve', req.identity);
+    showToast(msgCamApproved + ' ' + req.name, 'success');
+    camRequests.splice(index, 1); renderCamRequests();
+}
+
+function denyCam(index) {
+    var req = camRequests[index]; if (!req) return;
+    sendCommand('cam-deny', req.identity);
+    showToast(msgCamDenied + ' ' + req.name, 'warning');
+    camRequests.splice(index, 1); renderCamRequests();
+}
+
+/* ─── Teacher Controls ──────────────────────────── */
+function toggleStudentMic(identity) {
+    var info = participants.get(identity); if (!info) return;
+    if (info.micMuted) {
+        sendCommand('unmute-mic', identity); info.micMuted = false;
+        showToast(msgUnmuted + ' ' + info.name, 'info');
+    } else {
+        sendCommand('mute-mic', identity); info.micMuted = true;
+        showToast(msgMuted + ' ' + info.name, 'warning');
+    }
+    renderParticipantList();
+}
+
+function forceStudentCamOff(identity) {
+    var info = participants.get(identity); if (!info) return;
+    sendCommand('cam-off', identity);
+    showToast(msgCamOff + ' ' + info.name, 'warning');
+}
+
+function muteAllStudents() {
+    broadcastCommand('mute-all');
+    participants.forEach(function(info) { info.micMuted = true; });
+    renderParticipantList();
+    showToast(msgAllMuted, 'warning');
+}
+
+function endClassForAll() {
+    if (!confirm('{{t .Lang "end_class_confirm"}}')) return;
+    broadcastCommand('end-class');
+    setTimeout(function() {
+        room.disconnect();
+        document.getElementById('endClassForm').submit();
+    }, 500);
+}
+
+/* ─── Video Tiles ───────────────────────────────── */
+function createTile(participant, track) {
+    var id = 'tile-' + participant.sid + '-' + track.sid;
+    if (document.getElementById(id)) return;
+    var ph = document.getElementById('placeholder'); if (ph) ph.remove();
+    var tile = document.createElement('div');
+    tile.id = id;
+    tile.className = 'relative bg-gray-800 rounded-lg overflow-hidden aspect-video flex items-center justify-center';
+    var el = track.attach(); el.className = 'w-full h-full object-cover';
+    tile.appendChild(el);
+    var label = document.createElement('div');
+    label.className = 'absolute bottom-1 left-1 bg-black/60 text-white text-[10px] md:text-xs px-1.5 py-0.5 rounded-full backdrop-blur-sm';
+    label.textContent = (participant.identity === 'admin' ? '{{t .Lang "you_teacher"}}' : (participant.name || participant.identity));
+    tile.appendChild(label);
+    document.getElementById('videoGrid').appendChild(tile);
+}
+
+function removeTile(participant, track) {
+    var id = 'tile-' + participant.sid + '-' + track.sid;
+    var tile = document.getElementById(id);
+    if (tile) { track.detach().forEach(function(el) { el.remove(); }); tile.remove(); }
+}
+
+/* ─── Room Events ───────────────────────────────── */
+room.on(LK.RoomEvent.TrackSubscribed, function(track, pub, participant) {
+    if (track.kind === LK.Track.Kind.Video) createTile(participant, track);
+    else if (track.kind === LK.Track.Kind.Audio) {
+        var el = track.attach(); el.id = 'audio-' + participant.sid;
+        document.body.appendChild(el);
+    }
+});
+
+room.on(LK.RoomEvent.TrackUnsubscribed, function(track, pub, participant) {
+    if (track.kind === LK.Track.Kind.Video) removeTile(participant, track);
+    else track.detach().forEach(function(el) { el.remove(); });
+});
+
+room.on(LK.RoomEvent.LocalTrackPublished, function(pub) {
+    if (pub.track && pub.track.kind === LK.Track.Kind.Video) createTile(room.localParticipant, pub.track);
+});
+
+room.on(LK.RoomEvent.LocalTrackUnpublished, function(pub) {
+    if (pub.track && pub.track.kind === LK.Track.Kind.Video) removeTile(room.localParticipant, pub.track);
+});
+
+room.on(LK.RoomEvent.ParticipantConnected, function(p) {
+    addParticipantToList(p);
+    showToast((p.name || p.identity) + ' ' + msgJoined, 'info');
+});
+
+room.on(LK.RoomEvent.ParticipantDisconnected, function(p) {
+    removeParticipantFromList(p);
+    showToast((p.name || p.identity) + ' ' + msgLeft, 'info');
+});
+
+/* Handle data messages from students */
+room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
+    try {
+        var msg = JSON.parse(decoder.decode(payload));
+        if (msg.action === 'chat') {
+            var senderName = msg.sender || (participant ? (participant.name || participant.identity) : 'Unknown');
+            var time = msg.time || new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            addChatMessage(senderName, msg.text, time, false);
+        } else if (msg.action === 'cam-request' && participant) {
+            camRequests.push({ identity: participant.identity, name: participant.name || participant.identity, sid: participant.sid });
+            renderCamRequests();
+            showToast((participant.name || participant.identity) + ' requests camera', 'warning');
+        }
+    } catch(e) { console.error('Data parse error:', e); }
+});
+
+/* Track mute status changes */
+room.on(LK.RoomEvent.TrackMuted, function(pub, participant) {
+    if (participant.identity === 'admin') return;
+    var info = participants.get(participant.identity);
+    if (info && pub.source === LK.Track.Source.Microphone) { info.micMuted = true; renderParticipantList(); }
+});
+
+room.on(LK.RoomEvent.TrackUnmuted, function(pub, participant) {
+    if (participant.identity === 'admin') return;
+    var info = participants.get(participant.identity);
+    if (info && pub.source === LK.Track.Source.Microphone) { info.micMuted = false; renderParticipantList(); }
+});
+
+/* ─── Local Controls ────────────────────────────── */
+function toggleMicrophone() {
+    micEnabled = !micEnabled;
+    room.localParticipant.setMicrophoneEnabled(micEnabled);
+    document.getElementById('micOn').classList.toggle('hidden', !micEnabled);
+    document.getElementById('micOff').classList.toggle('hidden', micEnabled);
+    document.getElementById('toggleMic').classList.toggle('bg-red-600', !micEnabled);
+    document.getElementById('toggleMic').classList.toggle('bg-gray-700', micEnabled);
+}
+
+function toggleCamera() {
+    camEnabled = !camEnabled;
+    room.localParticipant.setCameraEnabled(camEnabled);
+    document.getElementById('camOn').classList.toggle('hidden', !camEnabled);
+    document.getElementById('camOff').classList.toggle('hidden', camEnabled);
+    document.getElementById('toggleCam').classList.toggle('bg-red-600', !camEnabled);
+    document.getElementById('toggleCam').classList.toggle('bg-gray-700', camEnabled);
+}
+
+async function toggleScreenShare() {
+    screenEnabled = !screenEnabled;
+    try { await room.localParticipant.setScreenShareEnabled(screenEnabled); }
+    catch(e) { screenEnabled = false; console.error('Screen share failed:', e); }
+}
+
+/* ─── Chat ──────────────────────────────────────── */
+function sendChatMessage() {
+    var input = isMobile() ? document.getElementById('mChatInput') : document.getElementById('chatInput');
+    var text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    var msg = { action: 'chat', sender: 'Teacher', text: text, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) };
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true });
+    addChatMessage('You', msg.text, msg.time, true);
+}
+
+function addChatMessage(sender, text, time, isMe) {
+    var targets = isMobile() ? ['mChatMessages'] : ['chatMessages'];
+    /* Always add to both so switching panels shows history */
+    ['chatMessages', 'mChatMessages'].forEach(function(containerId) {
+        var container = document.getElementById(containerId);
+        if (!container) return;
+        var div = document.createElement('div');
+        div.className = isMe ? 'flex flex-col items-end' : 'flex flex-col items-start';
+        var bubble = document.createElement('div');
+        bubble.className = isMe
+            ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-md px-3 py-1.5 max-w-[85%] text-sm break-words'
+            : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-md px-3 py-1.5 max-w-[85%] text-sm break-words';
+        bubble.textContent = text;
+        var meta = document.createElement('div');
+        meta.className = 'text-xs text-gray-400 mt-0.5 px-1';
+        meta.textContent = sender + ' \u00B7 ' + time;
+        div.appendChild(bubble);
+        div.appendChild(meta);
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+    });
+    /* Badge for mobile when chat panel is closed */
+    if (!isMe && mobilePanelOpen !== 'chat' && isMobile()) {
+        mobileUnread++;
+        var badge = document.getElementById('mChatBadge');
+        badge.textContent = mobileUnread;
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+    }
+}
+
+/* ─── Connect ───────────────────────────────────── */
+async function connectRoom() {
+    try {
+        await room.connect('{{.LKUrl}}', '{{.Token}}');
+        console.log('Connected to room:', room.name);
+        room.remoteParticipants.forEach(function(p) { addParticipantToList(p); });
+        renderParticipantList();
+        await room.localParticipant.enableCameraAndMicrophone();
+    } catch(e) {
+        console.error('Connection failed:', e);
+        var ph = document.getElementById('placeholder');
+        if (ph) ph.innerHTML = '<div class="text-center"><div class="text-4xl mb-3">&#9888;&#65039;</div><p class="text-base font-medium text-red-400">{{t .Lang "connection_failed"}}</p><p class="text-sm text-gray-500 mt-1">' + e.message + '</p></div>';
+    }
+}
+
+connectRoom();
+window.addEventListener('beforeunload', function() { room.disconnect(); });
+</script>
+
+{{template "admin_live_foot" .}}

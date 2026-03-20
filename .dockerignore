@@ -1,0 +1,14 @@
+.git
+.gitignore
+.env
+env.example
+*.exe
+*.md
+uploads/
+db/migrations/
+docker-compose*.yml
+Dockerfile
+Makefile
+deploy.sh
+Caddyfile
+livekit-prod.yaml

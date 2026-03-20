@@ -1,0 +1,398 @@
+{{template "student_head" .}}
+
+<div class="mb-4">
+    <a href="/classroom/{{.Classroom.ID}}" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back_to_classroom"}}</a>
+</div>
+
+<h1 class="text-2xl font-extrabold text-gray-900 mb-1">{{t .Lang "my_progress"}}</h1>
+<p class="text-sm text-gray-500 mb-6">{{.Classroom.Name}}</p>
+
+<!-- Live Class Banner -->
+{{if .LiveSession}}
+<div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between animate-pulse-slow">
+    <div class="flex items-center gap-3">
+        <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+        <span class="font-semibold text-red-800">{{t .Lang "live_in_progress"}}</span>
+    </div>
+    <a href="/classroom/{{.Classroom.ID}}/live" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition">{{t .Lang "join_live"}}</a>
+</div>
+{{end}}
+
+<!-- Score Cards -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <!-- Quiz Avg -->
+    <div class="card p-4 text-center">
+        <div class="text-2xl font-bold text-indigo-600">{{printf "%.0f" .AvgQuizPct}}%</div>
+        <div class="text-xs text-gray-400 mt-1">{{t .Lang "quiz_avg_card"}}</div>
+        {{if .QuizDetails}}
+        <div class="text-[10px] mt-1 font-medium {{if ge .AvgQuizPct .ClassAvgQuizPct}}text-emerald-600{{else}}text-red-500{{end}}">
+            {{if ge .AvgQuizPct .ClassAvgQuizPct}}{{t .Lang "above_avg"}}{{else}}{{t .Lang "below_avg"}}{{end}} {{t .Lang "class_avg"}} ({{printf "%.0f" .ClassAvgQuizPct}}%)
+        </div>
+        {{end}}
+    </div>
+    <!-- Assignment Avg -->
+    <div class="card p-4 text-center">
+        <div class="text-2xl font-bold text-emerald-600">{{printf "%.0f" .AvgAssignPct}}%</div>
+        <div class="text-xs text-gray-400 mt-1">{{t .Lang "assign_avg_card"}}</div>
+        {{if .AssignDetails}}
+        <div class="text-[10px] mt-1 font-medium {{if ge .AvgAssignPct .ClassAvgAssignPct}}text-emerald-600{{else}}text-red-500{{end}}">
+            {{if ge .AvgAssignPct .ClassAvgAssignPct}}{{t .Lang "above_avg"}}{{else}}{{t .Lang "below_avg"}}{{end}} {{t .Lang "class_avg"}} ({{printf "%.0f" .ClassAvgAssignPct}}%)
+        </div>
+        {{end}}
+    </div>
+    <!-- Attendance -->
+    <div class="card p-4 text-center">
+        <div class="text-2xl font-bold {{if ge .AttendancePct 70.0}}text-emerald-600{{else if ge .AttendancePct 50.0}}text-yellow-600{{else}}text-red-500{{end}}">
+            {{printf "%.0f" .AttendancePct}}%
+        </div>
+        <div class="text-xs text-gray-400 mt-1">{{t .Lang "attendance_card"}}</div>
+        <div class="text-[10px] mt-1 text-gray-500">{{.AttendedCount}}/{{.TotalSessions}} {{t .Lang "sessions"}}</div>
+    </div>
+    <!-- Remarks -->
+    <div class="card p-4 text-center">
+        <div class="text-2xl font-bold text-purple-600">{{len .Remarks}}</div>
+        <div class="text-xs text-gray-400 mt-1">{{t .Lang "teacher_notes_card"}}</div>
+    </div>
+</div>
+
+<!-- Sub-tabs -->
+<div class="flex gap-4 border-b border-gray-200 mb-6 text-sm overflow-x-auto pb-1">
+    <a href="?sub=overview" class="pb-2 whitespace-nowrap {{if eq .Sub "overview"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_overview"}}</a>
+    <a href="?sub=quizzes" class="pb-2 whitespace-nowrap {{if eq .Sub "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_quizzes"}}</a>
+    <a href="?sub=assignments" class="pb-2 whitespace-nowrap {{if eq .Sub "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_assignments"}}</a>
+    <a href="?sub=attendance" class="pb-2 whitespace-nowrap {{if eq .Sub "attendance"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_attendance"}}</a>
+    <a href="?sub=remarks" class="pb-2 whitespace-nowrap {{if eq .Sub "remarks"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_notes"}}</a>
+</div>
+
+<!-- ===== OVERVIEW ===== -->
+{{if eq .Sub "overview"}}
+
+<!-- Quiz Performance Bar Chart -->
+{{if .QuizDetails}}
+<div class="card p-5 mb-6">
+    <h3 class="font-semibold text-gray-800 mb-3 text-sm">{{t .Lang "quiz_performance"}}</h3>
+    <div class="flex items-end gap-1 h-28">
+        {{range .QuizDetails}}
+        <div class="flex-1 flex flex-col items-center justify-end group relative">
+            <div class="text-[9px] text-gray-400 mb-1 opacity-0 group-hover:opacity-100 transition">{{printf "%.0f" .Pct}}%</div>
+            <div class="w-full max-w-[36px] rounded-t transition-all
+                {{if ge .Pct 80.0}}bg-emerald-500
+                {{else if ge .Pct 60.0}}bg-yellow-500
+                {{else if ge .Pct 40.0}}bg-orange-500
+                {{else}}bg-red-500{{end}}"
+                style="height: {{printf "%.0f" .Pct}}%;"
+                title="{{.QuizTitle}}: {{printf "%.0f" .Pct}}%"></div>
+            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap pointer-events-none z-10">
+                {{.QuizTitle}}: {{printf "%.0f" .Pct}}%
+            </div>
+        </div>
+        {{end}}
+    </div>
+    <div class="flex gap-1 mt-1">
+        {{range .QuizDetails}}
+        <div class="flex-1 text-center text-[8px] text-gray-400 truncate">{{.StartedAt.Format "Jan 2"}}</div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+<!-- Recent Assignments -->
+{{if .AssignDetails}}
+<div class="card p-5 mb-6">
+    <h3 class="font-semibold text-gray-800 mb-3 text-sm">{{t .Lang "recent_assign_grades"}}</h3>
+    <div class="space-y-2">
+        {{range .AssignDetails}}
+        <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+            <span class="text-sm text-gray-700 truncate flex-1 mr-3">{{.Title}}</span>
+            <div class="flex items-center gap-2 shrink-0">
+                {{if .Grade}}
+                <span class="text-sm font-semibold text-gray-700">{{printf "%.1f" (derefFloat .Grade)}}/{{printf "%.0f" .MaxGrade}}</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold
+                    {{if ge .Pct 80.0}}bg-emerald-100 text-emerald-700
+                    {{else if ge .Pct 60.0}}bg-yellow-100 text-yellow-700
+                    {{else if ge .Pct 40.0}}bg-orange-100 text-orange-700
+                    {{else}}bg-red-100 text-red-700{{end}}">
+                    {{printf "%.0f" .Pct}}%
+                </span>
+                {{else}}
+                <span class="text-xs text-gray-400 italic">
+                    {{if eq .Status "submitted"}}{{t $.Lang "pending_status"}}{{else if eq .Status "needs_revision"}}{{t $.Lang "needs_revision"}}{{else}}{{.Status}}{{end}}
+                </span>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+<!-- Recent Teacher Notes -->
+{{if .Remarks}}
+<div class="card p-5 mb-6">
+    <h3 class="font-semibold text-gray-800 mb-3 text-sm">{{t .Lang "latest_teacher_notes"}}</h3>
+    <div class="space-y-3">
+        {{$count := 0}}
+        {{range .Remarks}}
+        {{if lt $count 3}}
+        <div class="bg-purple-50 border border-purple-100 rounded-lg p-3">
+            <p class="text-sm text-gray-700">{{.Content}}</p>
+            <p class="text-[10px] text-gray-400 mt-1">{{.CreatedAt.Format "Jan 2, 2006 3:04 PM"}}</p>
+        </div>
+        {{end}}
+        {{$count = add $count 1}}
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+<!-- Empty state -->
+{{if and (not .QuizDetails) (not .AssignDetails)}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-400 text-lg mb-2">📈</p>
+    <p class="text-gray-500">{{t .Lang "no_data_yet"}}</p>
+</div>
+{{end}}
+
+{{end}}
+
+<!-- ===== QUIZ SCORES ===== -->
+{{if eq .Sub "quizzes"}}
+
+{{if .QuizDetails}}
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-4 py-3">{{t .Lang "quiz"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "score"}}</th>
+                    <th class="px-4 py-3 text-center">%</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "duration"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "date"}}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{range .QuizDetails}}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{.QuizTitle}}</td>
+                    <td class="px-4 py-3 text-center text-gray-600">
+                        {{if .Score}}{{deref .Score}}/{{deref .MaxScore}}{{else}}—{{end}}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {{if .Score}}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                            {{if ge .Pct 80.0}}bg-emerald-100 text-emerald-700
+                            {{else if ge .Pct 60.0}}bg-yellow-100 text-yellow-700
+                            {{else if ge .Pct 40.0}}bg-orange-100 text-orange-700
+                            {{else}}bg-red-100 text-red-700{{end}}">
+                            {{printf "%.0f" .Pct}}%
+                        </span>
+                        {{else}}—{{end}}
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-500 text-xs">{{.Duration}}</td>
+                    <td class="px-4 py-3 text-center text-gray-400 text-xs">{{.StartedAt.Format "Jan 2, 3:04 PM"}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="mt-4 flex flex-wrap gap-3">
+    <div class="bg-indigo-50 border border-indigo-100 rounded-lg px-4 py-2 text-sm">
+        <span class="text-gray-500">{{t .Lang "your_average"}}</span>
+        <span class="font-bold text-indigo-700 ml-1">{{printf "%.0f" .AvgQuizPct}}%</span>
+    </div>
+    <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm">
+        <span class="text-gray-500">{{t .Lang "class_average"}}</span>
+        <span class="font-bold text-gray-700 ml-1">{{printf "%.0f" .ClassAvgQuizPct}}%</span>
+    </div>
+    <div class="{{if ge .AvgQuizPct .ClassAvgQuizPct}}bg-emerald-50 border-emerald-100 text-emerald-700{{else}}bg-red-50 border-red-100 text-red-600{{end}} border rounded-lg px-4 py-2 text-sm font-semibold">
+        {{if ge .AvgQuizPct .ClassAvgQuizPct}}{{t .Lang "above_average"}}{{else}}{{t .Lang "below_average"}}{{end}}
+    </div>
+</div>
+
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-500">{{t .Lang "no_quiz_attempts_s"}}</p>
+</div>
+{{end}}
+
+{{end}}
+
+<!-- ===== ASSIGNMENTS ===== -->
+{{if eq .Sub "assignments"}}
+
+{{if .AssignDetails}}
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-4 py-3">{{t .Lang "assignment"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "grade_label"}}</th>
+                    <th class="px-4 py-3 text-center">%</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "status_label"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "submitted"}}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{range .AssignDetails}}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{.Title}}</td>
+                    <td class="px-4 py-3 text-center text-gray-600">
+                        {{if .Grade}}{{printf "%.1f" (derefFloat .Grade)}}/{{printf "%.0f" .MaxGrade}}{{else}}—{{end}}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {{if .Grade}}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                            {{if ge .Pct 80.0}}bg-emerald-100 text-emerald-700
+                            {{else if ge .Pct 60.0}}bg-yellow-100 text-yellow-700
+                            {{else if ge .Pct 40.0}}bg-orange-100 text-orange-700
+                            {{else}}bg-red-100 text-red-700{{end}}">
+                            {{printf "%.0f" .Pct}}%
+                        </span>
+                        {{else}}—{{end}}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold
+                            {{if eq .Status "reviewed"}}bg-emerald-100 text-emerald-700
+                            {{else if eq .Status "needs_revision"}}bg-orange-100 text-orange-700
+                            {{else}}bg-yellow-100 text-yellow-700{{end}}">
+                            {{if eq .Status "submitted"}}{{t $.Lang "pending_status"}}{{else if eq .Status "needs_revision"}}{{t $.Lang "needs_revision"}}{{else}}{{t $.Lang "reviewed"}}{{end}}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-400 text-xs">{{.SubmittedAt.Format "Jan 2, 3:04 PM"}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="mt-4 flex flex-wrap gap-3">
+    <div class="bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-2 text-sm">
+        <span class="text-gray-500">{{t .Lang "your_average"}}</span>
+        <span class="font-bold text-emerald-700 ml-1">{{printf "%.0f" .AvgAssignPct}}%</span>
+    </div>
+    <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm">
+        <span class="text-gray-500">{{t .Lang "class_average"}}</span>
+        <span class="font-bold text-gray-700 ml-1">{{printf "%.0f" .ClassAvgAssignPct}}%</span>
+    </div>
+    <div class="{{if ge .AvgAssignPct .ClassAvgAssignPct}}bg-emerald-50 border-emerald-100 text-emerald-700{{else}}bg-red-50 border-red-100 text-red-600{{end}} border rounded-lg px-4 py-2 text-sm font-semibold">
+        {{if ge .AvgAssignPct .ClassAvgAssignPct}}{{t .Lang "above_average"}}{{else}}{{t .Lang "below_average"}}{{end}}
+    </div>
+</div>
+
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-500">{{t .Lang "no_assign_subs_s"}}</p>
+</div>
+{{end}}
+
+{{end}}
+
+<!-- ===== ATTENDANCE ===== -->
+{{if eq .Sub "attendance"}}
+
+<!-- Attendance Summary -->
+<div class="flex flex-wrap gap-3 mb-6">
+    <div class="card px-5 py-3 text-center">
+        <div class="text-xl font-bold {{if ge .AttendancePct 70.0}}text-emerald-600{{else if ge .AttendancePct 50.0}}text-yellow-600{{else}}text-red-500{{end}}">
+            {{printf "%.0f" .AttendancePct}}%
+        </div>
+        <div class="text-xs text-gray-400">{{t .Lang "attendance_rate_card"}}</div>
+    </div>
+    <div class="card px-5 py-3 text-center">
+        <div class="text-xl font-bold text-indigo-600">{{.AttendedCount}}</div>
+        <div class="text-xs text-gray-400">{{t .Lang "sessions_attended_card"}}</div>
+    </div>
+    <div class="card px-5 py-3 text-center">
+        <div class="text-xl font-bold text-gray-600">{{.TotalSessions}}</div>
+        <div class="text-xs text-gray-400">{{t .Lang "total_sessions_card"}}</div>
+    </div>
+</div>
+
+{{if .AttendanceRecords}}
+<!-- Attendance Progress Bar -->
+<div class="card p-4 mb-6">
+    <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-700">{{t .Lang "attendance_progress"}}</span>
+        <span class="text-sm text-gray-500">{{.AttendedCount}}/{{.TotalSessions}}</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-3">
+        <div class="h-3 rounded-full transition-all {{if ge .AttendancePct 70.0}}bg-emerald-500{{else if ge .AttendancePct 50.0}}bg-yellow-500{{else}}bg-red-500{{end}}"
+            style="width: {{printf "%.0f" .AttendancePct}}%"></div>
+    </div>
+</div>
+
+<!-- Session List -->
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="px-4 py-3">{{t .Lang "date"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "duration"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "status_label"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "time_spent"}}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{range .AttendanceRecords}}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3 text-gray-700">{{.SessionDate.Format "Jan 2, 2006 3:04 PM"}}</td>
+                    <td class="px-4 py-3 text-center text-gray-500 text-xs">
+                        {{if .Duration}}{{deref .Duration}} {{t $.Lang "min"}}{{else}}—{{end}}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        {{if .Attended}}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">{{t $.Lang "present"}}</span>
+                        {{else}}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">{{t $.Lang "absent"}}</span>
+                        {{end}}
+                    </td>
+                    <td class="px-4 py-3 text-center text-gray-500 text-xs">
+                        {{if .Attended}}{{.TimeSpentMin}} {{t $.Lang "min"}}{{else}}—{{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <p class="text-gray-500">{{t .Lang "no_live_sessions_s"}}</p>
+</div>
+{{end}}
+
+{{end}}
+
+<!-- ===== TEACHER NOTES ===== -->
+{{if eq .Sub "remarks"}}
+
+{{if .Remarks}}
+<div class="space-y-3">
+    {{range .Remarks}}
+    <div class="card p-4 border-l-4 border-l-purple-400">
+        <p class="text-sm text-gray-700 leading-relaxed">{{.Content}}</p>
+        <p class="text-[10px] text-gray-400 mt-2 flex items-center gap-1">
+            <span>🗓</span> {{.CreatedAt.Format "January 2, 2006 at 3:04 PM"}}
+        </p>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="card p-8 text-center bg-gray-50 border-dashed">
+    <div class="text-2xl mb-2">📝</div>
+    <p class="text-gray-500">{{t .Lang "no_teacher_notes"}}</p>
+    <p class="text-sm text-gray-400 mt-1">{{t .Lang "no_notes_desc"}}</p>
+</div>
+{{end}}
+
+{{end}}
+
+{{template "student_foot" .}}
