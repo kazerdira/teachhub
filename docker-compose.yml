@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:16-alpine
@@ -11,16 +9,64 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teachhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   livekit:
-    image: livekit/livekit-server:latest
+    image: livekit/livekit-server:v1.7.2
     command: ["--config", "/livekit.yaml"]
     ports:
       - "7880:7880"
       - "7881:7881"
-      - "7882:7882/udp"
+      - "7882-7892:7882-7892/udp"
     volumes:
       - ./livekit.yaml:/livekit.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:7880"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://teachhub:teachhub@db:5432/teachhub?sslmode=disable
+      - BASE_URL=https://teachhub.chickenkiller.com
+      - LIVEKIT_HOST=livekit
+      - LIVEKIT_API_KEY=${LIVEKIT_API_KEY:-devkey}
+      - LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET:-devsecret}
+    volumes:
+      - uploads:/app/uploads
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+      - livekit
 
 volumes:
   pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:
