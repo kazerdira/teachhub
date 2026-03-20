@@ -87,7 +87,8 @@ func main() {
 
 	// Sessions
 	isProduction := os.Getenv("GIN_MODE") == "release"
-	middleware.Init(sessionSecret, isProduction)
+	useSecureCookies := strings.HasPrefix(baseURL, "https://")
+	middleware.Init(sessionSecret, useSecureCookies)
 
 	// Templates
 	funcMap := template.FuncMap{
@@ -236,7 +237,7 @@ func main() {
 		if lang != "fr" && lang != "en" {
 			lang = "en"
 		}
-		c.SetCookie("lang", lang, 60*60*24*365, "/", "", isProduction, false)
+		c.SetCookie("lang", lang, 60*60*24*365, "/", "", useSecureCookies, false)
 		ref := c.Request.Referer()
 		if ref == "" {
 			ref = "/"
