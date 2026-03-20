@@ -54,6 +54,8 @@ services:
     depends_on:
       app:
         condition: service_healthy
+      livekit:
+        condition: service_healthy
     networks:
       - internal
 
