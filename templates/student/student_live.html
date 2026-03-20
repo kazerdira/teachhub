@@ -3,73 +3,73 @@
 <!-- Toast notification container -->
 <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
-<div class="flex flex-col h-full overflow-hidden md:p-0">
-    <!-- Main card fills everything -->
-    <div class="flex flex-col flex-1 overflow-hidden md:rounded-xl">
-        <!-- Header bar (compact on mobile) -->
-        <div class="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-3 py-2 md:px-5 md:py-3 flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0">
-                <a href="/classroom/{{.Classroom.ID}}" class="text-gray-400 hover:text-white flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                </a>
-                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
-                <h1 class="font-bold text-sm md:text-lg truncate">{{.Classroom.Name}}</h1>
-            </div>
-            <div class="flex items-center gap-1.5 text-xs md:text-sm text-gray-300 flex-shrink-0">
-                <span id="pCount">0</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            </div>
-        </div>
-
-        <!-- Video grid (fills available space) -->
-        <div id="videoGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 p-1 bg-gray-900 flex-1 min-h-0 overflow-y-auto">
-            <div id="placeholder" class="col-span-full flex items-center justify-center text-gray-500 py-12 md:py-20">
-                <div class="text-center">
-                    <div class="text-4xl mb-2">&#128249;</div>
-                    <p class="text-sm md:text-base font-medium text-gray-400">{{t .Lang "connecting"}}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Camera status banner -->
-        <div id="camStatus" class="bg-gray-800 text-center py-1.5 text-xs md:text-sm hidden">
-            <span id="camStatusText" class="text-gray-400"></span>
-        </div>
-
-        <!-- Controls bar (compact on mobile) -->
-        <div class="bg-gray-900 border-t border-gray-800 px-2 py-2 md:px-6 md:py-3 flex items-center justify-center gap-2 md:gap-4">
-            <button id="toggleMic" onclick="toggleMicrophone()" class="bg-gray-700 hover:bg-gray-600 text-white p-2 md:p-3 rounded-full transition" title="{{t .Lang "microphone"}}">
-                <svg id="micOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
-                <svg id="micOff" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
-            </button>
-
-            <!-- Camera button -->
-            <button id="toggleCam" onclick="toggleCamera()" class="bg-gray-800 text-gray-500 p-2 md:p-3 rounded-full transition cursor-not-allowed opacity-50" title="{{t .Lang "camera"}}" disabled>
-                <svg id="camOn" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <svg id="camOff" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-            </button>
-
-            <!-- Request camera (icon-only on mobile, text on desktop) -->
-            <button id="reqCamBtn" onclick="requestCamera()" class="bg-amber-500 hover:bg-amber-600 text-white p-2 md:px-4 md:py-2.5 rounded-full transition text-sm font-medium flex items-center gap-1.5" title="{{t .Lang "request_camera"}}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <span class="hidden md:inline">{{t .Lang "request_camera"}}</span>
-            </button>
-
-            <!-- Chat toggle -->
-            <button id="chatToggleBtn" onclick="toggleChat()" class="bg-gray-700 hover:bg-gray-600 text-white p-2 md:p-3 rounded-full transition relative" title="{{t .Lang "chat"}}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                <span id="chatBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
-            </button>
-
-            <!-- Leave -->
-            <a href="/classroom/{{.Classroom.ID}}" onclick="room.disconnect()" class="bg-red-600 hover:bg-red-700 text-white p-2 md:p-3 rounded-full transition" title="{{t .Lang "leave"}}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+<div class="flex flex-col h-full overflow-hidden">
+    <!-- Header bar -->
+    <div class="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-3 py-2 md:px-5 md:py-2.5 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2 min-w-0">
+            <a href="/classroom/{{.Classroom.ID}}" class="text-gray-400 hover:text-white flex-shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </a>
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
+            <h1 class="font-bold text-sm md:text-lg truncate">{{.Classroom.Name}}</h1>
         </div>
+        <div class="flex items-center gap-1.5 text-xs md:text-sm text-gray-300 flex-shrink-0">
+            <span id="pCount">0</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+    </div>
+
+    <!-- Main Stage -->
+    <div id="mainStage" class="flex-1 bg-gray-900 relative min-h-0 flex items-center justify-center overflow-hidden">
+        <div id="placeholder" class="text-center">
+            <div class="text-4xl mb-2">&#128249;</div>
+            <p class="text-sm md:text-base font-medium text-gray-400">{{t .Lang "connecting"}}</p>
+        </div>
+        <!-- PiP overlay (teacher cam when screen share is on stage) -->
+        <div id="pipOverlay" class="absolute top-2 right-2 md:top-3 md:right-3 w-28 h-20 md:w-44 md:h-32 rounded-lg overflow-hidden shadow-2xl border-2 border-gray-700 cursor-pointer hidden z-10 bg-gray-800" onclick="pinFromPip()">
+            <div id="pipLabel" class="absolute bottom-0.5 left-0.5 bg-black/60 text-white text-[8px] md:text-[10px] px-1 py-0.5 rounded-full z-10">{{t .Lang "teacher_label"}}</div>
+        </div>
+    </div>
+
+    <!-- Camera status banner -->
+    <div id="camStatus" class="bg-gray-800 text-center py-1 text-xs md:text-sm hidden flex-shrink-0">
+        <span id="camStatusText" class="text-gray-400"></span>
+    </div>
+
+    <!-- Filmstrip -->
+    <div id="filmstrip" class="bg-gray-950 flex-shrink-0 hidden">
+        <div id="filmstripInner" class="flex gap-1 p-1 md:p-1.5 overflow-x-auto scrollbar-hide" style="-webkit-overflow-scrolling:touch;"></div>
+    </div>
+
+    <!-- Controls bar -->
+    <div class="bg-gray-900 border-t border-gray-800 px-2 py-2 md:px-6 md:py-2.5 flex items-center justify-center gap-2 md:gap-3 flex-shrink-0">
+        <button id="toggleMic" onclick="toggleMicrophone()" class="bg-gray-700 hover:bg-gray-600 text-white p-2 md:p-2.5 rounded-full transition" title="{{t .Lang "microphone"}}">
+            <svg id="micOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
+            <svg id="micOff" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+        </button>
+
+        <button id="toggleCam" onclick="toggleCamera()" class="bg-gray-800 text-gray-500 p-2 md:p-2.5 rounded-full transition cursor-not-allowed opacity-50" title="{{t .Lang "camera"}}" disabled>
+            <svg id="camOn" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <svg id="camOff" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+        </button>
+
+        <button id="reqCamBtn" onclick="requestCamera()" class="bg-amber-500 hover:bg-amber-600 text-white p-2 md:px-3 md:py-2 rounded-full transition text-sm font-medium flex items-center gap-1.5" title="{{t .Lang "request_camera"}}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span class="hidden md:inline">{{t .Lang "request_camera"}}</span>
+        </button>
+
+        <button id="chatToggleBtn" onclick="toggleChat()" class="bg-gray-700 hover:bg-gray-600 text-white p-2 md:p-2.5 rounded-full transition relative" title="{{t .Lang "chat"}}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span id="chatBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+
+        <a href="/classroom/{{.Classroom.ID}}" onclick="room.disconnect()" class="bg-red-600 hover:bg-red-700 text-white p-2 md:p-2.5 rounded-full transition" title="{{t .Lang "leave"}}">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </a>
     </div>
 </div>
 
-<!-- Chat Overlay (bottom sheet on mobile, side panel on desktop) -->
+<!-- Chat Overlay -->
 <div id="chatOverlay" class="fixed inset-0 z-40 hidden flex flex-col justify-end md:justify-center md:items-end md:pr-4 md:pb-20">
     <div class="bg-black/30 absolute inset-0" onclick="toggleChat()"></div>
     <div class="relative bg-white rounded-t-2xl md:rounded-2xl w-full md:w-96 flex flex-col shadow-2xl" style="max-height:60vh">
@@ -85,6 +85,23 @@
     </div>
 </div>
 
+<style>
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+#mainStage > video { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
+#pipOverlay video { width: 100%; height: 100%; object-fit: cover; }
+.film-thumb { flex-shrink: 0; width: 100px; height: 58px; border-radius: 0.375rem; overflow: hidden; background: #1f2937; position: relative; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+.film-thumb:hover { border-color: #6366f1; }
+.film-thumb.active { border-color: #818cf8; }
+.film-thumb.speaking { border-color: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.4); }
+.film-thumb video { width: 100%; height: 100%; object-fit: cover; }
+.film-thumb .thumb-label { position: absolute; bottom: 1px; left: 1px; background: rgba(0,0,0,0.6); color: white; font-size: 9px; padding: 1px 4px; border-radius: 9999px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 8px); }
+@media (min-width: 768px) {
+    .film-thumb { width: 140px; height: 80px; }
+    .film-thumb .thumb-label { font-size: 10px; padding: 1px 6px; }
+}
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.js"></script>
 <script>
 var LK = LivekitClient;
@@ -92,24 +109,26 @@ var room = new LK.Room({ adaptiveStream: true, dynacast: true });
 var encoder = new TextEncoder();
 var decoder = new TextDecoder();
 
-var micEnabled = true;
-var camEnabled = false;
-var camApproved = false;
-var camRequested = false;
+var micEnabled = true, camEnabled = false, camApproved = false, camRequested = false;
 
-const msgCamApproved = '{{t .Lang "cam_approved_msg"}}';
-const msgCamDenied = '{{t .Lang "cam_denied_msg"}}';
-const msgCamOff = '{{t .Lang "cam_off_teacher"}}';
-const msgCamWaiting = '{{t .Lang "cam_waiting"}}';
-const msgCamSent = '{{t .Lang "toast_cam_sent"}}';
-const msgCamApprovedShort = '{{t .Lang "toast_cam_approved_s"}}';
-const msgCamDeniedShort = '{{t .Lang "toast_cam_denied_s"}}';
-const msgMicMuted = '{{t .Lang "toast_mic_muted"}}';
-const msgMicUnmuted = '{{t .Lang "toast_mic_unmuted"}}';
-const msgAllMuted = '{{t .Lang "toast_all_muted_s"}}';
-const msgCamOffS = '{{t .Lang "toast_cam_off_s"}}';
-const msgClassEnded = '{{t .Lang "toast_class_ended"}}';
-const msgAskTeacher = '{{t .Lang "toast_ask_teacher"}}';
+/* ─── Track Management ──────────────────────────── */
+var trackMap = new Map();  // key → { participant, track, source, isTeacher }
+var pinnedKey = null;      // user-pinned track (null = auto)
+var autoPinned = null;
+
+var msgCamApproved = '{{t .Lang "cam_approved_msg"}}';
+var msgCamDenied = '{{t .Lang "cam_denied_msg"}}';
+var msgCamOff = '{{t .Lang "cam_off_teacher"}}';
+var msgCamWaiting = '{{t .Lang "cam_waiting"}}';
+var msgCamSent = '{{t .Lang "toast_cam_sent"}}';
+var msgCamApprovedShort = '{{t .Lang "toast_cam_approved_s"}}';
+var msgCamDeniedShort = '{{t .Lang "toast_cam_denied_s"}}';
+var msgMicMuted = '{{t .Lang "toast_mic_muted"}}';
+var msgMicUnmuted = '{{t .Lang "toast_mic_unmuted"}}';
+var msgAllMuted = '{{t .Lang "toast_all_muted_s"}}';
+var msgCamOffS = '{{t .Lang "toast_cam_off_s"}}';
+var msgClassEnded = '{{t .Lang "toast_class_ended"}}';
+var msgAskTeacher = '{{t .Lang "toast_ask_teacher"}}';
 
 /* ─── Toast ─────────────────────────────────────── */
 function showToast(msg, type) {
@@ -129,13 +148,12 @@ function setCamStatus(text, color) {
     else { bar.classList.add('hidden'); }
 }
 
-/* ─── Data Channel: send to teacher ─────────────── */
+/* ─── Data Channel ──────────────────────────────── */
 function sendToTeacher(action) {
     var msg = JSON.stringify({ action: action });
     room.localParticipant.publishData(encoder.encode(msg), { reliable: true, destinationIdentities: ['admin'] });
 }
 
-/* ─── Handle teacher commands ───────────────────── */
 room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
     try {
         var msg = JSON.parse(decoder.decode(payload));
@@ -146,56 +164,25 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 if (!chatOpen) { unreadCount++; var badge = document.getElementById('chatBadge'); badge.textContent = unreadCount; badge.classList.remove('hidden'); }
                 break;
             case 'mute-mic':
-                micEnabled = false;
-                room.localParticipant.setMicrophoneEnabled(false);
-                updateMicUI();
-                showToast(msgMicMuted, 'warning');
-                break;
+                micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgMicMuted, 'warning'); break;
             case 'unmute-mic':
-                micEnabled = true;
-                room.localParticipant.setMicrophoneEnabled(true);
-                updateMicUI();
-                showToast(msgMicUnmuted, 'success');
-                break;
+                micEnabled = true; room.localParticipant.setMicrophoneEnabled(true); updateMicUI(); showToast(msgMicUnmuted, 'success'); break;
             case 'mute-all':
-                micEnabled = false;
-                room.localParticipant.setMicrophoneEnabled(false);
-                updateMicUI();
-                showToast(msgAllMuted, 'warning');
-                break;
+                micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgAllMuted, 'warning'); break;
             case 'cam-off':
-                camEnabled = false;
-                camApproved = false;
-                room.localParticipant.setCameraEnabled(false);
-                updateCamUI();
-                disableCamButton();
-                setCamStatus(msgCamOff, 'text-red-400');
-                showToast(msgCamOffS, 'warning');
-                break;
+                camEnabled = false; camApproved = false; room.localParticipant.setCameraEnabled(false); updateCamUI(); disableCamButton();
+                setCamStatus(msgCamOff, 'text-red-400'); showToast(msgCamOffS, 'warning'); break;
             case 'cam-approve':
-                camApproved = true;
-                camRequested = false;
-                enableCamButton();
-                setCamStatus(msgCamApproved, 'text-green-400');
-                showToast(msgCamApprovedShort, 'success');
-                break;
+                camApproved = true; camRequested = false; enableCamButton();
+                setCamStatus(msgCamApproved, 'text-green-400'); showToast(msgCamApprovedShort, 'success'); break;
             case 'cam-deny':
-                camApproved = false;
-                camRequested = false;
-                var reqBtn = document.getElementById('reqCamBtn');
-                reqBtn.disabled = false;
-                reqBtn.querySelector('span') && (reqBtn.querySelector('span').textContent = '{{t .Lang "request_camera"}}');
-                reqBtn.classList.remove('hidden');
-                setCamStatus(msgCamDenied, 'text-red-400');
-                showToast(msgCamDeniedShort, 'error');
-                break;
+                camApproved = false; camRequested = false;
+                var reqBtn = document.getElementById('reqCamBtn'); reqBtn.disabled = false;
+                var sp = reqBtn.querySelector('span'); if (sp) sp.textContent = '{{t .Lang "request_camera"}}';
+                reqBtn.classList.remove('hidden'); setCamStatus(msgCamDenied, 'text-red-400'); showToast(msgCamDeniedShort, 'error'); break;
             case 'end-class':
                 showToast(msgClassEnded, 'error');
-                setTimeout(function() {
-                    room.disconnect();
-                    window.location.href = '/classroom/{{.Classroom.ID}}';
-                }, 1500);
-                break;
+                setTimeout(function() { room.disconnect(); window.location.href = '/classroom/{{.Classroom.ID}}'; }, 1500); break;
         }
     } catch(e) { console.error('Data parse error:', e); }
 });
@@ -207,7 +194,6 @@ function updateMicUI() {
     document.getElementById('toggleMic').classList.toggle('bg-red-600', !micEnabled);
     document.getElementById('toggleMic').classList.toggle('bg-gray-700', micEnabled);
 }
-
 function updateCamUI() {
     document.getElementById('camOn').classList.toggle('hidden', !camEnabled);
     document.getElementById('camOff').classList.toggle('hidden', camEnabled);
@@ -216,167 +202,208 @@ function updateCamUI() {
         document.getElementById('toggleCam').classList.toggle('bg-gray-700', camEnabled);
     }
 }
-
 function enableCamButton() {
     var btn = document.getElementById('toggleCam');
     btn.disabled = false;
     btn.classList.remove('cursor-not-allowed', 'opacity-50', 'bg-gray-800', 'text-gray-500');
     btn.classList.add('bg-gray-700', 'hover:bg-gray-600', 'text-white');
-    btn.title = 'Toggle Camera';
     document.getElementById('reqCamBtn').classList.add('hidden');
 }
-
 function disableCamButton() {
     var btn = document.getElementById('toggleCam');
     btn.disabled = true;
     btn.classList.add('cursor-not-allowed', 'opacity-50', 'bg-gray-800', 'text-gray-500');
     btn.classList.remove('bg-gray-700', 'hover:bg-gray-600', 'text-white', 'bg-red-600');
-    btn.title = '{{t .Lang "camera_ask"}}';
-    var reqBtn = document.getElementById('reqCamBtn');
-    reqBtn.classList.remove('hidden');
-    reqBtn.disabled = false;
-    var textSpan = reqBtn.querySelector('span');
-    if (textSpan) textSpan.textContent = '{{t .Lang "request_camera"}}';
+    var reqBtn = document.getElementById('reqCamBtn'); reqBtn.classList.remove('hidden'); reqBtn.disabled = false;
+    var textSpan = reqBtn.querySelector('span'); if (textSpan) textSpan.textContent = '{{t .Lang "request_camera"}}';
     camRequested = false;
 }
 
 /* ─── Controls ──────────────────────────────────── */
-function toggleMicrophone() {
-    micEnabled = !micEnabled;
-    room.localParticipant.setMicrophoneEnabled(micEnabled);
-    updateMicUI();
-}
-
+function toggleMicrophone() { micEnabled = !micEnabled; room.localParticipant.setMicrophoneEnabled(micEnabled); updateMicUI(); }
 function toggleCamera() {
-    if (!camApproved) {
-        showToast(msgAskTeacher, 'warning');
-        return;
-    }
-    camEnabled = !camEnabled;
-    room.localParticipant.setCameraEnabled(camEnabled);
-    updateCamUI();
+    if (!camApproved) { showToast(msgAskTeacher, 'warning'); return; }
+    camEnabled = !camEnabled; room.localParticipant.setCameraEnabled(camEnabled); updateCamUI();
     if (camEnabled) setCamStatus('');
 }
-
 function requestCamera() {
-    if (camRequested) return;
-    camRequested = true;
-    sendToTeacher('cam-request');
-    var reqBtn = document.getElementById('reqCamBtn');
-    reqBtn.disabled = true;
-    var textSpan = reqBtn.querySelector('span');
-    if (textSpan) textSpan.textContent = '{{t .Lang "request_sent"}}';
-    setCamStatus(msgCamWaiting, 'text-amber-400');
-    showToast(msgCamSent, 'info');
+    if (camRequested) return; camRequested = true; sendToTeacher('cam-request');
+    var reqBtn = document.getElementById('reqCamBtn'); reqBtn.disabled = true;
+    var textSpan = reqBtn.querySelector('span'); if (textSpan) textSpan.textContent = '{{t .Lang "request_sent"}}';
+    setCamStatus(msgCamWaiting, 'text-amber-400'); showToast(msgCamSent, 'info');
 }
 
 /* ─── Chat ──────────────────────────────────────── */
-var chatOpen = false;
-var unreadCount = 0;
-
+var chatOpen = false, unreadCount = 0;
 function toggleChat() {
-    chatOpen = !chatOpen;
-    document.getElementById('chatOverlay').classList.toggle('hidden', !chatOpen);
-    if (chatOpen) {
-        unreadCount = 0;
-        document.getElementById('chatBadge').classList.add('hidden');
-        var container = document.getElementById('chatMessages');
-        container.scrollTop = container.scrollHeight;
-        document.getElementById('chatInput').focus();
-    }
+    chatOpen = !chatOpen; document.getElementById('chatOverlay').classList.toggle('hidden', !chatOpen);
+    if (chatOpen) { unreadCount = 0; document.getElementById('chatBadge').classList.add('hidden');
+        var c = document.getElementById('chatMessages'); c.scrollTop = c.scrollHeight; document.getElementById('chatInput').focus(); }
 }
-
 function sendChatMessage() {
-    var input = document.getElementById('chatInput');
-    var text = input.value.trim();
-    if (!text) return;
-    input.value = '';
+    var input = document.getElementById('chatInput'); var text = input.value.trim(); if (!text) return; input.value = '';
     var msg = { action: 'chat', sender: '{{.Student.Name}}', text: text, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) };
     room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true });
     addChatMessage('You', msg.text, msg.time, true);
 }
-
 function addChatMessage(sender, text, time, isMe) {
     var container = document.getElementById('chatMessages');
-    var div = document.createElement('div');
-    div.className = isMe ? 'flex flex-col items-end' : 'flex flex-col items-start';
+    var div = document.createElement('div'); div.className = isMe ? 'flex flex-col items-end' : 'flex flex-col items-start';
     var bubble = document.createElement('div');
-    bubble.className = isMe
-        ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-md px-3 py-1.5 max-w-[85%] text-sm break-words'
+    bubble.className = isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-md px-3 py-1.5 max-w-[85%] text-sm break-words'
         : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-md px-3 py-1.5 max-w-[85%] text-sm break-words';
     bubble.textContent = text;
-    var meta = document.createElement('div');
-    meta.className = 'text-xs text-gray-400 mt-0.5 px-1';
-    meta.textContent = sender + ' \u00B7 ' + time;
-    div.appendChild(bubble);
-    div.appendChild(meta);
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    var meta = document.createElement('div'); meta.className = 'text-xs text-gray-400 mt-0.5 px-1'; meta.textContent = sender + ' \u00B7 ' + time;
+    div.appendChild(bubble); div.appendChild(meta); container.appendChild(div); container.scrollTop = container.scrollHeight;
 }
 
-/* ─── Video Tiles ───────────────────────────────── */
-function createTile(participant, track) {
-    var id = 'tile-' + participant.sid + '-' + track.sid;
-    if (document.getElementById(id)) return;
-    var ph = document.getElementById('placeholder'); if (ph) ph.remove();
-    var tile = document.createElement('div');
-    tile.id = id;
-    tile.className = 'relative bg-gray-800 rounded-lg overflow-hidden aspect-video flex items-center justify-center';
-    var el = track.attach(); el.className = 'w-full h-full object-cover';
-    tile.appendChild(el);
-    var label = document.createElement('div');
-    label.className = 'absolute bottom-1 left-1 bg-black/60 text-white text-[10px] md:text-xs px-1.5 py-0.5 rounded-full backdrop-blur-sm';
-    label.textContent = (participant.identity === 'admin' ? '{{t .Lang "teacher_label"}}' : (participant.name || participant.identity));
-    tile.appendChild(label);
-    document.getElementById('videoGrid').appendChild(tile);
+/* ═══════════════════════════════════════════════════
+   SPOTLIGHT + FILMSTRIP VIDEO LAYOUT
+   ═══════════════════════════════════════════════════ */
+
+function makeKey(p, t) { return p.sid + '-' + t.sid; }
+
+function isScreenShare(track) {
+    return track.source === LK.Track.Source.ScreenShare || track.source === 'screen_share' || track.source === LK.Track.Source.ScreenShareAudio;
 }
 
-function removeTile(participant, track) {
-    var id = 'tile-' + participant.sid + '-' + track.sid;
-    var tile = document.getElementById(id);
-    if (tile) { track.detach().forEach(function(el) { el.remove(); }); tile.remove(); }
+function getLabel(entry) {
+    if (entry.isTeacher) return entry.source === 'screen_share' ? '{{t .Lang "teacher_screen"}}' : '{{t .Lang "teacher_label"}}';
+    return entry.participant.name || entry.participant.identity;
 }
 
-function updateParticipantCount() {
-    document.getElementById('pCount').textContent = room.numParticipants + 1;
+/* Auto-select: teacher screen > teacher cam > first track */
+function pickAuto() {
+    var tScreen = null, tCam = null, first = null;
+    trackMap.forEach(function(e, k) {
+        if (!first) first = k;
+        if (e.isTeacher && e.source === 'screen_share') tScreen = k;
+        else if (e.isTeacher && e.source !== 'screen_share') tCam = k;
+    });
+    return tScreen || tCam || first || null;
+}
+
+/* Full re-render of main stage + filmstrip + PiP */
+function renderLayout() {
+    var stage = document.getElementById('mainStage');
+    var filmstrip = document.getElementById('filmstrip');
+    var filmInner = document.getElementById('filmstripInner');
+    var pip = document.getElementById('pipOverlay');
+    var ph = document.getElementById('placeholder');
+
+    /* Clear previous video on stage */
+    var old = stage.querySelector(':scope > video');
+    if (old) old.remove();
+
+    if (trackMap.size === 0) {
+        pip.classList.add('hidden'); filmstrip.classList.add('hidden');
+        if (ph) ph.style.display = ''; return;
+    }
+    if (ph) ph.style.display = 'none';
+
+    /* Pick main stage track */
+    var activeKey = pinnedKey && trackMap.has(pinnedKey) ? pinnedKey : pickAuto();
+    autoPinned = activeKey;
+    var mainEntry = trackMap.get(activeKey);
+
+    /* Render main stage */
+    if (mainEntry) {
+        var el = mainEntry.track.attach();
+        el.style.objectFit = mainEntry.source === 'screen_share' ? 'contain' : 'contain';
+        stage.insertBefore(el, stage.firstChild);
+    }
+
+    /* PiP: teacher cam when teacher screen is on stage */
+    var teacherCamKey = null;
+    trackMap.forEach(function(e, k) { if (e.isTeacher && e.source !== 'screen_share') teacherCamKey = k; });
+    var showPip = mainEntry && mainEntry.isTeacher && mainEntry.source === 'screen_share' && teacherCamKey && teacherCamKey !== activeKey;
+
+    var pipVid = pip.querySelector('video'); if (pipVid) pipVid.remove();
+    if (showPip) {
+        var camEntry = trackMap.get(teacherCamKey);
+        if (camEntry) { var pv = camEntry.track.attach(); pv.className = 'w-full h-full object-cover'; pip.insertBefore(pv, pip.firstChild); pip.classList.remove('hidden'); }
+    } else { pip.classList.add('hidden'); }
+
+    /* Filmstrip: everything except main stage + PiP tracks */
+    filmInner.innerHTML = '';
+    var count = 0;
+    trackMap.forEach(function(entry, key) {
+        if (key === activeKey) return;
+        if (showPip && key === teacherCamKey) return;
+        count++;
+        var thumb = document.createElement('div');
+        thumb.className = 'film-thumb' + (key === pinnedKey ? ' active' : '');
+        thumb.setAttribute('data-key', key);
+        thumb.onclick = function() { pinTrack(key); };
+        var vid = entry.track.attach(); vid.className = 'w-full h-full object-cover';
+        thumb.appendChild(vid);
+        var lbl = document.createElement('div'); lbl.className = 'thumb-label'; lbl.textContent = getLabel(entry);
+        thumb.appendChild(lbl);
+        filmInner.appendChild(thumb);
+    });
+    filmstrip.classList.toggle('hidden', count === 0);
+}
+
+function pinTrack(key) { pinnedKey = (pinnedKey === key) ? null : key; renderLayout(); }
+function pinFromPip() {
+    trackMap.forEach(function(e, k) { if (e.isTeacher && e.source !== 'screen_share') pinTrack(k); });
+}
+
+function addTrack(participant, track) {
+    var key = makeKey(participant, track);
+    if (trackMap.has(key)) return;
+    var source = isScreenShare(track) ? 'screen_share' : 'camera';
+    trackMap.set(key, { participant: participant, track: track, source: source, isTeacher: participant.identity === 'admin' });
+    if (participant.identity === 'admin' && source === 'screen_share') pinnedKey = null;
+    renderLayout();
+}
+
+function removeTrack(participant, track) {
+    var key = makeKey(participant, track);
+    var entry = trackMap.get(key);
+    if (entry) entry.track.detach().forEach(function(el) { el.remove(); });
+    trackMap.delete(key);
+    if (pinnedKey === key) pinnedKey = null;
+    renderLayout();
 }
 
 /* ─── Room Events ───────────────────────────────── */
 room.on(LK.RoomEvent.TrackSubscribed, function(track, pub, participant) {
-    if (track.kind === LK.Track.Kind.Video) createTile(participant, track);
-    else if (track.kind === LK.Track.Kind.Audio) {
-        var el = track.attach(); el.id = 'audio-' + participant.sid;
-        document.body.appendChild(el);
-    }
+    if (track.kind === LK.Track.Kind.Video) addTrack(participant, track);
+    else if (track.kind === LK.Track.Kind.Audio) { var el = track.attach(); el.id = 'audio-' + participant.sid; document.body.appendChild(el); }
 });
-
 room.on(LK.RoomEvent.TrackUnsubscribed, function(track, pub, participant) {
-    if (track.kind === LK.Track.Kind.Video) removeTile(participant, track);
+    if (track.kind === LK.Track.Kind.Video) removeTrack(participant, track);
     else track.detach().forEach(function(el) { el.remove(); });
 });
-
 room.on(LK.RoomEvent.LocalTrackPublished, function(pub) {
-    if (pub.track && pub.track.kind === LK.Track.Kind.Video) createTile(room.localParticipant, pub.track);
+    if (pub.track && pub.track.kind === LK.Track.Kind.Video) addTrack(room.localParticipant, pub.track);
 });
-
 room.on(LK.RoomEvent.LocalTrackUnpublished, function(pub) {
-    if (pub.track && pub.track.kind === LK.Track.Kind.Video) removeTile(room.localParticipant, pub.track);
+    if (pub.track && pub.track.kind === LK.Track.Kind.Video) removeTrack(room.localParticipant, pub.track);
 });
 
+function updateParticipantCount() { document.getElementById('pCount').textContent = room.numParticipants + 1; }
 room.on(LK.RoomEvent.ParticipantConnected, updateParticipantCount);
 room.on(LK.RoomEvent.ParticipantDisconnected, updateParticipantCount);
+room.on(LK.RoomEvent.Disconnected, function() { window.location.href = '/classroom/{{.Classroom.ID}}'; });
 
-room.on(LK.RoomEvent.Disconnected, function() {
-    window.location.href = '/classroom/{{.Classroom.ID}}';
+/* Active speaker glow on filmstrip */
+room.on(LK.RoomEvent.ActiveSpeakersChanged, function(speakers) {
+    var sids = {}; speakers.forEach(function(p) { sids[p.sid] = true; });
+    document.querySelectorAll('.film-thumb').forEach(function(el) {
+        var k = el.getAttribute('data-key'); if (!k) return;
+        var entry = trackMap.get(k);
+        el.classList.toggle('speaking', entry && sids[entry.participant.sid] ? true : false);
+    });
 });
 
-/* ─── Connect (mic only, camera OFF) ────────────── */
+/* ─── Connect ───────────────────────────────────── */
 async function connectRoom() {
     try {
         await room.connect('{{.LKUrl}}', '{{.Token}}');
         console.log('Connected to room:', room.name);
         updateParticipantCount();
-        /* Update placeholder — connected but no video yet */
         var ph = document.getElementById('placeholder');
         if (ph) ph.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">&#9989;</div><p class="text-sm font-medium text-green-400">{{t .Lang "connected_waiting"}}</p><p class="text-xs text-gray-500 mt-1">{{t .Lang "connected_waiting_hint"}}</p></div>';
         await room.localParticipant.setMicrophoneEnabled(true);
@@ -386,10 +413,8 @@ async function connectRoom() {
         if (ph) ph.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">&#9888;&#65039;</div><p class="text-sm font-medium text-red-400">{{t .Lang "connection_failed"}}</p><p class="text-xs text-gray-500 mt-1">' + e.message + '</p></div>';
     }
 }
-
 connectRoom();
 window.addEventListener('beforeunload', function() {
-    // Track attendance leave
     navigator.sendBeacon('/classroom/{{.Classroom.ID}}/live/leave', '');
     room.disconnect();
 });

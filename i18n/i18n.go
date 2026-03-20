@@ -581,6 +581,10 @@ var Translations = map[string]map[string]string{
 	"connection_failed":       {"en": "Connection Failed", "fr": "Connexion échouée"},
 	"end_class_confirm":   {"en": "End the live class for everyone?", "fr": "Terminer le cours en direct pour tout le monde ?"},
 	"teacher_label":       {"en": "Teacher", "fr": "Enseignant"},
+	"teacher_screen":      {"en": "Teacher's Screen", "fr": "Écran de l'enseignant"},
+	"connected_ready":     {"en": "Connected ✓ — Ready", "fr": "Connecté ✓ — Prêt"},
+	"connected_ready_hint": {"en": "Your camera and mic are now live", "fr": "Votre caméra et micro sont actifs"},
+	"requests_camera":     {"en": "requests camera access", "fr": "demande l'accès caméra"},
 
 	// Live toasts
 	"toast_joined":        {"en": "joined", "fr": "a rejoint"},
