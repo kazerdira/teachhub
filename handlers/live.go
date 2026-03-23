@@ -2,8 +2,12 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"teachhub/middleware"
@@ -158,4 +162,49 @@ func (h *Handler) StudentLiveLeave(c *gin.Context) {
 		h.Store.LeaveLiveAttendance(c.Request.Context(), liveSession.ID, student.ID)
 	}
 	c.JSON(200, gin.H{"ok": true})
+}
+
+// ─── Live Image Presenter Upload ────────────────────────
+
+func (h *Handler) LiveImageUpload(c *gin.Context) {
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
+
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		c.JSON(400, gin.H{"error": "no file"})
+		return
+	}
+	defer file.Close()
+
+	// Validate file type (images only)
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	allowed := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true, ".bmp": true}
+	if !allowed[ext] {
+		c.JSON(400, gin.H{"error": "only images allowed"})
+		return
+	}
+
+	// Max 10MB
+	if header.Size > 10<<20 {
+		c.JSON(400, gin.H{"error": "file too large (max 10MB)"})
+		return
+	}
+
+	fname := fmt.Sprintf("live_%d_%d%s", classID, time.Now().UnixMilli(), ext)
+	filePath := filepath.Join("live", fname)
+	fullPath := filepath.Join(h.UploadDir, filePath)
+	os.MkdirAll(filepath.Dir(fullPath), 0755)
+
+	dst, err := os.Create(fullPath)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "save failed"})
+		return
+	}
+	defer dst.Close()
+	io.Copy(dst, file)
+
+	c.JSON(200, gin.H{"url": "/uploads/" + filePath})
 }

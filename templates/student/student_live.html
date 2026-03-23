@@ -107,7 +107,36 @@
     .film-thumb { width: 140px; height: 80px; }
     .film-thumb .thumb-label { font-size: 10px; padding: 1px 6px; }
 }
+/* Poll */
+@keyframes bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.poll-bar { transform-origin: left; animation: bar-grow 0.6s ease-out; }
+/* Pinned */
+.pinned-bar { background: linear-gradient(90deg, #fef3c7, #fde68a); border-left: 3px solid #f59e0b; }
+/* Image on stage */
+#mainStage > img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; z-index: 5; background: #111827; }
 </style>
+
+<!-- Poll Vote Overlay -->
+<div id="pollVoteOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-black/50 absolute inset-0"></div>
+    <div class="relative bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-4 py-3">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span class="font-bold text-sm">{{t .Lang "poll_active"}}</span>
+            </div>
+            <div id="sPollTimer" class="text-xs mt-1 text-teal-100 hidden"></div>
+        </div>
+        <div class="p-4">
+            <h3 id="sPollQuestion" class="font-bold text-gray-800 text-base mb-3"></h3>
+            <div id="sPollOptions" class="space-y-2"></div>
+        </div>
+        <div id="sPollResultsSection" class="hidden p-4 pt-0">
+            <div class="text-xs text-gray-500 mb-2">{{t .Lang "poll_results"}}</div>
+            <div id="sPollBars" class="space-y-2"></div>
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.js"></script>
 <script>
@@ -193,6 +222,18 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
             case 'end-class':
                 showToast(msgClassEnded, 'error');
                 setTimeout(function() { room.disconnect(); window.location.href = '/classroom/{{.Classroom.ID}}'; }, 1500); break;
+            case 'poll-start':
+                showPollVote(msg.question, msg.options, msg.timer); break;
+            case 'poll-end':
+                showPollFinalResults(msg); break;
+            case 'pin-message':
+                showPinnedMessage(msg.sender, msg.text); break;
+            case 'unpin-message':
+                hidePinnedMessage(); break;
+            case 'image-share':
+                showSharedImage(msg.url); break;
+            case 'image-stop':
+                removeSharedImage(); break;
         }
     } catch(e) { console.error('Data parse error:', e); }
 });
@@ -277,6 +318,122 @@ function addChatMessage(sender, text, time, isMe) {
     bubble.textContent = text;
     var meta = document.createElement('div'); meta.className = 'text-xs text-gray-400 mt-0.5 px-1'; meta.textContent = sender + ' \u00B7 ' + time;
     div.appendChild(bubble); div.appendChild(meta); container.appendChild(div); container.scrollTop = container.scrollHeight;
+}
+
+/* ─── Pinned Message ────────────────────────────── */
+function showPinnedMessage(sender, text) {
+    hidePinnedMessage();
+    var container = document.getElementById('chatMessages');
+    var bar = document.createElement('div');
+    bar.className = 'pinned-bar-wrap sticky top-0 z-10';
+    bar.id = 'studentPinnedBar';
+    bar.innerHTML = '<div class="pinned-bar px-3 py-2 rounded-lg">'
+        + '<div class="text-xs font-semibold text-amber-700">📌 {{t .Lang "pinned"}}</div>'
+        + '<div class="text-sm text-gray-800 truncate">' + text + '</div>'
+        + '<div class="text-xs text-gray-500">' + sender + '</div></div>';
+    container.insertBefore(bar, container.firstChild);
+    showToast('📌 ' + sender + ': ' + text, 'info');
+}
+function hidePinnedMessage() {
+    var bar = document.getElementById('studentPinnedBar');
+    if (bar) bar.remove();
+}
+
+/* ─── Live Poll ─────────────────────────────────── */
+var studentPollTimer = null;
+var studentPollVoted = false;
+
+function showPollVote(question, options, timer) {
+    studentPollVoted = false;
+    document.getElementById('sPollQuestion').textContent = question;
+    document.getElementById('sPollResultsSection').classList.add('hidden');
+    var container = document.getElementById('sPollOptions');
+    container.innerHTML = '';
+    var colors = ['bg-teal-500 hover:bg-teal-600', 'bg-indigo-500 hover:bg-indigo-600', 'bg-amber-500 hover:bg-amber-600', 'bg-rose-500 hover:bg-rose-600', 'bg-purple-500 hover:bg-purple-600', 'bg-cyan-500 hover:bg-cyan-600'];
+    options.forEach(function(opt, i) {
+        var btn = document.createElement('button');
+        btn.className = 'w-full text-left px-4 py-3 rounded-xl text-white font-medium text-sm transition-all transform active:scale-95 ' + (colors[i] || colors[0]);
+        btn.textContent = opt;
+        btn.onclick = function() { votePoll(i); };
+        container.appendChild(btn);
+    });
+    if (timer > 0) {
+        var display = document.getElementById('sPollTimer');
+        display.classList.remove('hidden');
+        var remaining = timer;
+        display.textContent = '{{t .Lang "poll_time_left"}}: ' + remaining + 's';
+        studentPollTimer = setInterval(function() {
+            remaining--;
+            display.textContent = '{{t .Lang "poll_time_left"}}: ' + remaining + 's';
+            if (remaining <= 0) {
+                clearInterval(studentPollTimer); studentPollTimer = null;
+                display.textContent = '{{t .Lang "poll_ended"}}';
+            }
+        }, 1000);
+    } else {
+        document.getElementById('sPollTimer').classList.add('hidden');
+    }
+    document.getElementById('pollVoteOverlay').classList.remove('hidden');
+    showToast('📊 {{t .Lang "poll_active"}}', 'info');
+}
+
+function votePoll(optionIndex) {
+    if (studentPollVoted) return;
+    studentPollVoted = true;
+    var msg = { action: 'poll-vote', optionIndex: optionIndex };
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true, destinationIdentities: ['admin'] });
+    var btns = document.getElementById('sPollOptions').querySelectorAll('button');
+    btns.forEach(function(btn, i) {
+        btn.disabled = true;
+        if (i === optionIndex) {
+            btn.innerHTML = '✓ ' + btn.textContent;
+            btn.classList.add('ring-2', 'ring-white', 'ring-offset-2');
+        } else {
+            btn.classList.add('opacity-50');
+        }
+    });
+    showToast('{{t .Lang "poll_voted"}}', 'success');
+}
+
+function showPollFinalResults(msg) {
+    if (studentPollTimer) { clearInterval(studentPollTimer); studentPollTimer = null; }
+    document.getElementById('sPollResultsSection').classList.remove('hidden');
+    var container = document.getElementById('sPollBars');
+    container.innerHTML = '';
+    var colors = ['bg-teal-500', 'bg-indigo-500', 'bg-amber-500', 'bg-rose-500', 'bg-purple-500', 'bg-cyan-500'];
+    msg.options.forEach(function(opt, i) {
+        var count = msg.votes[i] || 0;
+        var pct = msg.total > 0 ? Math.round((count / msg.total) * 100) : 0;
+        var div = document.createElement('div');
+        div.innerHTML = '<div class="flex justify-between text-xs mb-0.5"><span class="text-gray-700 font-medium">' + opt + '</span>'
+            + '<span class="text-gray-500">' + count + ' (' + pct + '%)</span></div>'
+            + '<div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">'
+            + '<div class="poll-bar ' + (colors[i] || colors[0]) + ' h-2.5 rounded-full" style="width:' + pct + '%"></div></div>';
+        container.appendChild(div);
+    });
+    var btns = document.getElementById('sPollOptions').querySelectorAll('button');
+    btns.forEach(function(btn) { btn.disabled = true; btn.classList.add('opacity-60'); });
+    var display = document.getElementById('sPollTimer');
+    display.classList.remove('hidden');
+    display.textContent = '{{t .Lang "poll_ended"}}';
+    setTimeout(function() {
+        document.getElementById('pollVoteOverlay').classList.add('hidden');
+    }, 5000);
+}
+
+/* ─── Image Presenter ───────────────────────────── */
+function showSharedImage(url) {
+    removeSharedImage();
+    var stage = document.getElementById('mainStage');
+    var img = document.createElement('img');
+    img.src = url; img.id = 'sharedImage';
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;z-index:5;background:#111827;';
+    stage.appendChild(img);
+    var ph = document.getElementById('placeholder'); if (ph) ph.style.display = 'none';
+    showToast('{{t .Lang "image_shared"}}', 'info');
+}
+function removeSharedImage() {
+    var img = document.getElementById('sharedImage'); if (img) img.remove();
 }
 
 /* ═══════════════════════════════════════════════════

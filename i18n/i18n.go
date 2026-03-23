@@ -629,6 +629,36 @@ var Translations = map[string]map[string]string{
 	// Screen share mobile
 	"screen_share_pc_only": {"en": "Screen sharing requires a computer", "fr": "Le partage d'écran nécessite un ordinateur"},
 
+	// Live Poll
+	"poll_create":        {"en": "📊 Create Poll", "fr": "📊 Créer un sondage"},
+	"poll_question":      {"en": "Question", "fr": "Question"},
+	"poll_option":        {"en": "Option", "fr": "Option"},
+	"poll_add_option":    {"en": "+ Add Option", "fr": "+ Ajouter une option"},
+	"poll_timer":         {"en": "Time limit (seconds)", "fr": "Durée (secondes)"},
+	"poll_no_timer":      {"en": "No limit", "fr": "Sans limite"},
+	"poll_launch":        {"en": "Launch Poll", "fr": "Lancer le sondage"},
+	"poll_close":         {"en": "Close Poll", "fr": "Fermer le sondage"},
+	"poll_results":       {"en": "Poll Results", "fr": "Résultats du sondage"},
+	"poll_votes":         {"en": "votes", "fr": "votes"},
+	"poll_vote":          {"en": "vote", "fr": "vote"},
+	"poll_voted":         {"en": "Vote submitted!", "fr": "Vote envoyé !"},
+	"poll_ended":         {"en": "Poll ended", "fr": "Sondage terminé"},
+	"poll_active":        {"en": "📊 Active Poll", "fr": "📊 Sondage actif"},
+	"poll_time_left":     {"en": "Time left", "fr": "Temps restant"},
+	"poll_total":         {"en": "Total", "fr": "Total"},
+
+	// Pinned message
+	"pin_message":        {"en": "Pin", "fr": "Épingler"},
+	"unpin_message":      {"en": "Unpin", "fr": "Désépingler"},
+	"pinned":             {"en": "📌 Pinned", "fr": "📌 Épinglé"},
+
+	// Image presenter
+	"share_image":        {"en": "Share Image", "fr": "Partager une image"},
+	"stop_sharing_image": {"en": "Stop Sharing", "fr": "Arrêter le partage"},
+	"image_shared":       {"en": "shared an image", "fr": "a partagé une image"},
+	"image_stopped":      {"en": "stopped sharing image", "fr": "a arrêté le partage d'image"},
+	"uploading":          {"en": "Uploading...", "fr": "Envoi..."},
+
 	// ─────────────────────────────────────────────────
 	// LANGUAGE TOGGLE
 	// ─────────────────────────────────────────────────

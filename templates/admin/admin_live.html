@@ -121,11 +121,70 @@
                 <svg id="camOn" class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                 <svg id="camOff" class="w-5 h-5 md:w-6 md:h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
             </button>
-            <button id="shareBtn" onclick="toggleScreenShare()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 md:p-3 rounded-full transition hidden md:block">
+            <button id="shareBtn" onclick="toggleScreenShare()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 md:p-3 rounded-full transition hidden md:block" title="Screen Share">
                 <svg id="shareIcon" class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </button>
+            <button id="imgShareBtn" onclick="pickImage()" class="bg-purple-600 hover:bg-purple-700 text-white p-2.5 md:p-3 rounded-full transition" title="{{t .Lang "share_image"}}">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </button>
+            <button id="pollBtn" onclick="togglePollPanel()" class="bg-teal-600 hover:bg-teal-700 text-white p-2.5 md:p-3 rounded-full transition" title="{{t .Lang "poll_create"}}">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             </button>
             <a href="/admin/classroom/{{.Classroom.ID}}" class="hidden md:block text-indigo-400 text-xs hover:underline ml-2">{{t .Lang "back"}}</a>
         </div>
+    </div>
+</div>
+
+<!-- Hidden file input for image presenter -->
+<input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="uploadImage(this)">
+
+<!-- ═══ POLL CREATION OVERLAY ═══════════════════════ -->
+<div id="pollPanel" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="togglePollPanel()"></div>
+    <div class="relative bg-white rounded-2xl w-[90vw] max-w-md shadow-2xl overflow-hidden">
+        <div class="px-5 py-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white">
+            <h3 class="font-bold text-lg flex items-center gap-2">📊 {{t .Lang "poll_create"}}</h3>
+        </div>
+        <div class="p-5 space-y-4">
+            <div>
+                <label class="text-sm font-medium text-gray-700 mb-1 block">{{t .Lang "poll_question"}}</label>
+                <input id="pollQuestion" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none" placeholder="e.g. What is 2 + 2?">
+            </div>
+            <div id="pollOptions" class="space-y-2">
+                <label class="text-sm font-medium text-gray-700">{{t .Lang "poll_option"}}s</label>
+                <input type="text" class="poll-opt w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none" placeholder="A.">
+                <input type="text" class="poll-opt w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none" placeholder="B.">
+            </div>
+            <button onclick="addPollOption()" class="text-sm text-teal-600 hover:text-teal-800 font-medium">{{t .Lang "poll_add_option"}}</button>
+            <div>
+                <label class="text-sm font-medium text-gray-700 mb-1 block">{{t .Lang "poll_timer"}}</label>
+                <select id="pollTimer" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    <option value="0">{{t .Lang "poll_no_timer"}}</option>
+                    <option value="15">15s</option>
+                    <option value="30" selected>30s</option>
+                    <option value="60">60s</option>
+                    <option value="120">120s</option>
+                </select>
+            </div>
+        </div>
+        <div class="px-5 py-3 bg-gray-50 flex justify-end gap-2">
+            <button onclick="togglePollPanel()" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 rounded-lg">Cancel</button>
+            <button onclick="launchPoll()" class="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-medium transition">{{t .Lang "poll_launch"}} 🚀</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ POLL RESULTS OVERLAY (Teacher sees live) ════ -->
+<div id="pollResults" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-30 hidden w-[90vw] max-w-lg">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+        <div class="px-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white flex items-center justify-between">
+            <div>
+                <div class="font-bold text-sm" id="pollResQuestion"></div>
+                <div class="text-xs opacity-80"><span id="pollResTotal">0</span> {{t .Lang "poll_votes"}} <span id="pollTimerDisplay" class="ml-2"></span></div>
+            </div>
+            <button onclick="closePoll()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-xs font-medium transition">{{t .Lang "poll_close"}}</button>
+        </div>
+        <div id="pollResBars" class="p-4 space-y-3"></div>
     </div>
 </div>
 
@@ -182,7 +241,10 @@
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 @keyframes hand-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 .hand-anim { animation: hand-bounce 1s ease-in-out infinite; }
-#mainStage > video { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
+@keyframes bar-grow { from { width: 0; } }
+.poll-bar { animation: bar-grow 0.6s ease-out; }
+.pinned-bar { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 3px solid #f59e0b; }
+#mainStage > video, #mainStage > img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
 #pipOverlay video { width: 100%; height: 100%; object-fit: cover; }
 .film-thumb { flex-shrink: 0; width: 100px; height: 58px; border-radius: 0.375rem; overflow: hidden; background: #1f2937; position: relative; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
 .film-thumb:hover { border-color: #6366f1; }
@@ -571,6 +633,8 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
         } else if (msg.action === 'hand-lower' && participant) {
             removeRaisedHand(participant.identity);
             showToast((participant.name || participant.identity) + ' {{t .Lang "toast_hand_lowered"}}', 'info');
+        } else if (msg.action === 'poll-vote' && participant) {
+            handlePollVote(participant.identity, msg.optionIndex);
         }
     } catch(e) { console.error('Data parse error:', e); }
 });
@@ -621,6 +685,8 @@ async function toggleScreenShare() {
 }
 
 /* ─── Chat ──────────────────────────────────────── */
+var pinnedMessage = null;
+
 function sendChatMessage() {
     var input = isMobile() ? document.getElementById('mChatInput') : document.getElementById('chatInput');
     var text = input.value.trim(); if (!text) return; input.value = '';
@@ -633,17 +699,202 @@ function addChatMessage(sender, text, time, isMe) {
     ['chatMessages', 'mChatMessages'].forEach(function(containerId) {
         var container = document.getElementById(containerId); if (!container) return;
         var div = document.createElement('div'); div.className = isMe ? 'flex flex-col items-end' : 'flex flex-col items-start';
+        var row = document.createElement('div'); row.className = 'flex items-start gap-1 group max-w-[90%]';
         var bubble = document.createElement('div');
-        bubble.className = isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-md px-3 py-1.5 max-w-[85%] text-sm break-words'
-            : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-md px-3 py-1.5 max-w-[85%] text-sm break-words';
+        bubble.className = isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-md px-3 py-1.5 text-sm break-words'
+            : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-md px-3 py-1.5 text-sm break-words';
         bubble.textContent = text;
+        row.appendChild(bubble);
+        if (!isMe) {
+            var pinBtn = document.createElement('button');
+            pinBtn.className = 'opacity-0 group-hover:opacity-100 text-gray-400 hover:text-amber-500 p-1 transition text-xs flex-shrink-0';
+            pinBtn.innerHTML = '📌';
+            pinBtn.title = '{{t .Lang "pin_message"}}';
+            pinBtn.onclick = function() { pinMessage(sender, text); };
+            row.appendChild(pinBtn);
+        }
+        div.appendChild(row);
         var meta = document.createElement('div'); meta.className = 'text-xs text-gray-400 mt-0.5 px-1'; meta.textContent = sender + ' \u00B7 ' + time;
-        div.appendChild(bubble); div.appendChild(meta); container.appendChild(div); container.scrollTop = container.scrollHeight;
+        div.appendChild(meta); container.appendChild(div); container.scrollTop = container.scrollHeight;
     });
     if (!isMe && mobilePanelOpen !== 'chat' && isMobile()) {
         mobileUnread++; var badge = document.getElementById('mChatBadge');
         badge.textContent = mobileUnread; badge.classList.remove('hidden'); badge.classList.add('flex');
     }
+}
+
+/* ─── Pinned Message ────────────────────────────── */
+function pinMessage(sender, text) {
+    pinnedMessage = { sender: sender, text: text };
+    broadcastCommand('pin-message', { sender: sender, text: text });
+    renderPinnedBar();
+}
+function unpinMessage() {
+    pinnedMessage = null;
+    broadcastCommand('unpin-message');
+    renderPinnedBar();
+}
+function broadcastCommand(action, extra) {
+    var msg = { action: action };
+    if (extra) Object.assign(msg, extra);
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true });
+}
+function renderPinnedBar() {
+    var existing = document.querySelectorAll('.pinned-bar-wrap'); existing.forEach(function(el) { el.remove(); });
+    if (!pinnedMessage) return;
+    ['chatMessages', 'mChatMessages'].forEach(function(id) {
+        var container = document.getElementById(id); if (!container) return;
+        var bar = document.createElement('div');
+        bar.className = 'pinned-bar-wrap sticky top-0 z-10';
+        bar.innerHTML = '<div class="pinned-bar px-3 py-2 rounded-lg flex items-center justify-between gap-2">'
+            + '<div class="min-w-0"><div class="text-xs font-semibold text-amber-700">{{t .Lang "pinned"}}</div>'
+            + '<div class="text-sm text-gray-800 truncate">' + pinnedMessage.text + '</div>'
+            + '<div class="text-xs text-gray-500">' + pinnedMessage.sender + '</div></div>'
+            + '<button onclick="unpinMessage()" class="text-gray-400 hover:text-red-500 text-lg flex-shrink-0">&times;</button></div>';
+        container.insertBefore(bar, container.firstChild);
+    });
+}
+
+/* ─── Live Poll ─────────────────────────────────── */
+var activePoll = null;
+var pollTimerInterval = null;
+
+function togglePollPanel() {
+    document.getElementById('pollPanel').classList.toggle('hidden');
+}
+function addPollOption() {
+    var container = document.getElementById('pollOptions');
+    var count = container.querySelectorAll('.poll-opt').length;
+    if (count >= 6) return;
+    var labels = ['A.', 'B.', 'C.', 'D.', 'E.', 'F.'];
+    var input = document.createElement('input');
+    input.type = 'text'; input.className = 'poll-opt w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none';
+    input.placeholder = labels[count] || '';
+    container.appendChild(input);
+}
+function launchPoll() {
+    var question = document.getElementById('pollQuestion').value.trim();
+    var optInputs = document.querySelectorAll('.poll-opt');
+    var options = [];
+    optInputs.forEach(function(inp) { var v = inp.value.trim(); if (v) options.push(v); });
+    if (!question || options.length < 2) { showToast('Need a question and at least 2 options', 'warning'); return; }
+    var timer = parseInt(document.getElementById('pollTimer').value) || 0;
+
+    activePoll = { question: question, options: options, votes: {}, timer: timer, totalVotes: 0 };
+    options.forEach(function(o, i) { activePoll.votes[i] = 0; });
+
+    var pollMsg = { action: 'poll-start', question: question, options: options, timer: timer };
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(pollMsg)), { reliable: true });
+
+    togglePollPanel();
+    showPollResults();
+    if (timer > 0) startPollTimer(timer);
+    showToast('Poll launched!', 'success');
+}
+function showPollResults() {
+    if (!activePoll) return;
+    document.getElementById('pollResQuestion').textContent = activePoll.question;
+    document.getElementById('pollResTotal').textContent = activePoll.totalVotes;
+    var container = document.getElementById('pollResBars');
+    container.innerHTML = '';
+    var colors = ['bg-teal-500', 'bg-indigo-500', 'bg-amber-500', 'bg-rose-500', 'bg-purple-500', 'bg-cyan-500'];
+    activePoll.options.forEach(function(opt, i) {
+        var count = activePoll.votes[i] || 0;
+        var pct = activePoll.totalVotes > 0 ? Math.round((count / activePoll.totalVotes) * 100) : 0;
+        var div = document.createElement('div');
+        div.innerHTML = '<div class="flex justify-between text-sm mb-1"><span class="font-medium text-gray-700">' + opt + '</span>'
+            + '<span class="text-gray-500">' + count + ' (' + pct + '%)</span></div>'
+            + '<div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">'
+            + '<div class="poll-bar ' + (colors[i] || colors[0]) + ' h-3 rounded-full transition-all duration-500" style="width:' + pct + '%"></div></div>';
+        container.appendChild(div);
+    });
+    document.getElementById('pollResults').classList.remove('hidden');
+}
+function startPollTimer(seconds) {
+    var remaining = seconds;
+    var display = document.getElementById('pollTimerDisplay');
+    display.textContent = '⏱ ' + remaining + 's';
+    pollTimerInterval = setInterval(function() {
+        remaining--;
+        display.textContent = '⏱ ' + remaining + 's';
+        if (remaining <= 0) {
+            clearInterval(pollTimerInterval); pollTimerInterval = null;
+            closePoll();
+        }
+    }, 1000);
+}
+function closePoll() {
+    if (pollTimerInterval) { clearInterval(pollTimerInterval); pollTimerInterval = null; }
+    if (activePoll) {
+        var resultsMsg = { action: 'poll-end', question: activePoll.question, options: activePoll.options, votes: activePoll.votes, total: activePoll.totalVotes };
+        room.localParticipant.publishData(encoder.encode(JSON.stringify(resultsMsg)), { reliable: true });
+    }
+    document.getElementById('pollResults').classList.add('hidden');
+    activePoll = null;
+    showToast('{{t .Lang "poll_ended"}}', 'info');
+}
+function handlePollVote(identity, optionIndex) {
+    if (!activePoll) return;
+    if (activePoll.voted && activePoll.voted[identity]) return;
+    if (!activePoll.voted) activePoll.voted = {};
+    activePoll.voted[identity] = true;
+    activePoll.votes[optionIndex] = (activePoll.votes[optionIndex] || 0) + 1;
+    activePoll.totalVotes++;
+    showPollResults();
+}
+
+/* ─── Image Presenter ───────────────────────────── */
+var sharedImageUrl = null;
+
+function pickImage() {
+    if (sharedImageUrl) { stopSharingImage(); return; }
+    document.getElementById('imageFileInput').click();
+}
+async function uploadImage(input) {
+    var file = input.files[0]; if (!file) return;
+    var formData = new FormData();
+    formData.append('image', file);
+    showToast('{{t .Lang "uploading"}}', 'info');
+    try {
+        var csrfMeta = document.querySelector('input[name=csrf_token]') || document.querySelector('form input[type=hidden]');
+        var csrfToken = csrfMeta ? csrfMeta.value : '';
+        var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/image', {
+            method: 'POST',
+            headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
+            body: formData
+        });
+        var data = await resp.json();
+        if (data.url) {
+            sharedImageUrl = data.url;
+            var msg = { action: 'image-share', url: data.url };
+            room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true });
+            showImageOnStage(data.url);
+            document.getElementById('imgShareBtn').classList.remove('bg-purple-600', 'hover:bg-purple-700');
+            document.getElementById('imgShareBtn').classList.add('bg-red-600', 'hover:bg-red-700');
+            showToast('{{t .Lang "image_shared"}}', 'success');
+        } else { showToast(data.error || 'Upload failed', 'error'); }
+    } catch(e) { showToast('Upload failed: ' + e.message, 'error'); }
+    input.value = '';
+}
+function stopSharingImage() {
+    sharedImageUrl = null;
+    room.localParticipant.publishData(encoder.encode(JSON.stringify({ action: 'image-stop' })), { reliable: true });
+    removeImageFromStage();
+    document.getElementById('imgShareBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+    document.getElementById('imgShareBtn').classList.add('bg-purple-600', 'hover:bg-purple-700');
+    showToast('{{t .Lang "image_stopped"}}', 'info');
+}
+function showImageOnStage(url) {
+    var stage = document.getElementById('mainStage');
+    removeImageFromStage();
+    var img = document.createElement('img');
+    img.src = url; img.id = 'sharedImage';
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;z-index:5;background:#111827;';
+    stage.appendChild(img);
+    var ph = document.getElementById('placeholder'); if (ph) ph.style.display = 'none';
+}
+function removeImageFromStage() {
+    var img = document.getElementById('sharedImage'); if (img) img.remove();
 }
 
 /* ─── Connect ───────────────────────────────────── */

@@ -242,6 +242,7 @@ func main() {
 
 	// Static file serving for uploads (resources download handled by handler)
 	r.Static("/static", "./static")
+	r.Static("/uploads", uploadDir)
 
 	// ─── Platform: Teacher Application (public) ─────────
 	r.GET("/apply", h.ApplyPage)
@@ -362,6 +363,7 @@ func main() {
 		admin.POST("/classroom/:id/live/start", h.StartLiveClass)
 		admin.POST("/classroom/:id/live/end", h.EndLiveClass)
 		admin.GET("/classroom/:id/live", h.AdminLivePage)
+		admin.POST("/classroom/:id/live/image", h.LiveImageUpload)
 
 		// Allowed Students (pre-registration)
 		admin.POST("/classroom/:id/allowed", h.AddAllowedStudent)
