@@ -104,10 +104,15 @@ func main() {
 
 	// Templates
 	funcMap := template.FuncMap{
-		"add":        func(a, b int) int { return a + b },
-		"sub":        func(a, b int) int { return a - b },
-		"mul":        func(a, b int) int { return a * b },
-		"div":        func(a, b int) int { if b == 0 { return 0 }; return a / b },
+		"add": func(a, b int) int { return a + b },
+		"sub": func(a, b int) int { return a - b },
+		"mul": func(a, b int) int { return a * b },
+		"div": func(a, b int) int {
+			if b == 0 {
+				return 0
+			}
+			return a / b
+		},
 		"fileSizeMB": func(bytes int64) int64 { return bytes / (1024 * 1024) },
 		"lower":      strings.ToLower,
 		"upper":      strings.ToUpper,

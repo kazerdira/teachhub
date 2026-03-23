@@ -58,6 +58,10 @@
             <span class="hidden md:inline">{{t .Lang "request_camera"}}</span>
         </button>
 
+        <button id="handBtn" onclick="toggleHand()" class="bg-gray-700 hover:bg-gray-600 text-white p-2 md:p-2.5 rounded-full transition relative" title="{{t .Lang "raise_hand"}}">
+            <svg id="handIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/></svg>
+        </button>
+
         <button id="chatToggleBtn" onclick="toggleChat()" class="bg-gray-700 hover:bg-gray-600 text-white p-2 md:p-2.5 rounded-full transition relative" title="{{t .Lang "chat"}}">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
             <span id="chatBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
@@ -88,6 +92,9 @@
 <style>
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+@keyframes hand-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+.hand-raised { animation: hand-pulse 1.5s ease-in-out infinite; background: #f59e0b !important; }
+.hand-raised:hover { background: #d97706 !important; }
 #mainStage > video { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
 #pipOverlay video { width: 100%; height: 100%; object-fit: cover; }
 .film-thumb { flex-shrink: 0; width: 100px; height: 58px; border-radius: 0.375rem; overflow: hidden; background: #1f2937; position: relative; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
@@ -110,6 +117,7 @@ var encoder = new TextEncoder();
 var decoder = new TextDecoder();
 
 var micEnabled = true, camEnabled = false, camApproved = false, camRequested = false;
+var handRaised = false;
 
 /* ─── Track Management ──────────────────────────── */
 var trackMap = new Map();  // key → { participant, track, source, isTeacher }
@@ -180,6 +188,8 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 var reqBtn = document.getElementById('reqCamBtn'); reqBtn.disabled = false;
                 var sp = reqBtn.querySelector('span'); if (sp) sp.textContent = '{{t .Lang "request_camera"}}';
                 reqBtn.classList.remove('hidden'); setCamStatus(msgCamDenied, 'text-red-400'); showToast(msgCamDeniedShort, 'error'); break;
+            case 'hand-lower':
+                handRaised = false; updateHandUI(); showToast('{{t .Lang "toast_hand_lowered_t"}}', 'info'); break;
             case 'end-class':
                 showToast(msgClassEnded, 'error');
                 setTimeout(function() { room.disconnect(); window.location.href = '/classroom/{{.Classroom.ID}}'; }, 1500); break;
@@ -231,6 +241,18 @@ function requestCamera() {
     var reqBtn = document.getElementById('reqCamBtn'); reqBtn.disabled = true;
     var textSpan = reqBtn.querySelector('span'); if (textSpan) textSpan.textContent = '{{t .Lang "request_sent"}}';
     setCamStatus(msgCamWaiting, 'text-amber-400'); showToast(msgCamSent, 'info');
+}
+
+/* ─── Raise Hand ────────────────────────────────── */
+function toggleHand() {
+    handRaised = !handRaised;
+    sendToTeacher(handRaised ? 'hand-raise' : 'hand-lower');
+    updateHandUI();
+}
+function updateHandUI() {
+    var btn = document.getElementById('handBtn');
+    btn.classList.toggle('hand-raised', handRaised);
+    btn.title = handRaised ? '{{t .Lang "lower_hand"}}' : '{{t .Lang "raise_hand"}}';
 }
 
 /* ─── Chat ──────────────────────────────────────── */
