@@ -26,7 +26,7 @@ COPY --from=builder /app/db ./db
 COPY --from=builder /app/i18n ./i18n
 
 # Create upload directories
-RUN mkdir -p uploads/resources uploads/submissions uploads/quiz_files
+RUN mkdir -p uploads/resources uploads/submissions uploads/quiz_files uploads/live
 
 # Non-root user
 RUN addgroup -S app && adduser -S app -G app
