@@ -130,6 +130,9 @@
             <button id="pollBtn" onclick="togglePollPanel()" class="bg-teal-600 hover:bg-teal-700 text-white p-2 lg:p-2.5 rounded-full transition" title="{{t .Lang "poll_create"}}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
             </button>
+            <button id="wbBtn" onclick="toggleWhiteboard()" class="bg-emerald-600 hover:bg-emerald-700 text-white p-2 lg:p-2.5 rounded-full transition" title="{{t .Lang "whiteboard"}}">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </button>
             <a href="/admin/classroom/{{.Classroom.ID}}" class="hidden md:block text-indigo-400 text-xs hover:underline ml-2">{{t .Lang "back"}}</a>
         </div>
     </div>
@@ -137,6 +140,66 @@
 
 <!-- Hidden file input for image presenter -->
 <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="uploadImage(this)">
+<input type="file" id="wbBgInput" accept="image/*" class="hidden" onchange="loadWbBackground(this)">
+
+<!-- ═══ WHITEBOARD OVERLAY ══════════════════════════ -->
+<div id="whiteboardOverlay" class="fixed inset-0 z-30 hidden flex flex-col bg-gray-900">
+    <!-- Toolbar -->
+    <div class="bg-gray-800 border-b border-gray-700 px-2 py-1.5 flex items-center gap-1 md:gap-2 overflow-x-auto scrollbar-hide flex-shrink-0">
+        <!-- Tools -->
+        <button onclick="setWbTool('pen')" id="wbToolPen" class="wb-tool-btn active px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="{{t .Lang "wb_pen"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <span class="hidden sm:inline">{{t .Lang "wb_pen"}}</span>
+        </button>
+        <button onclick="setWbTool('marker')" id="wbToolMarker" class="wb-tool-btn px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="{{t .Lang "wb_marker"}}">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.5 1.71L14.08 6.13l3.79 3.79 4.42-4.42a1 1 0 000-1.41l-2.38-2.38a1 1 0 00-1.41 0zM3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></svg>
+            <span class="hidden sm:inline">{{t .Lang "wb_marker"}}</span>
+        </button>
+        <button onclick="setWbTool('eraser')" id="wbToolEraser" class="wb-tool-btn px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="{{t .Lang "wb_eraser"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span class="hidden sm:inline">{{t .Lang "wb_eraser"}}</span>
+        </button>
+        <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
+        <!-- Colors -->
+        <div class="flex gap-1 items-center">
+            <button onclick="setWbColor('#ffffff')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-gray-500 bg-white" data-color="#ffffff"></button>
+            <button onclick="setWbColor('#ef4444')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-transparent bg-red-500" data-color="#ef4444"></button>
+            <button onclick="setWbColor('#3b82f6')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-transparent bg-blue-500" data-color="#3b82f6"></button>
+            <button onclick="setWbColor('#22c55e')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-transparent bg-green-500" data-color="#22c55e"></button>
+            <button onclick="setWbColor('#f59e0b')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-transparent bg-amber-500" data-color="#f59e0b"></button>
+            <button onclick="setWbColor('#a855f7')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-transparent bg-purple-500" data-color="#a855f7"></button>
+            <button onclick="setWbColor('#ec4899')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-transparent bg-pink-500" data-color="#ec4899"></button>
+            <button onclick="setWbColor('#facc15')" class="wb-color-btn w-5 h-5 rounded-full border-2 border-transparent bg-yellow-400" data-color="#facc15"></button>
+        </div>
+        <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
+        <!-- Size -->
+        <input type="range" id="wbSize" min="1" max="20" value="3" class="w-16 md:w-24 accent-emerald-500" oninput="wbLineWidth=parseInt(this.value)">
+        <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
+        <!-- Actions -->
+        <button onclick="wbUndo()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_undo"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2M3 10l4-4m-4 4l4 4"/></svg>
+        </button>
+        <button onclick="wbRedo()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_redo"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10H11a5 5 0 00-5 5v2m15-7l-4-4m4 4l-4 4"/></svg>
+        </button>
+        <button onclick="wbClear()" class="text-gray-300 hover:text-red-400 p-1.5 rounded transition" title="{{t .Lang "wb_clear"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+        <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
+        <button onclick="document.getElementById('wbBgInput').click()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_bg_image"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </button>
+        <div class="flex-1"></div>
+        <button onclick="toggleWhiteboard()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <span class="hidden sm:inline">{{t .Lang "wb_close"}}</span>
+        </button>
+    </div>
+    <!-- Canvas -->
+    <div class="flex-1 relative overflow-hidden bg-gray-900">
+        <canvas id="wbCanvas" class="absolute inset-0 w-full h-full cursor-crosshair touch-none"></canvas>
+    </div>
+</div>
 
 <!-- ═══ POLL CREATION OVERLAY ═══════════════════════ -->
 <div id="pollPanel" class="fixed inset-0 z-50 hidden flex items-center justify-center">
@@ -244,6 +307,10 @@
 @keyframes bar-grow { from { width: 0; } }
 .poll-bar { animation: bar-grow 0.6s ease-out; }
 .pinned-bar { background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 3px solid #f59e0b; }
+.wb-tool-btn { color: #9ca3af; background: transparent; }
+.wb-tool-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.wb-tool-btn.active { color: #fff; background: #059669; }
+.wb-color-btn.active { border-color: #fff !important; box-shadow: 0 0 0 2px #059669; }
 #mainStage > video, #mainStage > img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
 #pipOverlay video { width: 100%; height: 100%; object-fit: cover; }
 .film-thumb { flex-shrink: 0; width: 100px; height: 58px; border-radius: 0.375rem; overflow: hidden; background: #1f2937; position: relative; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
@@ -896,6 +963,254 @@ function showImageOnStage(url) {
 function removeImageFromStage() {
     var img = document.getElementById('sharedImage'); if (img) img.remove();
 }
+
+/* ═══════════════════════════════════════════════════
+   WHITEBOARD ENGINE
+   ═══════════════════════════════════════════════════ */
+var wbActive = false;
+var wbTool = 'pen';
+var wbColor = '#ffffff';
+var wbLineWidth = 3;
+var wbDrawing = false;
+var wbStrokes = [];      // completed strokes for undo
+var wbRedoStack = [];    // redo stack
+var wbCurrentStroke = null;
+var wbBgImageUrl = null;
+var wbBgImageObj = null;
+var wbCanvas, wbCtx;
+
+function initWhiteboard() {
+    wbCanvas = document.getElementById('wbCanvas');
+    wbCtx = wbCanvas.getContext('2d');
+    resizeWbCanvas();
+    window.addEventListener('resize', resizeWbCanvas);
+    /* Pointer events — handles mouse, touch, stylus */
+    wbCanvas.addEventListener('pointerdown', wbPointerDown);
+    wbCanvas.addEventListener('pointermove', wbPointerMove);
+    wbCanvas.addEventListener('pointerup', wbPointerUp);
+    wbCanvas.addEventListener('pointerleave', wbPointerUp);
+    /* Prevent scrolling/zooming while drawing */
+    wbCanvas.addEventListener('touchstart', function(e) { if (wbActive) e.preventDefault(); }, { passive: false });
+    wbCanvas.addEventListener('touchmove', function(e) { if (wbActive) e.preventDefault(); }, { passive: false });
+    /* Set initial active states */
+    setWbColor('#ffffff');
+    setWbTool('pen');
+}
+
+function resizeWbCanvas() {
+    if (!wbCanvas) return;
+    var parent = wbCanvas.parentElement;
+    var w = parent.clientWidth;
+    var h = parent.clientHeight;
+    /* Save current drawing */
+    var imageData = null;
+    if (wbCanvas.width > 0 && wbCanvas.height > 0) {
+        imageData = wbCtx.getImageData(0, 0, wbCanvas.width, wbCanvas.height);
+    }
+    wbCanvas.width = w;
+    wbCanvas.height = h;
+    /* Redraw everything */
+    wbRedrawAll();
+}
+
+function toggleWhiteboard() {
+    wbActive = !wbActive;
+    document.getElementById('whiteboardOverlay').classList.toggle('hidden', !wbActive);
+    var btn = document.getElementById('wbBtn');
+    if (wbActive) {
+        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        btn.classList.add('bg-red-600', 'hover:bg-red-700');
+        resizeWbCanvas();
+        wbRedrawAll();
+        broadcastCommand('wb-open');
+        showToast('{{t .Lang "wb_opened"}}', 'success');
+    } else {
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+        broadcastCommand('wb-close');
+        showToast('{{t .Lang "wb_closed"}}', 'info');
+    }
+}
+
+function setWbTool(tool) {
+    wbTool = tool;
+    document.querySelectorAll('.wb-tool-btn').forEach(function(b) { b.classList.remove('active'); });
+    var btn = document.getElementById('wbTool' + tool.charAt(0).toUpperCase() + tool.slice(1));
+    if (btn) btn.classList.add('active');
+    if (wbCanvas) wbCanvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+}
+
+function setWbColor(color) {
+    wbColor = color;
+    document.querySelectorAll('.wb-color-btn').forEach(function(b) {
+        b.classList.toggle('active', b.getAttribute('data-color') === color);
+    });
+}
+
+/* ─── Pointer Handlers ──────────────────────────── */
+function getWbPos(e) {
+    var rect = wbCanvas.getBoundingClientRect();
+    return {
+        x: (e.clientX - rect.left) / rect.width,
+        y: (e.clientY - rect.top) / rect.height,
+        p: e.pressure || 0.5
+    };
+}
+
+function wbPointerDown(e) {
+    e.preventDefault();
+    wbCanvas.setPointerCapture(e.pointerId);
+    wbDrawing = true;
+    wbRedoStack = [];
+    var pos = getWbPos(e);
+    var lineW = wbTool === 'eraser' ? wbLineWidth * 4 : wbLineWidth;
+    wbCurrentStroke = {
+        tool: wbTool,
+        color: wbTool === 'eraser' ? 'eraser' : wbColor,
+        width: lineW,
+        alpha: wbTool === 'marker' ? 0.4 : 1,
+        points: [pos]
+    };
+}
+
+function wbPointerMove(e) {
+    if (!wbDrawing || !wbCurrentStroke) return;
+    e.preventDefault();
+    var pos = getWbPos(e);
+    wbCurrentStroke.points.push(pos);
+    wbRedrawAll();
+    drawStroke(wbCurrentStroke, true);
+}
+
+function wbPointerUp(e) {
+    if (!wbDrawing) return;
+    wbDrawing = false;
+    if (wbCurrentStroke && wbCurrentStroke.points.length > 1) {
+        wbStrokes.push(wbCurrentStroke);
+        /* Broadcast the stroke */
+        broadcastCommand('wb-stroke', { stroke: wbCurrentStroke });
+        wbRedrawAll();
+    }
+    wbCurrentStroke = null;
+}
+
+/* ─── Drawing Renderer ──────────────────────────── */
+function drawStroke(stroke, isCurrent) {
+    if (!wbCtx || stroke.points.length < 2) return;
+    wbCtx.save();
+    wbCtx.lineCap = 'round';
+    wbCtx.lineJoin = 'round';
+    wbCtx.globalAlpha = stroke.alpha || 1;
+
+    if (stroke.color === 'eraser') {
+        wbCtx.globalCompositeOperation = 'destination-out';
+        wbCtx.strokeStyle = 'rgba(0,0,0,1)';
+    } else {
+        wbCtx.globalCompositeOperation = 'source-over';
+        wbCtx.strokeStyle = stroke.color;
+    }
+
+    var w = wbCanvas.width;
+    var h = wbCanvas.height;
+    var pts = stroke.points;
+
+    wbCtx.beginPath();
+    wbCtx.moveTo(pts[0].x * w, pts[0].y * h);
+
+    if (pts.length === 2) {
+        wbCtx.lineWidth = stroke.width * (pts[0].p + pts[1].p);
+        wbCtx.lineTo(pts[1].x * w, pts[1].y * h);
+    } else {
+        /* Smooth Bézier curves through points */
+        for (var i = 1; i < pts.length - 1; i++) {
+            var pressure = pts[i].p || 0.5;
+            wbCtx.lineWidth = stroke.width * (pressure + 0.5);
+            var cx = (pts[i].x * w + pts[i + 1].x * w) / 2;
+            var cy = (pts[i].y * h + pts[i + 1].y * h) / 2;
+            wbCtx.quadraticCurveTo(pts[i].x * w, pts[i].y * h, cx, cy);
+        }
+        var last = pts[pts.length - 1];
+        wbCtx.lineTo(last.x * w, last.y * h);
+    }
+    wbCtx.stroke();
+    wbCtx.restore();
+}
+
+function wbRedrawAll() {
+    if (!wbCtx) return;
+    wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+    /* Background image if loaded */
+    if (wbBgImageObj) {
+        var cw = wbCanvas.width, ch = wbCanvas.height;
+        var iw = wbBgImageObj.width, ih = wbBgImageObj.height;
+        var scale = Math.min(cw / iw, ch / ih);
+        var dw = iw * scale, dh = ih * scale;
+        var dx = (cw - dw) / 2, dy = (ch - dh) / 2;
+        wbCtx.drawImage(wbBgImageObj, dx, dy, dw, dh);
+    }
+    /* Replay all strokes */
+    for (var i = 0; i < wbStrokes.length; i++) {
+        drawStroke(wbStrokes[i], false);
+    }
+}
+
+/* ─── Undo / Redo / Clear ───────────────────────── */
+function wbUndo() {
+    if (wbStrokes.length === 0) return;
+    var s = wbStrokes.pop();
+    wbRedoStack.push(s);
+    wbRedrawAll();
+    broadcastCommand('wb-undo');
+}
+
+function wbRedo() {
+    if (wbRedoStack.length === 0) return;
+    var s = wbRedoStack.pop();
+    wbStrokes.push(s);
+    wbRedrawAll();
+    broadcastCommand('wb-stroke', { stroke: s });
+}
+
+function wbClear() {
+    wbStrokes = [];
+    wbRedoStack = [];
+    wbBgImageObj = null;
+    wbBgImageUrl = null;
+    wbRedrawAll();
+    broadcastCommand('wb-clear');
+    showToast('{{t .Lang "wb_cleared"}}', 'info');
+}
+
+/* ─── Background Image ──────────────────────────── */
+async function loadWbBackground(input) {
+    var file = input.files[0]; if (!file) return;
+    var formData = new FormData();
+    formData.append('image', file);
+    showToast('{{t .Lang "uploading"}}', 'info');
+    try {
+        var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/image', {
+            method: 'POST',
+            body: formData
+        });
+        var data = await resp.json();
+        if (data.url) {
+            setWbBgImage(data.url);
+            broadcastCommand('wb-bg', { url: data.url });
+        }
+    } catch(e) { showToast('Upload failed', 'error'); }
+    input.value = '';
+}
+
+function setWbBgImage(url) {
+    wbBgImageUrl = url;
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() { wbBgImageObj = img; wbRedrawAll(); };
+    img.src = url;
+}
+
+/* Init whiteboard on page load */
+document.addEventListener('DOMContentLoaded', initWhiteboard);
 
 /* ─── Connect ───────────────────────────────────── */
 async function connectRoom() {
