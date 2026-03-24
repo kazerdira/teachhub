@@ -1053,6 +1053,9 @@ var wbScale = 1;
 var wbPanX = 0;
 var wbPanY = 0;
 var wbPinching = false;
+var wbPinchCooldown = false; // anti-jitter: block drawing briefly after pinch
+var wbPanning = false;      // right-click / middle-click drag pan (desktop)
+var wbPanStartX = 0, wbPanStartY = 0, wbPanOrigX = 0, wbPanOrigY = 0;
 var wbCanvas, wbCtx;
 
 function initWhiteboard() {
@@ -1072,6 +1075,11 @@ function initWhiteboard() {
     wbCanvas.addEventListener('touchcancel', wbTouchEnd, { passive: false });
     /* Mouse wheel zoom */
     wbCanvas.addEventListener('wheel', wbWheel, { passive: false });
+    /* Right-click / middle-click pan on desktop */
+    wbCanvas.addEventListener('mousedown', wbMousePanStart);
+    wbCanvas.addEventListener('mousemove', wbMousePanMove);
+    wbCanvas.addEventListener('mouseup', wbMousePanEnd);
+    wbCanvas.addEventListener('contextmenu', function(e) { if (wbActive) e.preventDefault(); });
     /* Set initial active states */
     setWbColor('#ffffff');
     setWbTool('pen');
@@ -1140,7 +1148,7 @@ function getWbPos(e) {
 }
 
 function wbPointerDown(e) {
-    if (wbPinching) return;
+    if (wbPinching || wbPinchCooldown || wbPanning) return;
     e.preventDefault();
     wbCanvas.setPointerCapture(e.pointerId);
     var pos = getWbPos(e);
@@ -1172,7 +1180,7 @@ function wbPointerDown(e) {
 
 var wbMoveCount = 0;
 function wbPointerMove(e) {
-    if (wbPinching) return;
+    if (wbPinching || wbPinchCooldown || wbPanning) return;
     e.preventDefault();
     var pos = getWbPos(e);
     /* Select tool — drag image */
@@ -1339,19 +1347,29 @@ function wbWheel(e) {
     var cy = (e.clientY - rect.top) * (wbCanvas.height / rect.height);
     wbZoomAt(wbScale * (e.deltaY < 0 ? 1.1 : 0.9), cx, cy);
 }
-/* Pinch-to-zoom touch helpers */
-var wbPinchDist0 = 0, wbPinchScale0 = 1, wbPinchCx0 = 0, wbPinchCy0 = 0, wbPinchPanX0 = 0, wbPinchPanY0 = 0;
+/* Pinch-to-zoom+pan touch helpers */
+var wbPinchDist0 = 0, wbPinchScale0 = 1, wbPinchMidX0 = 0, wbPinchMidY0 = 0, wbPinchPanX0 = 0, wbPinchPanY0 = 0;
 function wbTouchDist(a, b) { var dx = a.clientX - b.clientX, dy = a.clientY - b.clientY; return Math.sqrt(dx * dx + dy * dy); }
+function wbTouchMid(a, b, rect, cw, ch) {
+    return {
+        x: ((a.clientX + b.clientX) / 2 - rect.left) * (cw / rect.width),
+        y: ((a.clientY + b.clientY) / 2 - rect.top) * (ch / rect.height)
+    };
+}
 function wbTouchStart(e) {
     if (!wbActive) return;
     e.preventDefault();
     if (e.touches.length === 2) {
-        wbPinching = true; wbDrawing = false; wbCurrentStroke = null;
+        /* Cancel any in-progress stroke immediately */
+        if (wbDrawing && wbCurrentStroke) {
+            wbCurrentStroke = null; wbDrawing = false; wbRedrawAll();
+        }
+        wbPinching = true;
         wbPinchDist0 = wbTouchDist(e.touches[0], e.touches[1]);
         wbPinchScale0 = wbScale;
         var rect = wbCanvas.getBoundingClientRect();
-        wbPinchCx0 = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * (wbCanvas.width / rect.width);
-        wbPinchCy0 = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top) * (wbCanvas.height / rect.height);
+        var mid = wbTouchMid(e.touches[0], e.touches[1], rect, wbCanvas.width, wbCanvas.height);
+        wbPinchMidX0 = mid.x; wbPinchMidY0 = mid.y;
         wbPinchPanX0 = wbPanX; wbPinchPanY0 = wbPanY;
     }
 }
@@ -1362,10 +1380,11 @@ function wbTouchMove(e) {
         var dist = wbTouchDist(e.touches[0], e.touches[1]);
         var ns = Math.max(0.25, Math.min(5, wbPinchScale0 * (dist / wbPinchDist0)));
         var rect = wbCanvas.getBoundingClientRect();
-        var cx = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * (wbCanvas.width / rect.width);
-        var cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top) * (wbCanvas.height / rect.height);
-        wbPanX = cx - (wbPinchCx0 - wbPinchPanX0) * (ns / wbPinchScale0);
-        wbPanY = cy - (wbPinchCy0 - wbPinchPanY0) * (ns / wbPinchScale0);
+        var mid = wbTouchMid(e.touches[0], e.touches[1], rect, wbCanvas.width, wbCanvas.height);
+        /* Combined zoom + pan: pan follows midpoint, zoom follows distance */
+        var ratio = ns / wbPinchScale0;
+        wbPanX = mid.x - (wbPinchMidX0 - wbPinchPanX0) * ratio;
+        wbPanY = mid.y - (wbPinchMidY0 - wbPinchPanY0) * ratio;
         wbScale = ns;
         wbRedrawAll();
         var el = document.getElementById('wbZoomLevel'); if (el) el.textContent = Math.round(wbScale * 100) + '%';
@@ -1373,10 +1392,41 @@ function wbTouchMove(e) {
     }
 }
 function wbTouchEnd(e) {
-    if (e.touches.length < 2) {
-        if (wbPinching) wbBroadcastZoom(true);
+    if (e.touches.length < 2 && wbPinching) {
+        wbBroadcastZoom(true);
         wbPinching = false;
+        /* Anti-jitter: block drawing for 300ms after pinch to prevent accidental dots */
+        wbPinchCooldown = true;
+        setTimeout(function() { wbPinchCooldown = false; }, 300);
     }
+}
+/* Right-click / middle-click drag pan (desktop) */
+function wbMousePanStart(e) {
+    if (!wbActive) return;
+    if (e.button === 1 || e.button === 2) {
+        e.preventDefault();
+        wbPanning = true;
+        wbPanStartX = e.clientX; wbPanStartY = e.clientY;
+        wbPanOrigX = wbPanX; wbPanOrigY = wbPanY;
+        wbCanvas.style.cursor = 'grabbing';
+    }
+}
+function wbMousePanMove(e) {
+    if (!wbPanning) return;
+    e.preventDefault();
+    var rect = wbCanvas.getBoundingClientRect();
+    var dx = (e.clientX - wbPanStartX) * (wbCanvas.width / rect.width);
+    var dy = (e.clientY - wbPanStartY) * (wbCanvas.height / rect.height);
+    wbPanX = wbPanOrigX + dx;
+    wbPanY = wbPanOrigY + dy;
+    wbRedrawAll();
+    wbBroadcastZoom(false);
+}
+function wbMousePanEnd(e) {
+    if (!wbPanning) return;
+    wbPanning = false;
+    setWbTool(wbTool); /* restore cursor */
+    wbBroadcastZoom(true);
 }
 
 function wbRedrawAll() {
