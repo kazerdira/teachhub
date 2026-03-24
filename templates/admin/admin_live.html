@@ -159,6 +159,10 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             <span class="hidden sm:inline">{{t .Lang "wb_eraser"}}</span>
         </button>
+        <button onclick="setWbTool('select')" id="wbToolSelect" class="wb-tool-btn px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="{{t .Lang "wb_select"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+            <span class="hidden sm:inline">{{t .Lang "wb_select"}}</span>
+        </button>
         <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
         <!-- Colors -->
         <div class="flex gap-1 items-center">
@@ -188,6 +192,9 @@
         <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
         <button onclick="document.getElementById('wbBgInput').click()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_bg_image"}}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </button>
+        <button id="wbDeleteImgBtn" onclick="wbDeleteImage()" class="text-gray-500 p-1.5 rounded transition hidden" title="{{t .Lang "wb_delete_img"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
         <div class="flex-1"></div>
         <button onclick="toggleWhiteboard()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
@@ -977,6 +984,9 @@ var wbRedoStack = [];    // redo stack
 var wbCurrentStroke = null;
 var wbBgImageUrl = null;
 var wbBgImageObj = null;
+var wbImgRect = null; // {x, y, w, h} in normalized 0-1 coords
+var wbSelecting = false;
+var wbSelDrag = null; // {type:'move'|'resize', corner, startX, startY, origRect}
 var wbCanvas, wbCtx;
 
 function initWhiteboard() {
@@ -1037,7 +1047,7 @@ function setWbTool(tool) {
     document.querySelectorAll('.wb-tool-btn').forEach(function(b) { b.classList.remove('active'); });
     var btn = document.getElementById('wbTool' + tool.charAt(0).toUpperCase() + tool.slice(1));
     if (btn) btn.classList.add('active');
-    if (wbCanvas) wbCanvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+    if (wbCanvas) wbCanvas.style.cursor = tool === 'select' ? 'default' : (tool === 'eraser' ? 'cell' : 'crosshair');
 }
 
 function setWbColor(color) {
@@ -1060,9 +1070,22 @@ function getWbPos(e) {
 function wbPointerDown(e) {
     e.preventDefault();
     wbCanvas.setPointerCapture(e.pointerId);
+    var pos = getWbPos(e);
+    /* Select tool — move/resize image */
+    if (wbTool === 'select') {
+        if (!wbImgRect || !wbBgImageObj) return;
+        var corner = wbHitCorner(pos);
+        if (corner) {
+            wbSelecting = true;
+            wbSelDrag = { type: 'resize', corner: corner, startX: pos.x, startY: pos.y, origRect: { x: wbImgRect.x, y: wbImgRect.y, w: wbImgRect.w, h: wbImgRect.h } };
+        } else if (pos.x >= wbImgRect.x && pos.x <= wbImgRect.x + wbImgRect.w && pos.y >= wbImgRect.y && pos.y <= wbImgRect.y + wbImgRect.h) {
+            wbSelecting = true;
+            wbSelDrag = { type: 'move', startX: pos.x, startY: pos.y, origRect: { x: wbImgRect.x, y: wbImgRect.y, w: wbImgRect.w, h: wbImgRect.h } };
+        }
+        return;
+    }
     wbDrawing = true;
     wbRedoStack = [];
-    var pos = getWbPos(e);
     var lineW = wbTool === 'eraser' ? wbLineWidth * 4 : wbLineWidth;
     wbCurrentStroke = {
         tool: wbTool,
@@ -1076,9 +1099,38 @@ function wbPointerDown(e) {
 
 var wbMoveCount = 0;
 function wbPointerMove(e) {
-    if (!wbDrawing || !wbCurrentStroke) return;
     e.preventDefault();
     var pos = getWbPos(e);
+    /* Select tool — drag image */
+    if (wbTool === 'select') {
+        if (!wbSelecting || !wbSelDrag || !wbImgRect) {
+            /* Update cursor on hover */
+            if (wbImgRect && wbBgImageObj) {
+                var c = wbHitCorner(pos);
+                if (c) wbCanvas.style.cursor = (c === 'tl' || c === 'br') ? 'nwse-resize' : 'nesw-resize';
+                else if (pos.x >= wbImgRect.x && pos.x <= wbImgRect.x + wbImgRect.w && pos.y >= wbImgRect.y && pos.y <= wbImgRect.y + wbImgRect.h) wbCanvas.style.cursor = 'move';
+                else wbCanvas.style.cursor = 'default';
+            }
+            return;
+        }
+        var dx = pos.x - wbSelDrag.startX;
+        var dy = pos.y - wbSelDrag.startY;
+        var o = wbSelDrag.origRect;
+        if (wbSelDrag.type === 'move') {
+            wbImgRect.x = o.x + dx;
+            wbImgRect.y = o.y + dy;
+        } else {
+            var aspect = o.w / o.h;
+            var cn = wbSelDrag.corner;
+            if (cn === 'br') { var nw = Math.max(0.05, o.w + dx); wbImgRect.w = nw; wbImgRect.h = nw / aspect; }
+            else if (cn === 'bl') { var nw = Math.max(0.05, o.w - dx); wbImgRect.x = o.x + o.w - nw; wbImgRect.w = nw; wbImgRect.h = nw / aspect; }
+            else if (cn === 'tr') { var nw = Math.max(0.05, o.w + dx); wbImgRect.w = nw; wbImgRect.h = nw / aspect; wbImgRect.y = o.y + o.h - nw / aspect; }
+            else if (cn === 'tl') { var nw = Math.max(0.05, o.w - dx); wbImgRect.x = o.x + o.w - nw; wbImgRect.w = nw; wbImgRect.h = nw / aspect; wbImgRect.y = o.y + o.h - nw / aspect; }
+        }
+        wbRedrawAll();
+        return;
+    }
+    if (!wbDrawing || !wbCurrentStroke) return;
     wbCurrentStroke.points.push(pos);
     wbRedrawAll();
     drawStroke(wbCurrentStroke, true);
@@ -1090,15 +1142,41 @@ function wbPointerMove(e) {
 }
 
 function wbPointerUp(e) {
+    if (wbTool === 'select' && wbSelecting) {
+        wbSelecting = false;
+        if (wbImgRect) broadcastCommand('wb-bg-rect', { rect: wbImgRect });
+        wbSelDrag = null;
+        return;
+    }
     if (!wbDrawing) return;
     wbDrawing = false;
     if (wbCurrentStroke && wbCurrentStroke.points.length > 1) {
         wbStrokes.push(wbCurrentStroke);
-        /* Broadcast the stroke */
         broadcastCommand('wb-stroke', { stroke: wbCurrentStroke });
         wbRedrawAll();
     }
     wbCurrentStroke = null;
+}
+
+/* ─── Select Tool Helpers ───────────────────────── */
+var WB_HANDLE = 0.02; // handle size in normalized coords
+function wbHitCorner(pos) {
+    if (!wbImgRect) return null;
+    var r = wbImgRect, h = WB_HANDLE;
+    if (Math.abs(pos.x - r.x) < h && Math.abs(pos.y - r.y) < h) return 'tl';
+    if (Math.abs(pos.x - (r.x + r.w)) < h && Math.abs(pos.y - r.y) < h) return 'tr';
+    if (Math.abs(pos.x - r.x) < h && Math.abs(pos.y - (r.y + r.h)) < h) return 'bl';
+    if (Math.abs(pos.x - (r.x + r.w)) < h && Math.abs(pos.y - (r.y + r.h)) < h) return 'br';
+    return null;
+}
+
+function wbDeleteImage() {
+    wbBgImageObj = null;
+    wbBgImageUrl = null;
+    wbImgRect = null;
+    document.getElementById('wbDeleteImgBtn').classList.add('hidden');
+    wbRedrawAll();
+    broadcastCommand('wb-bg-del');
 }
 
 /* ─── Drawing Renderer ──────────────────────────── */
@@ -1145,15 +1223,26 @@ function drawStroke(stroke, isCurrent) {
 
 function wbRedrawAll() {
     if (!wbCtx) return;
-    wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+    var cw = wbCanvas.width, ch = wbCanvas.height;
+    wbCtx.clearRect(0, 0, cw, ch);
     /* Background image if loaded */
-    if (wbBgImageObj) {
-        var cw = wbCanvas.width, ch = wbCanvas.height;
-        var iw = wbBgImageObj.width, ih = wbBgImageObj.height;
-        var scale = Math.min(cw / iw, ch / ih);
-        var dw = iw * scale, dh = ih * scale;
-        var dx = (cw - dw) / 2, dy = (ch - dh) / 2;
+    if (wbBgImageObj && wbImgRect) {
+        var dx = wbImgRect.x * cw, dy = wbImgRect.y * ch;
+        var dw = wbImgRect.w * cw, dh = wbImgRect.h * ch;
         wbCtx.drawImage(wbBgImageObj, dx, dy, dw, dh);
+        /* Draw selection handles if select tool active */
+        if (wbTool === 'select') {
+            wbCtx.save();
+            wbCtx.strokeStyle = '#22c55e'; wbCtx.lineWidth = 2; wbCtx.setLineDash([6, 4]);
+            wbCtx.strokeRect(dx, dy, dw, dh);
+            wbCtx.setLineDash([]);
+            var hs = 8;
+            [[dx, dy], [dx + dw, dy], [dx, dy + dh], [dx + dw, dy + dh]].forEach(function(p) {
+                wbCtx.fillStyle = '#22c55e'; wbCtx.fillRect(p[0] - hs/2, p[1] - hs/2, hs, hs);
+                wbCtx.strokeStyle = '#fff'; wbCtx.lineWidth = 1; wbCtx.strokeRect(p[0] - hs/2, p[1] - hs/2, hs, hs);
+            });
+            wbCtx.restore();
+        }
     }
     /* Replay all strokes */
     for (var i = 0; i < wbStrokes.length; i++) {
@@ -1183,6 +1272,8 @@ function wbClear() {
     wbRedoStack = [];
     wbBgImageObj = null;
     wbBgImageUrl = null;
+    wbImgRect = null;
+    document.getElementById('wbDeleteImgBtn').classList.add('hidden');
     wbRedrawAll();
     broadcastCommand('wb-clear');
     showToast('{{t .Lang "wb_cleared"}}', 'info');
@@ -1218,7 +1309,19 @@ function setWbBgImage(url) {
     wbBgImageUrl = url;
     var img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = function() { wbBgImageObj = img; wbRedrawAll(); };
+    img.onload = function() {
+        wbBgImageObj = img;
+        /* Initialize rect: centered, aspect-fit, 80% of canvas */
+        var cw = wbCanvas.width, ch = wbCanvas.height;
+        var iw = img.width, ih = img.height;
+        var scale = Math.min((cw * 0.8) / iw, (ch * 0.8) / ih);
+        var dw = (iw * scale) / cw, dh = (ih * scale) / ch;
+        wbImgRect = { x: (1 - dw) / 2, y: (1 - dh) / 2, w: dw, h: dh };
+        document.getElementById('wbDeleteImgBtn').classList.remove('hidden');
+        document.getElementById('wbDeleteImgBtn').classList.replace('text-gray-500', 'text-red-400');
+        wbRedrawAll();
+        broadcastCommand('wb-bg-rect', { rect: wbImgRect });
+    };
     img.src = url;
 }
 

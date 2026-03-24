@@ -667,6 +667,8 @@ var Translations = map[string]map[string]string{
 	"wb_undo":          {"en": "Undo", "fr": "Annuler"},
 	"wb_redo":          {"en": "Redo", "fr": "Rétablir"},
 	"wb_clear":         {"en": "Clear", "fr": "Effacer"},
+	"wb_select":        {"en": "Select", "fr": "Sélection"},
+	"wb_delete_img":    {"en": "Delete Image", "fr": "Supprimer l'image"},
 	"wb_bg_image":      {"en": "Background Image", "fr": "Image de fond"},
 	"wb_close":         {"en": "Close Whiteboard", "fr": "Fermer le tableau"},
 	"wb_opened":        {"en": "Whiteboard opened", "fr": "Tableau blanc ouvert"},

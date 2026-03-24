@@ -264,6 +264,10 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 clearStudentWb(); break;
             case 'wb-bg':
                 setStudentWbBg(msg.url); break;
+            case 'wb-bg-rect':
+                sWbImgRect = msg.rect; sWbRedrawAll(); break;
+            case 'wb-bg-del':
+                sWbBgObj = null; sWbImgRect = null; sWbRedrawAll(); break;
         }
     } catch(e) { console.error('Data parse error:', e); }
 });
@@ -470,6 +474,7 @@ function removeSharedImage() {
 var sWbCanvas, sWbCtx;
 var sWbStrokes = [];
 var sWbBgObj = null;
+var sWbImgRect = null;
 var sWbLiveStroke = null;
 
 function startStudentWbLive(stroke) {
@@ -523,6 +528,7 @@ function undoStudentWb() {
 function clearStudentWb() {
     sWbStrokes = [];
     sWbBgObj = null;
+    sWbImgRect = null;
     sWbRedrawAll();
 }
 
@@ -571,13 +577,9 @@ function sDrawStroke(stroke) {
 function sWbRedrawAll() {
     if (!sWbCtx) return;
     sWbCtx.clearRect(0, 0, sWbCanvas.width, sWbCanvas.height);
-    if (sWbBgObj) {
+    if (sWbBgObj && sWbImgRect) {
         var cw = sWbCanvas.width, ch = sWbCanvas.height;
-        var iw = sWbBgObj.width, ih = sWbBgObj.height;
-        var scale = Math.min(cw / iw, ch / ih);
-        var dw = iw * scale, dh = ih * scale;
-        var dx = (cw - dw) / 2, dy = (ch - dh) / 2;
-        sWbCtx.drawImage(sWbBgObj, dx, dy, dw, dh);
+        sWbCtx.drawImage(sWbBgObj, sWbImgRect.x * cw, sWbImgRect.y * ch, sWbImgRect.w * cw, sWbImgRect.h * ch);
     }
     for (var i = 0; i < sWbStrokes.length; i++) {
         sDrawStroke(sWbStrokes[i]);
