@@ -1071,8 +1071,10 @@ function wbPointerDown(e) {
         alpha: wbTool === 'marker' ? 0.4 : 1,
         points: [pos]
     };
+    broadcastCommand('wb-down', { stroke: { tool: wbCurrentStroke.tool, color: wbCurrentStroke.color, width: wbCurrentStroke.width, alpha: wbCurrentStroke.alpha, points: [pos] } });
 }
 
+var wbMoveCount = 0;
 function wbPointerMove(e) {
     if (!wbDrawing || !wbCurrentStroke) return;
     e.preventDefault();
@@ -1080,6 +1082,11 @@ function wbPointerMove(e) {
     wbCurrentStroke.points.push(pos);
     wbRedrawAll();
     drawStroke(wbCurrentStroke, true);
+    wbMoveCount++;
+    if (wbMoveCount % 2 === 0) {
+        var msg = JSON.stringify({ action: 'wb-draw', point: pos });
+        room.localParticipant.publishData(encoder.encode(msg), { reliable: false });
+    }
 }
 
 function wbPointerUp(e) {

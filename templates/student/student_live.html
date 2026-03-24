@@ -252,6 +252,10 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 openStudentWb(); break;
             case 'wb-close':
                 closeStudentWb(); break;
+            case 'wb-down':
+                startStudentWbLive(msg.stroke); break;
+            case 'wb-draw':
+                drawStudentWbLive(msg.point); break;
             case 'wb-stroke':
                 addStudentWbStroke(msg.stroke); break;
             case 'wb-undo':
@@ -466,6 +470,18 @@ function removeSharedImage() {
 var sWbCanvas, sWbCtx;
 var sWbStrokes = [];
 var sWbBgObj = null;
+var sWbLiveStroke = null;
+
+function startStudentWbLive(stroke) {
+    sWbLiveStroke = { tool: stroke.tool, color: stroke.color, width: stroke.width, alpha: stroke.alpha, points: stroke.points.slice() };
+    sWbRedrawAll();
+}
+
+function drawStudentWbLive(point) {
+    if (!sWbLiveStroke) return;
+    sWbLiveStroke.points.push(point);
+    sWbRedrawAll();
+}
 
 function initStudentWb() {
     sWbCanvas = document.getElementById('wbCanvas');
@@ -494,6 +510,7 @@ function closeStudentWb() {
 }
 
 function addStudentWbStroke(stroke) {
+    sWbLiveStroke = null;
     sWbStrokes.push(stroke);
     sWbRedrawAll();
 }
@@ -564,6 +581,9 @@ function sWbRedrawAll() {
     }
     for (var i = 0; i < sWbStrokes.length; i++) {
         sDrawStroke(sWbStrokes[i]);
+    }
+    if (sWbLiveStroke && sWbLiveStroke.points.length > 1) {
+        sDrawStroke(sWbLiveStroke);
     }
 }
 
