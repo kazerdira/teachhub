@@ -1301,6 +1301,20 @@ function drawStroke(stroke, isCurrent) {
 }
 
 /* ─── Zoom / Pan ────────────────────────────────── */
+var wbZoomBroadcastCount = 0;
+function wbBroadcastZoom(reliable) {
+    var cw = wbCanvas.width, ch = wbCanvas.height;
+    var z = { s: wbScale, px: wbPanX / cw, py: wbPanY / ch };
+    if (reliable) {
+        broadcastCommand('wb-zoom', { zoom: z });
+    } else {
+        wbZoomBroadcastCount++;
+        if (wbZoomBroadcastCount % 2 === 0) {
+            var msg = JSON.stringify({ action: 'wb-zoom', zoom: z });
+            room.localParticipant.publishData(encoder.encode(msg), { reliable: false });
+        }
+    }
+}
 function wbZoomAt(newScale, cx, cy) {
     newScale = Math.max(0.25, Math.min(5, newScale));
     wbPanX = cx - (cx - wbPanX) * (newScale / wbScale);
@@ -1308,12 +1322,14 @@ function wbZoomAt(newScale, cx, cy) {
     wbScale = newScale;
     wbRedrawAll();
     var el = document.getElementById('wbZoomLevel'); if (el) el.textContent = Math.round(wbScale * 100) + '%';
+    wbBroadcastZoom(true);
 }
 function wbZoomIn() { wbZoomAt(wbScale * 1.25, wbCanvas.width / 2, wbCanvas.height / 2); }
 function wbZoomOut() { wbZoomAt(wbScale / 1.25, wbCanvas.width / 2, wbCanvas.height / 2); }
 function wbZoomReset() {
     wbScale = 1; wbPanX = 0; wbPanY = 0; wbRedrawAll();
     var el = document.getElementById('wbZoomLevel'); if (el) el.textContent = '100%';
+    wbBroadcastZoom(true);
 }
 function wbWheel(e) {
     if (!wbActive) return;
@@ -1353,10 +1369,14 @@ function wbTouchMove(e) {
         wbScale = ns;
         wbRedrawAll();
         var el = document.getElementById('wbZoomLevel'); if (el) el.textContent = Math.round(wbScale * 100) + '%';
+        wbBroadcastZoom(false);
     }
 }
 function wbTouchEnd(e) {
-    if (e.touches.length < 2) wbPinching = false;
+    if (e.touches.length < 2) {
+        if (wbPinching) wbBroadcastZoom(true);
+        wbPinching = false;
+    }
 }
 
 function wbRedrawAll() {

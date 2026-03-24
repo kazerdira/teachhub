@@ -279,6 +279,14 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 sWbImgRect = msg.rect; sWbRedrawAll(); break;
             case 'wb-bg-del':
                 sWbBgObj = null; sWbImgRect = null; sWbRedrawAll(); break;
+            case 'wb-zoom':
+                if (msg.zoom && sWbCanvas) {
+                    sWbScale = msg.zoom.s;
+                    sWbPanX = msg.zoom.px * sWbCanvas.width;
+                    sWbPanY = msg.zoom.py * sWbCanvas.height;
+                    sWbRedrawAll();
+                    var zl = document.getElementById('sWbZoomLevel'); if (zl) zl.textContent = Math.round(sWbScale * 100) + '%';
+                } break;
         }
     } catch(e) { console.error('Data parse error:', e); }
 });
