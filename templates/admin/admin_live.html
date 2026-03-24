@@ -196,6 +196,15 @@
         <button id="wbDeleteImgBtn" onclick="wbDeleteImage()" class="text-gray-500 p-1.5 rounded transition hidden" title="{{t .Lang "wb_delete_img"}}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
+        <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
+        <!-- Zoom -->
+        <button onclick="wbZoomOut()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_zoom_out"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg>
+        </button>
+        <button onclick="wbZoomReset()" id="wbZoomLevel" class="text-gray-300 hover:text-white px-1.5 py-1 rounded text-xs font-mono min-w-[3rem] text-center transition" title="{{t .Lang "wb_zoom_reset"}}">100%</button>
+        <button onclick="wbZoomIn()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_zoom_in"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
+        </button>
         <div class="flex-1"></div>
         <button onclick="toggleWhiteboard()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1040,6 +1049,10 @@ var wbBgImageObj = null;
 var wbImgRect = null; // {x, y, w, h} in normalized 0-1 coords
 var wbSelecting = false;
 var wbSelDrag = null; // {type:'move'|'resize', corner, startX, startY, origRect}
+var wbScale = 1;
+var wbPanX = 0;
+var wbPanY = 0;
+var wbPinching = false;
 var wbCanvas, wbCtx;
 
 function initWhiteboard() {
@@ -1052,9 +1065,13 @@ function initWhiteboard() {
     wbCanvas.addEventListener('pointermove', wbPointerMove);
     wbCanvas.addEventListener('pointerup', wbPointerUp);
     wbCanvas.addEventListener('pointerleave', wbPointerUp);
-    /* Prevent scrolling/zooming while drawing */
-    wbCanvas.addEventListener('touchstart', function(e) { if (wbActive) e.preventDefault(); }, { passive: false });
-    wbCanvas.addEventListener('touchmove', function(e) { if (wbActive) e.preventDefault(); }, { passive: false });
+    /* Pinch-to-zoom + prevent default touch */
+    wbCanvas.addEventListener('touchstart', wbTouchStart, { passive: false });
+    wbCanvas.addEventListener('touchmove', wbTouchMove, { passive: false });
+    wbCanvas.addEventListener('touchend', wbTouchEnd, { passive: false });
+    wbCanvas.addEventListener('touchcancel', wbTouchEnd, { passive: false });
+    /* Mouse wheel zoom */
+    wbCanvas.addEventListener('wheel', wbWheel, { passive: false });
     /* Set initial active states */
     setWbColor('#ffffff');
     setWbTool('pen');
@@ -1113,14 +1130,17 @@ function setWbColor(color) {
 /* ─── Pointer Handlers ──────────────────────────── */
 function getWbPos(e) {
     var rect = wbCanvas.getBoundingClientRect();
+    var sx = (e.clientX - rect.left) * (wbCanvas.width / rect.width);
+    var sy = (e.clientY - rect.top) * (wbCanvas.height / rect.height);
     return {
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
+        x: (sx - wbPanX) / (wbCanvas.width * wbScale),
+        y: (sy - wbPanY) / (wbCanvas.height * wbScale),
         p: e.pressure || 0.5
     };
 }
 
 function wbPointerDown(e) {
+    if (wbPinching) return;
     e.preventDefault();
     wbCanvas.setPointerCapture(e.pointerId);
     var pos = getWbPos(e);
@@ -1152,6 +1172,7 @@ function wbPointerDown(e) {
 
 var wbMoveCount = 0;
 function wbPointerMove(e) {
+    if (wbPinching) return;
     e.preventDefault();
     var pos = getWbPos(e);
     /* Select tool — drag image */
@@ -1279,10 +1300,71 @@ function drawStroke(stroke, isCurrent) {
     wbCtx.restore();
 }
 
+/* ─── Zoom / Pan ────────────────────────────────── */
+function wbZoomAt(newScale, cx, cy) {
+    newScale = Math.max(0.25, Math.min(5, newScale));
+    wbPanX = cx - (cx - wbPanX) * (newScale / wbScale);
+    wbPanY = cy - (cy - wbPanY) * (newScale / wbScale);
+    wbScale = newScale;
+    wbRedrawAll();
+    var el = document.getElementById('wbZoomLevel'); if (el) el.textContent = Math.round(wbScale * 100) + '%';
+}
+function wbZoomIn() { wbZoomAt(wbScale * 1.25, wbCanvas.width / 2, wbCanvas.height / 2); }
+function wbZoomOut() { wbZoomAt(wbScale / 1.25, wbCanvas.width / 2, wbCanvas.height / 2); }
+function wbZoomReset() {
+    wbScale = 1; wbPanX = 0; wbPanY = 0; wbRedrawAll();
+    var el = document.getElementById('wbZoomLevel'); if (el) el.textContent = '100%';
+}
+function wbWheel(e) {
+    if (!wbActive) return;
+    e.preventDefault();
+    var rect = wbCanvas.getBoundingClientRect();
+    var cx = (e.clientX - rect.left) * (wbCanvas.width / rect.width);
+    var cy = (e.clientY - rect.top) * (wbCanvas.height / rect.height);
+    wbZoomAt(wbScale * (e.deltaY < 0 ? 1.1 : 0.9), cx, cy);
+}
+/* Pinch-to-zoom touch helpers */
+var wbPinchDist0 = 0, wbPinchScale0 = 1, wbPinchCx0 = 0, wbPinchCy0 = 0, wbPinchPanX0 = 0, wbPinchPanY0 = 0;
+function wbTouchDist(a, b) { var dx = a.clientX - b.clientX, dy = a.clientY - b.clientY; return Math.sqrt(dx * dx + dy * dy); }
+function wbTouchStart(e) {
+    if (!wbActive) return;
+    e.preventDefault();
+    if (e.touches.length === 2) {
+        wbPinching = true; wbDrawing = false; wbCurrentStroke = null;
+        wbPinchDist0 = wbTouchDist(e.touches[0], e.touches[1]);
+        wbPinchScale0 = wbScale;
+        var rect = wbCanvas.getBoundingClientRect();
+        wbPinchCx0 = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * (wbCanvas.width / rect.width);
+        wbPinchCy0 = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top) * (wbCanvas.height / rect.height);
+        wbPinchPanX0 = wbPanX; wbPinchPanY0 = wbPanY;
+    }
+}
+function wbTouchMove(e) {
+    if (!wbActive) return;
+    e.preventDefault();
+    if (wbPinching && e.touches.length === 2) {
+        var dist = wbTouchDist(e.touches[0], e.touches[1]);
+        var ns = Math.max(0.25, Math.min(5, wbPinchScale0 * (dist / wbPinchDist0)));
+        var rect = wbCanvas.getBoundingClientRect();
+        var cx = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * (wbCanvas.width / rect.width);
+        var cy = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top) * (wbCanvas.height / rect.height);
+        wbPanX = cx - (wbPinchCx0 - wbPinchPanX0) * (ns / wbPinchScale0);
+        wbPanY = cy - (wbPinchCy0 - wbPinchPanY0) * (ns / wbPinchScale0);
+        wbScale = ns;
+        wbRedrawAll();
+        var el = document.getElementById('wbZoomLevel'); if (el) el.textContent = Math.round(wbScale * 100) + '%';
+    }
+}
+function wbTouchEnd(e) {
+    if (e.touches.length < 2) wbPinching = false;
+}
+
 function wbRedrawAll() {
     if (!wbCtx) return;
     var cw = wbCanvas.width, ch = wbCanvas.height;
+    wbCtx.setTransform(1, 0, 0, 1, 0, 0);
     wbCtx.clearRect(0, 0, cw, ch);
+    wbCtx.setTransform(wbScale, 0, 0, wbScale, wbPanX, wbPanY);
     /* Background image if loaded */
     if (wbBgImageObj && wbImgRect) {
         var dx = wbImgRect.x * cw, dy = wbImgRect.y * ch;
@@ -1331,7 +1413,9 @@ function wbClear() {
     wbBgImageObj = null;
     wbBgImageUrl = null;
     wbImgRect = null;
+    wbScale = 1; wbPanX = 0; wbPanY = 0;
     document.getElementById('wbDeleteImgBtn').classList.add('hidden');
+    var zl = document.getElementById('wbZoomLevel'); if (zl) zl.textContent = '100%';
     wbRedrawAll();
     broadcastCommand('wb-clear');
     showToast('{{t .Lang "wb_cleared"}}', 'info');
