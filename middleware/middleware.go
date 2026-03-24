@@ -181,9 +181,10 @@ func generateCSRFToken() string {
 // CSRFProtection generates a CSRF token on every request and validates it on POST.
 // The token is stored in a dedicated "teachhub-csrf" session cookie.
 func CSRFProtection() gin.HandlerFunc {
-	// Routes that are exempt from CSRF (e.g. sendBeacon endpoints)
+	// Routes that are exempt from CSRF (e.g. sendBeacon, AJAX uploads with session auth)
 	exempt := map[string]bool{
 		"/live/leave": true,
+		"/live/image": true,
 	}
 
 	return func(c *gin.Context) {

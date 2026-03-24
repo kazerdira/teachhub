@@ -923,7 +923,7 @@ async function uploadImage(input) {
     formData.append('image', file);
     showToast('{{t .Lang "uploading"}}', 'info');
     try {
-        var csrfMeta = document.querySelector('input[name=csrf_token]') || document.querySelector('form input[type=hidden]');
+        var csrfMeta = document.querySelector('input[name=_csrf]');
         var csrfToken = csrfMeta ? csrfMeta.value : '';
         var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/image', {
             method: 'POST',
@@ -1195,9 +1195,12 @@ async function loadWbBackground(input) {
     formData.append('image', file);
     showToast('{{t .Lang "uploading"}}', 'info');
     try {
+        var csrfEl = document.querySelector('input[name=_csrf]');
+        var headers = csrfEl ? { 'X-CSRF-Token': csrfEl.value } : {};
         var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/image', {
             method: 'POST',
             body: formData,
+            headers: headers,
             credentials: 'same-origin'
         });
         if (!resp.ok) { showToast('Upload failed: ' + resp.status, 'error'); input.value = ''; return; }
