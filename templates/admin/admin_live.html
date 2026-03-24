@@ -140,10 +140,10 @@
 
 <!-- Hidden file input for image presenter -->
 <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="uploadImage(this)">
-<input type="file" id="wbBgInput" accept="image/*" class="hidden" onchange="loadWbBackground(this)">
 
 <!-- ═══ WHITEBOARD OVERLAY ══════════════════════════ -->
 <div id="whiteboardOverlay" class="fixed inset-0 z-30 hidden flex flex-col bg-gray-900">
+    <input type="file" id="wbBgInput" accept="image/*" class="hidden" onchange="loadWbBackground(this)">
     <!-- Toolbar -->
     <div class="bg-gray-800 border-b border-gray-700 px-2 py-1.5 flex items-center gap-1 md:gap-2 overflow-x-auto scrollbar-hide flex-shrink-0">
         <!-- Tools -->
@@ -1197,14 +1197,17 @@ async function loadWbBackground(input) {
     try {
         var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/image', {
             method: 'POST',
-            body: formData
+            body: formData,
+            credentials: 'same-origin'
         });
+        if (!resp.ok) { showToast('Upload failed: ' + resp.status, 'error'); input.value = ''; return; }
         var data = await resp.json();
         if (data.url) {
             setWbBgImage(data.url);
             broadcastCommand('wb-bg', { url: data.url });
-        }
-    } catch(e) { showToast('Upload failed', 'error'); }
+            showToast('{{t .Lang "wb_bg_image"}} ✓', 'success');
+        } else { showToast(data.error || 'Upload failed', 'error'); }
+    } catch(e) { showToast('Upload failed: ' + e.message, 'error'); }
     input.value = '';
 }
 
