@@ -1075,10 +1075,7 @@ function initWhiteboard() {
     wbCanvas.addEventListener('touchcancel', wbTouchEnd, { passive: false });
     /* Mouse wheel zoom */
     wbCanvas.addEventListener('wheel', wbWheel, { passive: false });
-    /* Right-click / middle-click pan on desktop */
-    wbCanvas.addEventListener('mousedown', wbMousePanStart);
-    wbCanvas.addEventListener('mousemove', wbMousePanMove);
-    wbCanvas.addEventListener('mouseup', wbMousePanEnd);
+    /* Prevent right-click context menu on canvas */
     wbCanvas.addEventListener('contextmenu', function(e) { if (wbActive) e.preventDefault(); });
     /* Set initial active states */
     setWbColor('#ffffff');
@@ -1148,9 +1145,18 @@ function getWbPos(e) {
 }
 
 function wbPointerDown(e) {
-    if (wbPinching || wbPinchCooldown || wbPanning) return;
+    if (wbPinching || wbPinchCooldown) return;
     e.preventDefault();
     wbCanvas.setPointerCapture(e.pointerId);
+    /* Right-click (2) or middle-click (1) = pan */
+    if (e.button === 1 || e.button === 2) {
+        wbPanning = true;
+        wbPanStartX = e.clientX; wbPanStartY = e.clientY;
+        wbPanOrigX = wbPanX; wbPanOrigY = wbPanY;
+        wbCanvas.style.cursor = 'grabbing';
+        return;
+    }
+    if (wbPanning) return;
     var pos = getWbPos(e);
     /* Select tool — move/resize image */
     if (wbTool === 'select') {
@@ -1180,8 +1186,19 @@ function wbPointerDown(e) {
 
 var wbMoveCount = 0;
 function wbPointerMove(e) {
-    if (wbPinching || wbPinchCooldown || wbPanning) return;
+    if (wbPinching || wbPinchCooldown) return;
     e.preventDefault();
+    /* Pan mode (right/middle drag) */
+    if (wbPanning) {
+        var rect = wbCanvas.getBoundingClientRect();
+        var dx = (e.clientX - wbPanStartX) * (wbCanvas.width / rect.width);
+        var dy = (e.clientY - wbPanStartY) * (wbCanvas.height / rect.height);
+        wbPanX = wbPanOrigX + dx;
+        wbPanY = wbPanOrigY + dy;
+        wbRedrawAll();
+        wbBroadcastZoom(false);
+        return;
+    }
     var pos = getWbPos(e);
     /* Select tool — drag image */
     if (wbTool === 'select') {
@@ -1229,6 +1246,13 @@ function wbPointerMove(e) {
 }
 
 function wbPointerUp(e) {
+    /* End pan */
+    if (wbPanning) {
+        wbPanning = false;
+        setWbTool(wbTool);
+        wbBroadcastZoom(true);
+        return;
+    }
     if (wbTool === 'select' && wbSelecting) {
         wbSelecting = false;
         if (wbImgRect) broadcastCommand('wb-bg-rect', { rect: wbImgRect });
@@ -1399,34 +1423,6 @@ function wbTouchEnd(e) {
         wbPinchCooldown = true;
         setTimeout(function() { wbPinchCooldown = false; }, 300);
     }
-}
-/* Right-click / middle-click drag pan (desktop) */
-function wbMousePanStart(e) {
-    if (!wbActive) return;
-    if (e.button === 1 || e.button === 2) {
-        e.preventDefault();
-        wbPanning = true;
-        wbPanStartX = e.clientX; wbPanStartY = e.clientY;
-        wbPanOrigX = wbPanX; wbPanOrigY = wbPanY;
-        wbCanvas.style.cursor = 'grabbing';
-    }
-}
-function wbMousePanMove(e) {
-    if (!wbPanning) return;
-    e.preventDefault();
-    var rect = wbCanvas.getBoundingClientRect();
-    var dx = (e.clientX - wbPanStartX) * (wbCanvas.width / rect.width);
-    var dy = (e.clientY - wbPanStartY) * (wbCanvas.height / rect.height);
-    wbPanX = wbPanOrigX + dx;
-    wbPanY = wbPanOrigY + dy;
-    wbRedrawAll();
-    wbBroadcastZoom(false);
-}
-function wbMousePanEnd(e) {
-    if (!wbPanning) return;
-    wbPanning = false;
-    setWbTool(wbTool); /* restore cursor */
-    wbBroadcastZoom(true);
 }
 
 function wbRedrawAll() {
