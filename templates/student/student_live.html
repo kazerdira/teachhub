@@ -211,7 +211,7 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
         switch(msg.action) {
             case 'chat':
                 var chatSender = msg.sender || (participant ? (participant.name || participant.identity) : 'Unknown');
-                addChatMessage(chatSender, msg.text, msg.time || new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), false);
+                addChatMessage(chatSender, msg.text, msg.time || new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), false, msg.mid);
                 if (!chatOpen) { unreadCount++; var badge = document.getElementById('chatBadge'); badge.textContent = unreadCount; badge.classList.remove('hidden'); }
                 break;
             case 'mute-mic':
@@ -240,6 +240,8 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 showPollVote(msg.question, msg.options, msg.timer); break;
             case 'poll-end':
                 showPollFinalResults(msg); break;
+            case 'del-msg':
+                var el = document.querySelector('[data-msg-id="' + msg.msgId + '"]'); if (el) el.remove(); break;
             case 'pin-message':
                 showPinnedMessage(msg.sender, msg.text); break;
             case 'unpin-message':
@@ -343,9 +345,12 @@ function sendChatMessage() {
     room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true });
     addChatMessage('You', msg.text, msg.time, true);
 }
-function addChatMessage(sender, text, time, isMe) {
+var chatMsgId = 0;
+function addChatMessage(sender, text, time, isMe, mid) {
+    if (!mid) { chatMsgId++; mid = 'slocal' + chatMsgId; }
     var container = document.getElementById('chatMessages');
     var div = document.createElement('div'); div.className = isMe ? 'flex flex-col items-end' : 'flex flex-col items-start';
+    div.setAttribute('data-msg-id', mid);
     var bubble = document.createElement('div');
     bubble.className = isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-md px-3 py-1.5 max-w-[85%] text-sm break-words'
         : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-md px-3 py-1.5 max-w-[85%] text-sm break-words';

@@ -648,9 +648,10 @@ var Translations = map[string]map[string]string{
 	"poll_total":      {"en": "Total", "fr": "Total"},
 
 	// Pinned message
-	"pin_message":   {"en": "Pin", "fr": "Épingler"},
-	"unpin_message": {"en": "Unpin", "fr": "Désépingler"},
-	"pinned":        {"en": "📌 Pinned", "fr": "📌 Épinglé"},
+	"pin_message":    {"en": "Pin", "fr": "Épingler"},
+	"unpin_message":  {"en": "Unpin", "fr": "Désépingler"},
+	"pinned":         {"en": "📌 Pinned", "fr": "📌 Épinglé"},
+	"delete_message": {"en": "Delete message", "fr": "Supprimer le message"},
 
 	// Image presenter
 	"share_image":        {"en": "Share Image", "fr": "Partager une image"},
