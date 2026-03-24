@@ -1128,6 +1128,11 @@ function wbPointerMove(e) {
             else if (cn === 'tl') { var nw = Math.max(0.05, o.w - dx); wbImgRect.x = o.x + o.w - nw; wbImgRect.w = nw; wbImgRect.h = nw / aspect; wbImgRect.y = o.y + o.h - nw / aspect; }
         }
         wbRedrawAll();
+        wbMoveCount++;
+        if (wbMoveCount % 2 === 0) {
+            var msg = JSON.stringify({ action: 'wb-bg-rect', rect: wbImgRect });
+            room.localParticipant.publishData(encoder.encode(msg), { reliable: false });
+        }
         return;
     }
     if (!wbDrawing || !wbCurrentStroke) return;
