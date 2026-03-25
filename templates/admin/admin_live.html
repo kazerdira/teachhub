@@ -882,7 +882,8 @@ function deleteMessage(msgId) {
 }
 
 function sendChatMessage() {
-    var input = isMobile() ? document.getElementById('mChatInput') : document.getElementById('chatInput');
+    var useM = isMobile() || !document.getElementById('whiteboardOverlay').classList.contains('hidden');
+    var input = useM ? document.getElementById('mChatInput') : document.getElementById('chatInput');
     var text = input.value.trim(); if (!text) return; input.value = '';
     var mid = 'm' + Date.now() + Math.random().toString(36).substr(2,4);
     var msg = { action: 'chat', sender: 'Teacher', text: text, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), mid: mid };
@@ -901,13 +902,13 @@ function addChatMessage(sender, text, time, isMe, mid) {
         bubble.className = isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-md px-3 py-1.5 text-sm break-words'
             : 'bg-gray-100 text-gray-800 rounded-2xl rounded-tl-md px-3 py-1.5 text-sm break-words';
         bubble.textContent = text;
-        row.appendChild(bubble);
         var pinBtn = document.createElement('button');
         pinBtn.className = 'opacity-100 md:opacity-0 md:group-hover:opacity-100 text-gray-400 hover:text-amber-500 p-1 transition text-xs flex-shrink-0';
         pinBtn.innerHTML = '📌';
         pinBtn.title = '{{t .Lang "pin_message"}}';
         pinBtn.onclick = function() { pinMessage(sender, text); };
-        row.appendChild(pinBtn);
+        if (isMe) { row.appendChild(pinBtn); row.appendChild(bubble); }
+        else { row.appendChild(bubble); row.appendChild(pinBtn); }
         div.appendChild(row);
         var meta = document.createElement('div'); meta.className = 'text-xs text-gray-400 mt-0.5 px-1'; meta.textContent = sender + ' \u00B7 ' + time;
         div.appendChild(meta); container.appendChild(div); container.scrollTop = container.scrollHeight;
