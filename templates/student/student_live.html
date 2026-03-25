@@ -318,6 +318,17 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
 });
 
 /* ─── UI Updates ────────────────────────────────── */
+/* Master function: ensures the stage always has content.
+   Call this whenever anything is removed from the stage. */
+function ensureStageContent() {
+    var hasVideo = trackMap.size > 0;
+    var hasImage = !!document.getElementById('sharedImage');
+    if (!hasVideo && !hasImage) {
+        var ph = document.getElementById('placeholder');
+        if (ph) { ph.style.display = ''; updateStudentAvatar(ph); }
+    }
+}
+
 function updateStudentAvatar(ph) {
     var inner = teacherPicUrl
         ? '<div class="flex flex-col items-center justify-center">'
@@ -548,11 +559,7 @@ function showSharedImage(url) {
 }
 function removeSharedImage() {
     var img = document.getElementById('sharedImage'); if (img) img.remove();
-    /* restore avatar if no video tracks */
-    if (trackMap.size === 0) {
-        var ph = document.getElementById('placeholder');
-        if (ph) { ph.style.display = ''; updateStudentAvatar(ph); }
-    }
+    ensureStageContent();
 }
 
 /* ─── Whiteboard Receiver ───────────────────────── */
@@ -663,6 +670,7 @@ function openStudentWb() {
 function closeStudentWb() {
     document.getElementById('wbOverlay').classList.add('hidden');
     showToast('{{t .Lang "wb_closed"}}', 'info');
+    ensureStageContent();
 }
 
 function addStudentWbStroke(stroke) {
@@ -784,7 +792,7 @@ function renderLayout() {
 
     if (trackMap.size === 0) {
         pip.classList.add('hidden'); filmstrip.classList.add('hidden');
-        if (ph) { ph.style.display = ''; updateStudentAvatar(ph); } return;
+        ensureStageContent(); return;
     }
     if (ph) ph.style.display = 'none';
 
