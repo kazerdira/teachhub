@@ -191,7 +191,7 @@ var room = new LK.Room({ adaptiveStream: true, dynacast: true });
 var encoder = new TextEncoder();
 var decoder = new TextDecoder();
 
-var micEnabled = true, camEnabled = false, camApproved = false, camRequested = false;
+var micEnabled = false, camEnabled = false, camApproved = false, camRequested = false;
 var handRaised = false;
 
 /* ─── Track Management ──────────────────────────── */
@@ -871,7 +871,8 @@ async function connectRoom() {
         updateParticipantCount();
         var ph = document.getElementById('placeholder');
         if (ph) ph.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">&#9989;</div><p class="text-sm font-medium text-green-400">{{t .Lang "connected_waiting"}}</p><p class="text-xs text-gray-500 mt-1">{{t .Lang "connected_waiting_hint"}}</p></div>';
-        await room.localParticipant.setMicrophoneEnabled(true);
+        await room.localParticipant.setMicrophoneEnabled(false);
+        updateMicUI();
     } catch(e) {
         console.error('Connection failed:', e);
         var ph = document.getElementById('placeholder');

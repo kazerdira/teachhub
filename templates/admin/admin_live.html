@@ -433,14 +433,10 @@ function sendCommand(action, targetIdentity) {
     if (targetIdentity) opts.destinationIdentities = [targetIdentity];
     room.localParticipant.publishData(encoder.encode(msg), opts);
 }
-function broadcastCommand(action) {
-    room.localParticipant.publishData(encoder.encode(JSON.stringify({ action: action })), { reliable: true });
-}
-
 /* ─── Participant List ──────────────────────────── */
 function addParticipantToList(p) {
     if (p.identity === 'admin') return;
-    participants.set(p.identity, { sid: p.sid, name: p.name || p.identity, micMuted: false, camOff: true });
+    participants.set(p.identity, { sid: p.sid, name: p.name || p.identity, micMuted: true, camOff: true });
     renderParticipantList();
 }
 function removeParticipantFromList(p) {
@@ -726,6 +722,10 @@ room.on(LK.RoomEvent.LocalTrackUnpublished, function(pub) {
 
 room.on(LK.RoomEvent.ParticipantConnected, function(p) {
     addParticipantToList(p); showToast((p.name || p.identity) + ' ' + msgJoined, 'info');
+    /* Send whiteboard state to late joiner */
+    if (wbActive) {
+        setTimeout(function() { sendWbStateTo(p.identity); }, 500);
+    }
 });
 room.on(LK.RoomEvent.ParticipantDisconnected, function(p) {
     removeParticipantFromList(p); showToast((p.name || p.identity) + ' ' + msgLeft, 'info');
@@ -1595,6 +1595,27 @@ function setWbBgImage(url) {
         broadcastCommand('wb-bg-rect', { rect: wbImgRect });
     };
     img.src = url;
+}
+
+/* ─── Send full WB state to a specific student ─── */
+function sendDataTo(identity, msg) {
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true, destinationIdentities: [identity] });
+}
+function sendWbStateTo(identity) {
+    /* open whiteboard */
+    sendDataTo(identity, { action: 'wb-open' });
+    /* background image */
+    if (wbBgImageUrl) {
+        sendDataTo(identity, { action: 'wb-bg', url: wbBgImageUrl });
+        if (wbImgRect) setTimeout(function() { sendDataTo(identity, { action: 'wb-bg-rect', rect: wbImgRect }); }, 100);
+    }
+    /* all strokes */
+    for (var i = 0; i < wbStrokes.length; i++) {
+        sendDataTo(identity, { action: 'wb-stroke', stroke: wbStrokes[i] });
+    }
+    /* zoom state */
+    var cw = wbCanvas.width, ch = wbCanvas.height;
+    sendDataTo(identity, { action: 'wb-zoom', zoom: { s: wbScale, px: wbPanX / cw, py: wbPanY / ch } });
 }
 
 /* Init whiteboard on page load */
