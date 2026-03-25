@@ -1143,6 +1143,11 @@ function showImageOnStage(url) {
 }
 function removeImageFromStage() {
     var img = document.getElementById('sharedImage'); if (img) img.remove();
+    /* restore avatar if no video tracks */
+    if (trackMap.size === 0) {
+        var ph = document.getElementById('placeholder');
+        if (ph) { ph.style.display = ''; updateAvatarPlaceholder(ph); }
+    }
 }
 
 /* ═══════════════════════════════════════════════════
