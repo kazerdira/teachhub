@@ -140,6 +140,8 @@
 
 <!-- Hidden file input for image presenter -->
 <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="uploadImage(this)">
+<!-- Hidden file input for teacher profile pic -->
+<input type="file" id="teacherPicInput" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="uploadTeacherPic(this)">
 
 <!-- ═══ WHITEBOARD OVERLAY ══════════════════════════ -->
 <div id="whiteboardOverlay" class="fixed inset-0 z-30 hidden flex flex-col bg-gray-900">
@@ -387,6 +389,7 @@ const camRequests = [];
 const raisedHands = [];
 let mobilePanelOpen = null;
 let mobileUnread = 0;
+var teacherPicUrl = '{{.Classroom.TeacherPic}}';
 
 /* ─── Track Management ──────────────────────────── */
 var trackMap = new Map();
@@ -642,7 +645,7 @@ function renderLayout() {
 
     if (trackMap.size === 0) {
         pip.classList.add('hidden'); filmstrip.classList.add('hidden');
-        if (ph) ph.style.display = ''; return;
+        if (ph) { ph.style.display = ''; updateAvatarPlaceholder(ph); } return;
     }
     if (ph) ph.style.display = 'none';
 
@@ -807,6 +810,48 @@ async function toggleScreenShare() {
         document.getElementById('shareBtn').classList.toggle('bg-green-600', screenEnabled);
         document.getElementById('shareBtn').classList.toggle('bg-indigo-600', !screenEnabled);
     } catch(e) { screenEnabled = false; console.error('Screen share failed:', e); }
+}
+
+/* ─── Teacher Avatar / Profile Pic ──────────────── */
+function updateAvatarPlaceholder(ph) {
+    var inner = teacherPicUrl
+        ? '<div class="flex flex-col items-center justify-center">'
+          + '<div class="w-28 h-28 md:w-40 md:h-40 rounded-full overflow-hidden shadow-lg border-4 border-gray-700 cursor-pointer relative group" onclick="document.getElementById(\'teacherPicInput\').click()">'
+          + '<img src="' + teacherPicUrl + '" class="w-full h-full object-cover" alt="Teacher">'
+          + '<div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg></div>'
+          + '</div>'
+          + '<p class="text-xs text-gray-500 mt-2 cursor-pointer hover:text-gray-300" onclick="document.getElementById(\'teacherPicInput\').click()">{{t .Lang "change_profile_pic"}}</p>'
+          + '</div>'
+        : '<div class="flex flex-col items-center justify-center">'
+          + '<div class="w-28 h-28 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-teal-500 to-blue-600 flex items-center justify-center shadow-lg cursor-pointer border-4 border-gray-700 relative group" onclick="document.getElementById(\'teacherPicInput\').click()">'
+          + '<svg class="w-14 h-14 md:w-20 md:h-20 text-white/90" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'
+          + '<div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"><svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg></div>'
+          + '</div>'
+          + '<p class="text-sm text-gray-400 mt-3">{{t .Lang "camera_off_label"}}</p>'
+          + '<p class="text-xs text-gray-500 mt-1 cursor-pointer hover:text-gray-300" onclick="document.getElementById(\'teacherPicInput\').click()">{{t .Lang "upload_profile_pic"}}</p>'
+          + '</div>';
+    ph.innerHTML = inner;
+}
+
+async function uploadTeacherPic(input) {
+    if (!input.files || !input.files[0]) return;
+    var fd = new FormData();
+    fd.append('pic', input.files[0]);
+    fd.append('_csrf', '{{.CSRFToken}}');
+    try {
+        var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/teacher-pic', { method: 'POST', body: fd });
+        var data = await resp.json();
+        if (data.url) {
+            teacherPicUrl = data.url;
+            /* refresh placeholder if visible */
+            var ph = document.getElementById('placeholder');
+            if (ph && ph.style.display !== 'none') updateAvatarPlaceholder(ph);
+            /* broadcast new pic to students */
+            broadcastCommand('teacher-pic', { url: data.url });
+            showToast('Profile picture updated!', 'success');
+        }
+    } catch(e) { console.error('Upload failed:', e); showToast('Upload failed', 'error'); }
+    input.value = '';
 }
 
 /* ─── Whiteboard Control Bar helpers ────────────── */
@@ -1634,7 +1679,7 @@ async function connectRoom() {
         room.remoteParticipants.forEach(function(p) { addParticipantToList(p); });
         renderParticipantList();
         var ph = document.getElementById('placeholder');
-        if (ph) ph.innerHTML = '<div class="flex flex-col items-center justify-center"><div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-teal-500 to-blue-600 flex items-center justify-center shadow-lg"><svg class="w-12 h-12 md:w-16 md:h-16 text-white/90" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><p class="text-sm text-gray-400 mt-3">{{t .Lang "camera_off_label"}}</p></div>';
+        if (ph) updateAvatarPlaceholder(ph);
         await room.localParticipant.setMicrophoneEnabled(true);
     } catch(e) {
         console.error('Connection failed:', e);

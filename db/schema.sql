@@ -69,6 +69,13 @@ CREATE TABLE IF NOT EXISTS classroom (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- teacher profile picture per classroom
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='classroom' AND column_name='teacher_pic') THEN
+        ALTER TABLE classroom ADD COLUMN teacher_pic TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+
 -- ─── Students ───────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS student (
     id         SERIAL PRIMARY KEY,

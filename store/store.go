@@ -80,10 +80,11 @@ type Payment struct {
 }
 
 type Classroom struct {
-	ID        int
-	Name      string
-	JoinCode  string
-	CreatedAt time.Time
+	ID         int
+	Name       string
+	JoinCode   string
+	TeacherPic string
+	CreatedAt  time.Time
 	// computed
 	StudentCount  int
 	ResourceCount int
@@ -240,7 +241,7 @@ func (s *Store) CreateAdmin(ctx context.Context, username, hashedPassword string
 
 func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT c.id, c.name, c.join_code, c.created_at,
+		SELECT c.id, c.name, c.join_code, c.teacher_pic, c.created_at,
 			(SELECT COUNT(*) FROM classroom_student WHERE classroom_id=c.id AND status='approved') AS student_count,
 			(SELECT COUNT(*) FROM resource WHERE classroom_id=c.id) AS resource_count,
 			(SELECT COUNT(*) FROM quiz WHERE classroom_id=c.id) AS quiz_count,
@@ -253,7 +254,7 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 	var list []Classroom
 	for rows.Next() {
 		var c Classroom
-		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.CreatedAt, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -263,8 +264,8 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 
 func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, created_at FROM classroom WHERE id=$1`, id).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, created_at FROM classroom WHERE id=$1`, id).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -273,8 +274,8 @@ func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 
 func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, created_at FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, created_at FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -283,8 +284,8 @@ func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Cla
 
 func (s *Store) GetClassroomByCode(ctx context.Context, code string) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, created_at FROM classroom WHERE join_code=$1`, code).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, created_at FROM classroom WHERE join_code=$1`, code).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -308,6 +309,11 @@ func (s *Store) RegenerateJoinCode(ctx context.Context, id, adminID int) (string
 		`UPDATE classroom SET join_code=encode(gen_random_bytes(4),'hex') WHERE id=$1 AND admin_id=$2 RETURNING join_code`, id, adminID).
 		Scan(&code)
 	return code, err
+}
+
+func (s *Store) SetClassroomTeacherPic(ctx context.Context, classroomID, adminID int, picPath string) error {
+	_, err := s.DB.Exec(ctx, `UPDATE classroom SET teacher_pic=$1 WHERE id=$2 AND admin_id=$3`, picPath, classroomID, adminID)
+	return err
 }
 
 // ─── Students ───────────────────────────────────────────

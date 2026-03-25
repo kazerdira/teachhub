@@ -585,6 +585,8 @@ var Translations = map[string]map[string]string{
 	"connected_ready":        {"en": "Connected ✓ — Ready", "fr": "Connecté ✓ — Prêt"},
 	"connected_ready_hint":   {"en": "Your mic is live — turn on camera when ready", "fr": "Votre micro est actif — activez la caméra quand vous êtes prêt"},
 	"camera_off_label":       {"en": "Camera is off", "fr": "Caméra désactivée"},
+	"upload_profile_pic":     {"en": "Upload profile picture", "fr": "Télécharger photo de profil"},
+	"change_profile_pic":     {"en": "Change", "fr": "Changer"},
 	"requests_camera":        {"en": "requests camera access", "fr": "demande l'accès caméra"},
 
 	// Live toasts

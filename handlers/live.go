@@ -208,3 +208,48 @@ func (h *Handler) LiveImageUpload(c *gin.Context) {
 
 	c.JSON(200, gin.H{"url": "/uploads/" + filePath})
 }
+
+// ─── Teacher Profile Picture Upload ─────────────────────
+
+func (h *Handler) TeacherPicUpload(c *gin.Context) {
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
+
+	file, header, err := c.Request.FormFile("pic")
+	if err != nil {
+		c.JSON(400, gin.H{"error": "no file"})
+		return
+	}
+	defer file.Close()
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	allowed := map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".webp": true}
+	if !allowed[ext] {
+		c.JSON(400, gin.H{"error": "only jpg/png/webp allowed"})
+		return
+	}
+	if header.Size > 5<<20 {
+		c.JSON(400, gin.H{"error": "file too large (max 5MB)"})
+		return
+	}
+
+	fname := fmt.Sprintf("teacher_%d_%d%s", classID, time.Now().UnixMilli(), ext)
+	filePath := filepath.Join("live", fname)
+	fullPath := filepath.Join(h.UploadDir, filePath)
+	os.MkdirAll(filepath.Dir(fullPath), 0755)
+
+	dst, err := os.Create(fullPath)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "save failed"})
+		return
+	}
+	defer dst.Close()
+	io.Copy(dst, file)
+
+	// Save to DB
+	h.Store.SetClassroomTeacherPic(c.Request.Context(), classID, adminID(c), "/uploads/"+filePath)
+
+	c.JSON(200, gin.H{"url": "/uploads/" + filePath})
+}

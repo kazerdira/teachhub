@@ -364,6 +364,7 @@ func main() {
 		admin.POST("/classroom/:id/live/end", h.EndLiveClass)
 		admin.GET("/classroom/:id/live", h.AdminLivePage)
 		admin.POST("/classroom/:id/live/image", h.LiveImageUpload)
+		admin.POST("/classroom/:id/live/teacher-pic", h.TeacherPicUpload)
 
 		// Allowed Students (pre-registration)
 		admin.POST("/classroom/:id/allowed", h.AddAllowedStudent)
