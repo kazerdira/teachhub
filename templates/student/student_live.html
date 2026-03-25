@@ -683,15 +683,13 @@ function sDrawStroke(stroke) {
     }
     var w = sWbCanvas.width, h = sWbCanvas.height;
     var pts = stroke.points;
+    sWbCtx.lineWidth = stroke.width;
     sWbCtx.beginPath();
     sWbCtx.moveTo(pts[0].x * w, pts[0].y * h);
     if (pts.length === 2) {
-        sWbCtx.lineWidth = stroke.width * (pts[0].p + pts[1].p);
         sWbCtx.lineTo(pts[1].x * w, pts[1].y * h);
     } else {
         for (var i = 1; i < pts.length - 1; i++) {
-            var pressure = pts[i].p || 0.5;
-            sWbCtx.lineWidth = stroke.width * (pressure + 0.5);
             var cx = (pts[i].x * w + pts[i + 1].x * w) / 2;
             var cy = (pts[i].y * h + pts[i + 1].y * h) / 2;
             sWbCtx.quadraticCurveTo(pts[i].x * w, pts[i].y * h, cx, cy);

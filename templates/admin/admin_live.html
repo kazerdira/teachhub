@@ -1381,17 +1381,15 @@ function drawStroke(stroke, isCurrent) {
     var h = wbCanvas.height;
     var pts = stroke.points;
 
+    wbCtx.lineWidth = stroke.width;
     wbCtx.beginPath();
     wbCtx.moveTo(pts[0].x * w, pts[0].y * h);
 
     if (pts.length === 2) {
-        wbCtx.lineWidth = stroke.width * (pts[0].p + pts[1].p);
         wbCtx.lineTo(pts[1].x * w, pts[1].y * h);
     } else {
         /* Smooth Bézier curves through points */
         for (var i = 1; i < pts.length - 1; i++) {
-            var pressure = pts[i].p || 0.5;
-            wbCtx.lineWidth = stroke.width * (pressure + 0.5);
             var cx = (pts[i].x * w + pts[i + 1].x * w) / 2;
             var cy = (pts[i].y * h + pts[i + 1].y * h) / 2;
             wbCtx.quadraticCurveTo(pts[i].x * w, pts[i].y * h, cx, cy);
