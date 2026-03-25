@@ -583,7 +583,8 @@ var Translations = map[string]map[string]string{
 	"teacher_label":          {"en": "Teacher", "fr": "Enseignant"},
 	"teacher_screen":         {"en": "Teacher's Screen", "fr": "Écran de l'enseignant"},
 	"connected_ready":        {"en": "Connected ✓ — Ready", "fr": "Connecté ✓ — Prêt"},
-	"connected_ready_hint":   {"en": "Your camera and mic are now live", "fr": "Votre caméra et micro sont actifs"},
+	"connected_ready_hint":   {"en": "Your mic is live — turn on camera when ready", "fr": "Votre micro est actif — activez la caméra quand vous êtes prêt"},
+	"camera_off_label":       {"en": "Camera is off", "fr": "Caméra désactivée"},
 	"requests_camera":        {"en": "requests camera access", "fr": "demande l'accès caméra"},
 
 	// Live toasts

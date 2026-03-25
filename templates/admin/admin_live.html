@@ -117,9 +117,9 @@
                 <svg id="micOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
                 <svg id="micOff" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
             </button>
-            <button id="toggleCam" onclick="toggleCamera()" class="bg-gray-700 hover:bg-gray-600 text-white p-2 lg:p-2.5 rounded-full transition">
-                <svg id="camOn" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                <svg id="camOff" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+            <button id="toggleCam" onclick="toggleCamera()" class="bg-red-600 hover:bg-gray-600 text-white p-2 lg:p-2.5 rounded-full transition">
+                <svg id="camOn" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <svg id="camOff" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
             </button>
             <button id="shareBtn" onclick="toggleScreenShare()" class="bg-indigo-600 hover:bg-indigo-700 text-white p-2 lg:p-2.5 rounded-full transition hidden md:block" title="Screen Share">
                 <svg id="shareIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
@@ -381,7 +381,7 @@ const room = new LK.Room({ adaptiveStream: true, dynacast: true });
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-let micEnabled = true, camEnabled = true, screenEnabled = false;
+let micEnabled = true, camEnabled = false, screenEnabled = false;
 const participants = new Map();
 const camRequests = [];
 const raisedHands = [];
@@ -1634,8 +1634,8 @@ async function connectRoom() {
         room.remoteParticipants.forEach(function(p) { addParticipantToList(p); });
         renderParticipantList();
         var ph = document.getElementById('placeholder');
-        if (ph) ph.innerHTML = '<div class="text-center"><div class="text-4xl mb-3">&#9989;</div><p class="text-base font-medium text-green-400">{{t .Lang "connected_ready"}}</p><p class="text-sm text-gray-500 mt-1">{{t .Lang "connected_ready_hint"}}</p></div>';
-        await room.localParticipant.enableCameraAndMicrophone();
+        if (ph) ph.innerHTML = '<div class="flex flex-col items-center justify-center"><div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-teal-500 to-blue-600 flex items-center justify-center shadow-lg"><svg class="w-12 h-12 md:w-16 md:h-16 text-white/90" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><p class="text-sm text-gray-400 mt-3">{{t .Lang "camera_off_label"}}</p></div>';
+        await room.localParticipant.setMicrophoneEnabled(true);
     } catch(e) {
         console.error('Connection failed:', e);
         var ph = document.getElementById('placeholder');
