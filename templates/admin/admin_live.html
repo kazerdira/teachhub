@@ -640,15 +640,12 @@ function renderLayout() {
     var pip = document.getElementById('pipOverlay');
     var ph = document.getElementById('placeholder');
 
-    var old = stage.querySelector(':scope > video');
-    if (old) old.remove();
+    stage.querySelectorAll(':scope > video').forEach(function(v) { v.remove(); });
 
     if (trackMap.size === 0) {
-        console.log('[renderLayout] trackMap empty, calling ensureStageContent');
         pip.classList.add('hidden'); filmstrip.classList.add('hidden');
         ensureStageContent(); return;
     }
-    console.log('[renderLayout] trackMap has ' + trackMap.size + ' tracks, hiding placeholder');
     if (ph) ph.style.display = 'none';
 
     var activeKey = pinnedKey && trackMap.has(pinnedKey) ? pinnedKey : pickAuto();
@@ -702,7 +699,6 @@ function addTrack(participant, track) {
     if (trackMap.has(key)) return;
     var source = isScreenShare(track) ? 'screen_share' : 'camera';
     trackMap.set(key, { participant: participant, track: track, source: source, isTeacher: participant.identity === 'admin' });
-    console.log('[addTrack] key=' + key + ' source=' + source + ' isTeacher=' + (participant.identity === 'admin') + ' trackMap.size=' + trackMap.size);
     if (participant.identity === 'admin' && source === 'screen_share') pinnedKey = null;
     renderLayout();
 }
@@ -710,11 +706,9 @@ function addTrack(participant, track) {
 function removeTrack(participant, track) {
     var key = makeKey(participant, track);
     var entry = trackMap.get(key);
-    console.log('[removeTrack] key=' + key + ' found=' + !!entry + ' trackMap.size.before=' + trackMap.size);
     if (entry) entry.track.detach().forEach(function(el) { el.remove(); });
     trackMap.delete(key);
     if (pinnedKey === key) pinnedKey = null;
-    console.log('[removeTrack] trackMap.size.after=' + trackMap.size);
     renderLayout();
 }
 
@@ -803,13 +797,21 @@ function toggleMicrophone() {
 }
 function toggleCamera() {
     camEnabled = !camEnabled;
-    console.log('[toggleCamera] camEnabled=' + camEnabled + ' trackMap.size=' + trackMap.size);
     room.localParticipant.setCameraEnabled(camEnabled);
     document.getElementById('camOn').classList.toggle('hidden', !camEnabled);
     document.getElementById('camOff').classList.toggle('hidden', camEnabled);
     document.getElementById('toggleCam').classList.toggle('bg-red-600', !camEnabled);
     document.getElementById('toggleCam').classList.toggle('bg-gray-700', camEnabled);
-    if (!camEnabled) setTimeout(function() { console.log('[toggleCamera] delayed ensureStageContent, trackMap.size=' + trackMap.size); ensureStageContent(); }, 300);
+    if (!camEnabled) {
+        /* LiveKit LocalTrackUnpublished doesn't always fire, so clean up directly */
+        trackMap.forEach(function(entry, key) {
+            if (entry.isTeacher && entry.source !== 'screen_share') {
+                entry.track.detach().forEach(function(el) { el.remove(); });
+                trackMap.delete(key);
+            }
+        });
+        renderLayout();
+    }
 }
 async function toggleScreenShare() {
     screenEnabled = !screenEnabled;
@@ -817,6 +819,15 @@ async function toggleScreenShare() {
         await room.localParticipant.setScreenShareEnabled(screenEnabled);
         document.getElementById('shareBtn').classList.toggle('bg-green-600', screenEnabled);
         document.getElementById('shareBtn').classList.toggle('bg-indigo-600', !screenEnabled);
+        if (!screenEnabled) {
+            trackMap.forEach(function(entry, key) {
+                if (entry.isTeacher && entry.source === 'screen_share') {
+                    entry.track.detach().forEach(function(el) { el.remove(); });
+                    trackMap.delete(key);
+                }
+            });
+            renderLayout();
+        }
     } catch(e) { screenEnabled = false; console.error('Screen share failed:', e); }
 }
 
@@ -826,10 +837,12 @@ async function toggleScreenShare() {
 function ensureStageContent() {
     var hasVideo = trackMap.size > 0;
     var hasImage = !!document.getElementById('sharedImage');
-    var ph = document.getElementById('placeholder');
-    console.log('[ensureStage] hasVideo=' + hasVideo + ' hasImage=' + hasImage + ' ph=' + !!ph + ' phDisplay=' + (ph ? ph.style.display : 'N/A') + ' teacherPicUrl=' + teacherPicUrl);
     if (!hasVideo && !hasImage) {
-        if (ph) { ph.style.display = ''; updateAvatarPlaceholder(ph); console.log('[ensureStage] -> avatar restored'); }
+        /* clean up any stale video elements */
+        var stage = document.getElementById('mainStage');
+        stage.querySelectorAll(':scope > video').forEach(function(v) { v.remove(); });
+        var ph = document.getElementById('placeholder');
+        if (ph) { ph.style.display = ''; updateAvatarPlaceholder(ph); }
     }
 }
 
@@ -1162,9 +1175,7 @@ function showImageOnStage(url) {
     var ph = document.getElementById('placeholder'); if (ph) ph.style.display = 'none';
 }
 function removeImageFromStage() {
-    var img = document.getElementById('sharedImage');
-    console.log('[removeImageFromStage] img found=' + !!img);
-    if (img) img.remove();
+    var img = document.getElementById('sharedImage'); if (img) img.remove();
     ensureStageContent();
 }
 

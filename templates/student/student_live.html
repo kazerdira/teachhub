@@ -786,9 +786,8 @@ function renderLayout() {
     var pip = document.getElementById('pipOverlay');
     var ph = document.getElementById('placeholder');
 
-    /* Clear previous video on stage */
-    var old = stage.querySelector(':scope > video');
-    if (old) old.remove();
+    /* Clear ALL previous videos on stage */
+    stage.querySelectorAll(':scope > video').forEach(function(v){ v.remove(); });
 
     if (trackMap.size === 0) {
         pip.classList.add('hidden'); filmstrip.classList.add('hidden');

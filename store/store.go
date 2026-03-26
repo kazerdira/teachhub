@@ -1607,10 +1607,10 @@ func (s *Store) TrackResourceView(ctx context.Context, resourceID, studentID int
 }
 
 type ResourceViewCount struct {
-	ResourceID int
-	Title      string
-	FileType   string
-	ViewCount  int
+	ResourceID     int
+	Title          string
+	FileType       string
+	ViewCount      int
 	UniqueStudents int
 }
 
@@ -1708,11 +1708,11 @@ func (s *Store) GetAssignmentTrends(ctx context.Context, classroomID int) ([]Ass
 // ─── At-Risk Students ───────────────────────────────────
 
 type AtRiskStudent struct {
-	StudentID   int
-	Name        string
-	Email       string
-	Reasons     []string
-	RiskScore   int // higher = more at risk
+	StudentID int
+	Name      string
+	Email     string
+	Reasons   []string
+	RiskScore int // higher = more at risk
 }
 
 func (s *Store) GetAtRiskStudents(ctx context.Context, classroomID int) ([]AtRiskStudent, error) {
@@ -1874,14 +1874,14 @@ func (s *Store) GetSubmissionTimingStats(ctx context.Context, classroomID int) (
 // ─── CSV Export Queries ─────────────────────────────────
 
 type RosterExportRow struct {
-	Name              string
-	Email             string
-	AvgQuizPct        float64
-	QuizzesTaken      int
-	AvgAssignmentPct  float64
+	Name                 string
+	Email                string
+	AvgQuizPct           float64
+	QuizzesTaken         int
+	AvgAssignmentPct     float64
 	AssignmentsSubmitted int
-	AttendancePct     float64
-	EngagementPct     float64
+	AttendancePct        float64
+	EngagementPct        float64
 }
 
 func (s *Store) GetRosterExport(ctx context.Context, classroomID int) ([]RosterExportRow, error) {
@@ -1913,14 +1913,14 @@ func (s *Store) GetRosterExport(ctx context.Context, classroomID int) ([]RosterE
 }
 
 type QuizExportRow struct {
-	QuizTitle   string
-	StudentName string
+	QuizTitle    string
+	StudentName  string
 	StudentEmail string
-	Score       int
-	MaxScore    int
-	Pct         float64
-	StartedAt   time.Time
-	FinishedAt  *time.Time
+	Score        int
+	MaxScore     int
+	Pct          float64
+	StartedAt    time.Time
+	FinishedAt   *time.Time
 }
 
 func (s *Store) GetQuizExport(ctx context.Context, classroomID int) ([]QuizExportRow, error) {
@@ -1987,14 +1987,14 @@ func (s *Store) GetAssignmentExport(ctx context.Context, classroomID int) ([]Ass
 }
 
 type AttendanceExportRow struct {
-	StudentName    string
-	StudentEmail   string
-	SessionDate    time.Time
+	StudentName     string
+	StudentEmail    string
+	SessionDate     time.Time
 	SessionDuration *int
-	JoinedAt       *time.Time
-	LeftAt         *time.Time
-	TimeSpentMin   int
-	Attended       bool
+	JoinedAt        *time.Time
+	LeftAt          *time.Time
+	TimeSpentMin    int
+	Attended        bool
 }
 
 func (s *Store) GetAttendanceExport(ctx context.Context, classroomID int) ([]AttendanceExportRow, error) {
@@ -2046,7 +2046,7 @@ type TopTeacher struct {
 }
 
 type MonthlyRevenueRow struct {
-	Month   string  // "2026-03"
+	Month   string // "2026-03"
 	Revenue float64
 }
 
