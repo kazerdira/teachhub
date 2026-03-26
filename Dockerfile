@@ -20,10 +20,11 @@ WORKDIR /app
 # Copy binary
 COPY --from=builder /app/teachhub .
 
-# Copy templates, schema, i18n
+# Copy templates, schema, i18n, static assets
 COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/db ./db
 COPY --from=builder /app/i18n ./i18n
+COPY --from=builder /app/static ./static
 
 # Create upload directories
 RUN mkdir -p uploads/resources uploads/submissions uploads/quiz_files uploads/live

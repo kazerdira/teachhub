@@ -2,3 +2,8 @@ uploads/
 .env
 teachhub
 *.exe
+node_modules/
+package.json
+package-lock.json
+static/css/input.css
+tailwind.config.js

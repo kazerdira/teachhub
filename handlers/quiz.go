@@ -16,7 +16,10 @@ import (
 // ─── Quiz CRUD ──────────────────────────────────────────
 
 func (h *Handler) CreateQuiz(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	title := strings.TrimSpace(c.PostForm("title"))
 	desc := strings.TrimSpace(c.PostForm("description"))
 	if title == "" {
@@ -38,14 +41,20 @@ func (h *Handler) CreateQuiz(c *gin.Context) {
 }
 
 func (h *Handler) DeleteQuiz(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	h.Store.DeleteQuiz(c.Request.Context(), quizID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=quizzes", classID))
 }
 
 func (h *Handler) ToggleQuizPublish(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	quiz, err := h.Store.GetQuiz(c.Request.Context(), quizID)
 	if err == nil {
@@ -57,20 +66,27 @@ func (h *Handler) ToggleQuizPublish(c *gin.Context) {
 // ─── Quiz Editor ────────────────────────────────────────
 
 func (h *Handler) EditQuiz(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	classroom, _ := h.Store.GetClassroom(c.Request.Context(), classID)
 	quiz, _ := h.Store.GetQuiz(c.Request.Context(), quizID)
 	questions, _ := h.Store.ListQuizQuestions(c.Request.Context(), quizID)
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if page < 1 { page = 1 }
+	if page < 1 {
+		page = 1
+	}
 	const perPage = 50
 	offset := (page - 1) * perPage
 
 	attempts, total, _ := h.Store.ListQuizAttemptsPaged(c.Request.Context(), quizID, perPage, offset)
 	totalPages := (total + perPage - 1) / perPage
-	if totalPages < 1 { totalPages = 1 }
+	if totalPages < 1 {
+		totalPages = 1
+	}
 
 	h.render(c, "admin_quiz_edit.html", gin.H{
 		"Classroom":  classroom,
@@ -84,7 +100,10 @@ func (h *Handler) EditQuiz(c *gin.Context) {
 }
 
 func (h *Handler) AddQuestion(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 
 	qType := c.PostForm("question_type")
@@ -110,7 +129,10 @@ func (h *Handler) AddQuestion(c *gin.Context) {
 }
 
 func (h *Handler) DeleteQuestion(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	qID, _ := strconv.Atoi(c.Param("qId"))
 	h.Store.DeleteQuizQuestion(c.Request.Context(), qID)
@@ -118,7 +140,10 @@ func (h *Handler) DeleteQuestion(c *gin.Context) {
 }
 
 func (h *Handler) UpdateQuestion(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	qID, _ := strconv.Atoi(c.Param("qId"))
 
@@ -144,7 +169,10 @@ func (h *Handler) UpdateQuestion(c *gin.Context) {
 }
 
 func (h *Handler) UpdateQuizSettings(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 
 	quiz, err := h.Store.GetQuiz(c.Request.Context(), quizID)
@@ -175,7 +203,10 @@ func (h *Handler) UpdateQuizSettings(c *gin.Context) {
 // ─── Quiz Attempt Review ────────────────────────────────
 
 func (h *Handler) ReviewAttempt(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	attemptID, _ := strconv.Atoi(c.Param("attemptId"))
 	score, _ := strconv.Atoi(c.PostForm("score"))
@@ -193,7 +224,10 @@ type aiQuestion struct {
 }
 
 func (h *Handler) GenerateQuizAI(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 
 	topic := strings.TrimSpace(c.PostForm("topic"))

@@ -202,7 +202,10 @@ func (h *Handler) AdminClassroom(c *gin.Context) {
 // ─── Categories ─────────────────────────────────────────
 
 func (h *Handler) CreateCategory(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	name := strings.TrimSpace(c.PostForm("name"))
 	if name != "" {
 		h.Store.CreateCategory(c.Request.Context(), classID, name)
@@ -211,7 +214,10 @@ func (h *Handler) CreateCategory(c *gin.Context) {
 }
 
 func (h *Handler) DeleteCategory(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	catID, _ := strconv.Atoi(c.Param("catId"))
 	h.Store.DeleteCategory(c.Request.Context(), catID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=resources", classID))
@@ -220,7 +226,10 @@ func (h *Handler) DeleteCategory(c *gin.Context) {
 // ─── Resources ──────────────────────────────────────────
 
 func (h *Handler) UploadResource(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	title := strings.TrimSpace(c.PostForm("title"))
 	desc := strings.TrimSpace(c.PostForm("description"))
 	catIDStr := c.PostForm("category_id")
@@ -272,7 +281,10 @@ func (h *Handler) UploadResource(c *gin.Context) {
 }
 
 func (h *Handler) DeleteResource(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	resID, _ := strconv.Atoi(c.Param("resId"))
 	res, err := h.Store.GetResource(c.Request.Context(), resID)
 	if err == nil && res.FilePath != "" {
@@ -304,7 +316,10 @@ func (h *Handler) DownloadResource(c *gin.Context) {
 // ─── Assignments ────────────────────────────────────────
 
 func (h *Handler) CreateAssignment(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	title := strings.TrimSpace(c.PostForm("title"))
 	desc := strings.TrimSpace(c.PostForm("description"))
 	deadlineStr := c.PostForm("deadline")
@@ -326,26 +341,36 @@ func (h *Handler) CreateAssignment(c *gin.Context) {
 }
 
 func (h *Handler) DeleteAssignment(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	aID, _ := strconv.Atoi(c.Param("assignId"))
 	h.Store.DeleteAssignment(c.Request.Context(), aID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments", classID))
 }
 
 func (h *Handler) ViewSubmissions(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	assignID, _ := strconv.Atoi(c.Param("assignId"))
 	classroom, _ := h.Store.GetClassroom(c.Request.Context(), classID)
 	assignment, _ := h.Store.GetAssignment(c.Request.Context(), assignID)
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if page < 1 { page = 1 }
+	if page < 1 {
+		page = 1
+	}
 	const perPage = 50
 	offset := (page - 1) * perPage
 
 	submissions, total, _ := h.Store.ListSubmissionsPaged(c.Request.Context(), assignID, perPage, offset)
 	totalPages := (total + perPage - 1) / perPage
-	if totalPages < 1 { totalPages = 1 }
+	if totalPages < 1 {
+		totalPages = 1
+	}
 
 	h.render(c, "admin_submissions.html", gin.H{
 		"Classroom":   classroom,
@@ -358,7 +383,10 @@ func (h *Handler) ViewSubmissions(c *gin.Context) {
 }
 
 func (h *Handler) ReviewSubmission(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	assignID, _ := strconv.Atoi(c.Param("assignId"))
 	subID, _ := strconv.Atoi(c.Param("subId"))
 	status := c.PostForm("status")
@@ -400,15 +428,22 @@ func (h *Handler) DownloadSubmission(c *gin.Context) {
 // ─── Remove Student ─────────────────────────────────────
 
 func (h *Handler) RemoveStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	studentID, _ := strconv.Atoi(c.Param("studentId"))
 	h.Store.RemoveStudentFromClassroom(c.Request.Context(), studentID, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=students", classID))
 }
+
 // ─── Allowed Students (Pre-registration) ───────────────
 
 func (h *Handler) AddAllowedStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	email := strings.TrimSpace(c.PostForm("email"))
 	name := strings.TrimSpace(c.PostForm("name"))
 	if email != "" {
@@ -418,7 +453,10 @@ func (h *Handler) AddAllowedStudent(c *gin.Context) {
 }
 
 func (h *Handler) AddAllowedStudentsBulk(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	bulk := c.PostForm("bulk_emails")
 	lines := strings.Split(bulk, "\n")
 	for _, line := range lines {
@@ -441,7 +479,10 @@ func (h *Handler) AddAllowedStudentsBulk(c *gin.Context) {
 }
 
 func (h *Handler) DeleteAllowedStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	allowedID, _ := strconv.Atoi(c.Param("allowedId"))
 	h.Store.DeleteAllowedStudent(c.Request.Context(), allowedID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=students", classID))
@@ -450,36 +491,43 @@ func (h *Handler) DeleteAllowedStudent(c *gin.Context) {
 // ─── Student Approval ─────────────────────────────────
 
 func (h *Handler) ApproveStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	studentID, _ := strconv.Atoi(c.Param("studentId"))
 	h.Store.ApproveStudent(c.Request.Context(), studentID, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=students", classID))
 }
 
 func (h *Handler) RejectStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	studentID, _ := strconv.Atoi(c.Param("studentId"))
 	h.Store.RejectStudent(c.Request.Context(), studentID, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=students", classID))
 }
+
 // ─── Helpers ────────────────────────────────────────────
 
 // Maximum upload sizes
 const (
-	MaxTeacherFileSize  = 50 * 1024 * 1024  // 50 MB for teacher resources
-	MaxStudentFileSize  = 20 * 1024 * 1024  // 20 MB for student submissions
+	MaxTeacherFileSize = 50 * 1024 * 1024 // 50 MB for teacher resources
+	MaxStudentFileSize = 20 * 1024 * 1024 // 20 MB for student submissions
 )
 
 // Blocked extensions — dangerous executable/script types
 var blockedExtensions = map[string]bool{
 	".exe": true, ".bat": true, ".cmd": true, ".com": true, ".msi": true,
-	".scr": true, ".pif": true, ".vbs": true, ".vbe": true, ".js":  true,
-	".jse": true, ".ws":  true, ".wsf": true, ".wsc": true, ".wsh": true,
+	".scr": true, ".pif": true, ".vbs": true, ".vbe": true, ".js": true,
+	".jse": true, ".ws": true, ".wsf": true, ".wsc": true, ".wsh": true,
 	".ps1": true, ".psd1": true, ".psm1": true,
-	".sh":  true, ".bash": true, ".csh": true, ".ksh": true,
+	".sh": true, ".bash": true, ".csh": true, ".ksh": true,
 	".php": true, ".phtml": true, ".php3": true, ".php4": true, ".php5": true,
 	".asp": true, ".aspx": true, ".jsp": true,
-	".py":  true, ".pl":  true, ".rb":  true, ".cgi": true,
+	".py": true, ".pl": true, ".rb": true, ".cgi": true,
 	".dll": true, ".sys": true, ".drv": true,
 	".app": true, ".action": true, ".command": true,
 	".reg": true, ".inf": true, ".lnk": true, ".url": true,
