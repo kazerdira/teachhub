@@ -337,11 +337,23 @@ func (h *Handler) ViewSubmissions(c *gin.Context) {
 	assignID, _ := strconv.Atoi(c.Param("assignId"))
 	classroom, _ := h.Store.GetClassroom(c.Request.Context(), classID)
 	assignment, _ := h.Store.GetAssignment(c.Request.Context(), assignID)
-	submissions, _ := h.Store.ListSubmissions(c.Request.Context(), assignID)
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 { page = 1 }
+	const perPage = 50
+	offset := (page - 1) * perPage
+
+	submissions, total, _ := h.Store.ListSubmissionsPaged(c.Request.Context(), assignID, perPage, offset)
+	totalPages := (total + perPage - 1) / perPage
+	if totalPages < 1 { totalPages = 1 }
+
 	h.render(c, "admin_submissions.html", gin.H{
 		"Classroom":   classroom,
 		"Assignment":  assignment,
 		"Submissions": submissions,
+		"Page":        page,
+		"TotalPages":  totalPages,
+		"Total":       total,
 	})
 }
 

@@ -248,6 +248,7 @@ CREATE INDEX IF NOT EXISTS idx_resource_category ON resource(category_id);
 CREATE INDEX IF NOT EXISTS idx_assignment_classroom ON assignment(classroom_id);
 CREATE INDEX IF NOT EXISTS idx_submission_assignment ON submission(assignment_id);
 CREATE INDEX IF NOT EXISTS idx_submission_student ON submission(student_id);
+CREATE INDEX IF NOT EXISTS idx_submission_assign_student ON submission(assignment_id, student_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_classroom ON quiz(classroom_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_question_quiz ON quiz_question(quiz_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempt_quiz ON quiz_attempt(quiz_id);

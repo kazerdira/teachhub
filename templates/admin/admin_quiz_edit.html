@@ -198,7 +198,7 @@
 
 <!-- Attempts -->
 {{if .Attempts}}
-<h2 class="text-lg font-semibold text-gray-800 mb-4">{{t .Lang "student_attempts"}} ({{len .Attempts}})</h2>
+<h2 class="text-lg font-semibold text-gray-800 mb-4">{{t .Lang "student_attempts"}} ({{.Total}})</h2>
 <div class="space-y-3 mb-8">
     {{range .Attempts}}
     <div class="card p-4">
@@ -234,6 +234,19 @@
     </div>
     {{end}}
 </div>
+
+{{if gt .TotalPages 1}}
+<div class="flex items-center justify-center gap-2 mt-4 mb-8">
+    {{if gt .Page 1}}
+    <a href="?page={{sub .Page 1}}" class="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50">← {{t .Lang "prev"}}</a>
+    {{end}}
+    <span class="text-sm text-gray-600">{{.Page}} / {{.TotalPages}}</span>
+    {{if lt .Page .TotalPages}}
+    <a href="?page={{add .Page 1}}" class="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50">{{t .Lang "next"}} →</a>
+    {{end}}
+</div>
+{{end}}
+
 {{end}}
 
 <script>

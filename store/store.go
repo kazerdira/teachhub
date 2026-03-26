@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -660,6 +661,36 @@ func (s *Store) ListSubmissions(ctx context.Context, assignmentID int) ([]Submis
 	return list, nil
 }
 
+func (s *Store) ListSubmissionsPaged(ctx context.Context, assignmentID, limit, offset int) ([]Submission, int, error) {
+	var total int
+	s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM submission WHERE assignment_id=$1`, assignmentID).Scan(&total)
+
+	rows, err := s.DB.Query(ctx, `
+		SELECT sub.id, sub.assignment_id, sub.student_id, s.name,
+			COALESCE(sub.file_path,''), COALESCE(sub.file_name,''), sub.file_size,
+			COALESCE(sub.text_content,''), sub.status, sub.feedback,
+			sub.grade, sub.max_grade, sub.graded_at, sub.submitted_at
+		FROM submission sub JOIN student s ON sub.student_id=s.id
+		WHERE sub.assignment_id=$1 ORDER BY sub.submitted_at DESC
+		LIMIT $2 OFFSET $3`, assignmentID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+	var list []Submission
+	for rows.Next() {
+		var sub Submission
+		if err := rows.Scan(&sub.ID, &sub.AssignmentID, &sub.StudentID, &sub.StudentName,
+			&sub.FilePath, &sub.FileName, &sub.FileSize,
+			&sub.TextContent, &sub.Status, &sub.Feedback,
+			&sub.Grade, &sub.MaxGrade, &sub.GradedAt, &sub.SubmittedAt); err != nil {
+			return nil, 0, err
+		}
+		list = append(list, sub)
+	}
+	return list, total, nil
+}
+
 func (s *Store) GetStudentSubmissions(ctx context.Context, assignmentID, studentID int) ([]Submission, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT id, assignment_id, student_id, '',
@@ -850,6 +881,34 @@ func (s *Store) ListQuizAttempts(ctx context.Context, quizID int) ([]QuizAttempt
 	return list, nil
 }
 
+func (s *Store) ListQuizAttemptsPaged(ctx context.Context, quizID, limit, offset int) ([]QuizAttempt, int, error) {
+	var total int
+	s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM quiz_attempt WHERE quiz_id=$1`, quizID).Scan(&total)
+
+	rows, err := s.DB.Query(ctx, `
+		SELECT a.id, a.quiz_id, a.student_id, s.name, a.answers, a.file_answers, a.score, a.max_score, a.reviewed, a.started_at, a.finished_at
+		FROM quiz_attempt a JOIN student s ON a.student_id=s.id
+		WHERE a.quiz_id=$1 ORDER BY a.started_at DESC
+		LIMIT $2 OFFSET $3`, quizID, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+	var list []QuizAttempt
+	for rows.Next() {
+		var a QuizAttempt
+		var answersJSON, fileAnswersJSON []byte
+		if err := rows.Scan(&a.ID, &a.QuizID, &a.StudentID, &a.StudentName, &answersJSON, &fileAnswersJSON,
+			&a.Score, &a.MaxScore, &a.Reviewed, &a.StartedAt, &a.FinishedAt); err != nil {
+			return nil, 0, err
+		}
+		json.Unmarshal(answersJSON, &a.Answers)
+		json.Unmarshal(fileAnswersJSON, &a.FileAnswers)
+		list = append(list, a)
+	}
+	return list, total, nil
+}
+
 func (s *Store) CreateQuizAttempt(ctx context.Context, quizID, studentID int) (int, error) {
 	var id int
 	err := s.DB.QueryRow(ctx,
@@ -921,31 +980,49 @@ func (s *Store) GetActiveLiveSession(ctx context.Context, classroomID int) (*Liv
 }
 
 func (s *Store) CreateLiveSession(ctx context.Context, classroomID int, roomName string) (int, error) {
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback(ctx)
+
 	// End any existing active sessions first
-	s.DB.Exec(ctx, `UPDATE live_session SET active=false WHERE classroom_id=$1 AND active=true`, classroomID)
+	tx.Exec(ctx, `UPDATE live_session SET active=false WHERE classroom_id=$1 AND active=true`, classroomID)
 	// Delete old inactive sessions for this classroom so room_name unique constraint doesn't block
-	s.DB.Exec(ctx, `DELETE FROM live_session WHERE classroom_id=$1 AND active=false`, classroomID)
+	tx.Exec(ctx, `DELETE FROM live_session WHERE classroom_id=$1 AND active=false`, classroomID)
 	var id int
-	err := s.DB.QueryRow(ctx,
+	err = tx.QueryRow(ctx,
 		`INSERT INTO live_session (classroom_id, room_name) VALUES ($1, $2) RETURNING id`,
 		classroomID, roomName).Scan(&id)
-	return id, err
+	if err != nil {
+		return 0, err
+	}
+	return id, tx.Commit(ctx)
 }
 
 func (s *Store) EndLiveSession(ctx context.Context, classroomID int) error {
+	tx, err := s.DB.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
 	// Mark all attendance records as left
-	s.DB.Exec(ctx, `
+	tx.Exec(ctx, `
 		UPDATE live_attendance SET left_at = NOW()
 		WHERE left_at IS NULL
 		AND live_session_id IN (SELECT id FROM live_session WHERE classroom_id=$1 AND active=true)`,
 		classroomID)
 	// End the session with timestamp and duration
-	_, err := s.DB.Exec(ctx, `
+	_, err = tx.Exec(ctx, `
 		UPDATE live_session
 		SET active=false, ended_at=NOW(),
 		    duration_minutes = EXTRACT(EPOCH FROM (NOW() - created_at))::int / 60
 		WHERE classroom_id=$1 AND active=true`, classroomID)
-	return err
+	if err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 
 // ─── Live Attendance ────────────────────────────────────
@@ -1264,7 +1341,12 @@ func (s *Store) GetAssignmentAnalytics(ctx context.Context, classroomID int) ([]
 		SELECT a.id, a.title, a.max_grade, a.deadline,
 			COUNT(DISTINCT sub.id) AS submission_count,
 			COUNT(DISTINCT CASE WHEN sub.grade IS NOT NULL THEN sub.id END) AS graded_count,
-			COALESCE(AVG(sub.grade), 0) AS avg_grade
+			COALESCE(AVG(sub.grade) FILTER (WHERE sub.grade IS NOT NULL), 0) AS avg_grade,
+			COUNT(*) FILTER (WHERE sub.grade IS NOT NULL AND sub.max_grade > 0 AND sub.grade * 100.0 / sub.max_grade >= 90) AS bin_a,
+			COUNT(*) FILTER (WHERE sub.grade IS NOT NULL AND sub.max_grade > 0 AND sub.grade * 100.0 / sub.max_grade >= 80 AND sub.grade * 100.0 / sub.max_grade < 90) AS bin_b,
+			COUNT(*) FILTER (WHERE sub.grade IS NOT NULL AND sub.max_grade > 0 AND sub.grade * 100.0 / sub.max_grade >= 70 AND sub.grade * 100.0 / sub.max_grade < 80) AS bin_c,
+			COUNT(*) FILTER (WHERE sub.grade IS NOT NULL AND sub.max_grade > 0 AND sub.grade * 100.0 / sub.max_grade >= 60 AND sub.grade * 100.0 / sub.max_grade < 70) AS bin_d,
+			COUNT(*) FILTER (WHERE sub.grade IS NOT NULL AND sub.max_grade > 0 AND sub.grade * 100.0 / sub.max_grade < 60) AS bin_f
 		FROM assignment a
 		LEFT JOIN submission sub ON sub.assignment_id = a.id
 		WHERE a.classroom_id = $1
@@ -1279,7 +1361,8 @@ func (s *Store) GetAssignmentAnalytics(ctx context.Context, classroomID int) ([]
 	for rows.Next() {
 		var a AssignmentAnalyticsSummary
 		if err := rows.Scan(&a.AssignmentID, &a.Title, &a.MaxGrade, &a.Deadline,
-			&a.SubmissionCount, &a.GradedCount, &a.AvgGrade); err != nil {
+			&a.SubmissionCount, &a.GradedCount, &a.AvgGrade,
+			&a.GradeBins[0], &a.GradeBins[1], &a.GradeBins[2], &a.GradeBins[3], &a.GradeBins[4]); err != nil {
 			return nil, err
 		}
 		a.EnrolledCount = enrolledCount
@@ -1287,39 +1370,6 @@ func (s *Store) GetAssignmentAnalytics(ctx context.Context, classroomID int) ([]
 			a.AvgPct = a.AvgGrade * 100.0 / a.MaxGrade
 		}
 		list = append(list, a)
-	}
-
-	// Now compute grade bins for each assignment
-	for i, a := range list {
-		gradeRows, err := s.DB.Query(ctx,
-			`SELECT grade, max_grade FROM submission WHERE assignment_id=$1 AND grade IS NOT NULL`,
-			a.AssignmentID)
-		if err != nil {
-			continue
-		}
-		for gradeRows.Next() {
-			var grade, maxGrade float64
-			if err := gradeRows.Scan(&grade, &maxGrade); err != nil {
-				continue
-			}
-			if maxGrade <= 0 {
-				continue
-			}
-			pct := grade * 100.0 / maxGrade
-			switch {
-			case pct >= 90:
-				list[i].GradeBins[0]++ // A
-			case pct >= 80:
-				list[i].GradeBins[1]++ // B
-			case pct >= 70:
-				list[i].GradeBins[2]++ // C
-			case pct >= 60:
-				list[i].GradeBins[3]++ // D
-			default:
-				list[i].GradeBins[4]++ // F
-			}
-		}
-		gradeRows.Close()
 	}
 
 	return list, nil
@@ -1349,17 +1399,61 @@ func (s *Store) GetMissingSubmissions(ctx context.Context, assignmentID, classro
 }
 
 func (s *Store) GetStudentRosterAnalytics(ctx context.Context, classroomID int) ([]StudentRosterRow, error) {
-	// Total quizzes and assignments in classroom
-	var quizzesTotal, assignmentsTotal int
-	s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM quiz WHERE classroom_id=$1 AND published=true`, classroomID).Scan(&quizzesTotal)
-	s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM assignment WHERE classroom_id=$1`, classroomID).Scan(&assignmentsTotal)
-
 	rows, err := s.DB.Query(ctx, `
-		SELECT s.id, s.name, COALESCE(s.email, '')
-		FROM student s
-		JOIN classroom_student cs ON s.id = cs.student_id
-		WHERE cs.classroom_id = $1 AND cs.status = 'approved'
-		ORDER BY s.name`, classroomID)
+		WITH totals AS (
+			SELECT
+				(SELECT COUNT(*) FROM quiz WHERE classroom_id=$1 AND published=true) AS quizzes_total,
+				(SELECT COUNT(*) FROM assignment WHERE classroom_id=$1) AS assignments_total
+		),
+		students AS (
+			SELECT s.id, s.name, COALESCE(s.email, '') AS email
+			FROM student s
+			JOIN classroom_student cs ON s.id = cs.student_id
+			WHERE cs.classroom_id = $1 AND cs.status = 'approved'
+		),
+		quiz_stats AS (
+			SELECT student_id,
+				COUNT(DISTINCT quiz_id) AS quizzes_taken,
+				COALESCE(AVG(best_pct), 0) AS avg_quiz_pct
+			FROM (
+				SELECT qa.student_id, qa.quiz_id,
+					MAX(CASE WHEN qa.max_score > 0 THEN qa.score * 100.0 / qa.max_score ELSE 0 END) AS best_pct
+				FROM quiz_attempt qa
+				JOIN quiz q ON qa.quiz_id = q.id
+				WHERE q.classroom_id = $1 AND qa.finished_at IS NOT NULL
+				GROUP BY qa.student_id, qa.quiz_id
+			) sub
+			GROUP BY student_id
+		),
+		assign_graded AS (
+			SELECT sub.student_id,
+				COUNT(DISTINCT sub.assignment_id) AS graded_count,
+				COALESCE(AVG(CASE WHEN sub.max_grade > 0 THEN sub.grade * 100.0 / sub.max_grade ELSE 0 END), 0) AS avg_assign_pct
+			FROM submission sub
+			JOIN assignment a ON sub.assignment_id = a.id
+			WHERE a.classroom_id = $1 AND sub.grade IS NOT NULL
+			GROUP BY sub.student_id
+		),
+		assign_submitted AS (
+			SELECT sub.student_id,
+				COUNT(DISTINCT sub.assignment_id) AS submitted_count
+			FROM submission sub
+			JOIN assignment a ON sub.assignment_id = a.id
+			WHERE a.classroom_id = $1
+			GROUP BY sub.student_id
+		)
+		SELECT st.id, st.name, st.email,
+			t.quizzes_total, t.assignments_total,
+			COALESCE(qs.quizzes_taken, 0),
+			COALESCE(qs.avg_quiz_pct, 0),
+			COALESCE(ag.graded_count, COALESCE(asub.submitted_count, 0)),
+			COALESCE(ag.avg_assign_pct, 0)
+		FROM students st
+		CROSS JOIN totals t
+		LEFT JOIN quiz_stats qs ON qs.student_id = st.id
+		LEFT JOIN assign_graded ag ON ag.student_id = st.id
+		LEFT JOIN assign_submitted asub ON asub.student_id = st.id
+		ORDER BY st.name`, classroomID)
 	if err != nil {
 		return nil, err
 	}
@@ -1368,56 +1462,19 @@ func (s *Store) GetStudentRosterAnalytics(ctx context.Context, classroomID int) 
 	var list []StudentRosterRow
 	for rows.Next() {
 		var r StudentRosterRow
-		if err := rows.Scan(&r.StudentID, &r.Name, &r.Email); err != nil {
+		if err := rows.Scan(&r.StudentID, &r.Name, &r.Email,
+			&r.QuizzesTotal, &r.AssignmentsTotal,
+			&r.QuizzesTaken, &r.AvgQuizPct,
+			&r.AssignmentsSubmitted, &r.AvgAssignmentPct); err != nil {
 			return nil, err
 		}
-		r.QuizzesTotal = quizzesTotal
-		r.AssignmentsTotal = assignmentsTotal
+		totalItems := r.QuizzesTotal + r.AssignmentsTotal
+		doneItems := r.QuizzesTaken + r.AssignmentsSubmitted
+		if totalItems > 0 {
+			r.EngagementPct = float64(doneItems) * 100.0 / float64(totalItems)
+		}
 		list = append(list, r)
 	}
-
-	// Enrich each student with quiz and assignment stats
-	for i, r := range list {
-		// Quiz stats: avg score % across best attempt per quiz
-		s.DB.QueryRow(ctx, `
-			SELECT COUNT(DISTINCT quiz_id),
-				COALESCE(AVG(pct), 0)
-			FROM (
-				SELECT quiz_id,
-					MAX(CASE WHEN max_score > 0 THEN score * 100.0 / max_score ELSE 0 END) AS pct
-				FROM quiz_attempt
-				WHERE student_id = $1 AND finished_at IS NOT NULL
-				AND quiz_id IN (SELECT id FROM quiz WHERE classroom_id = $2)
-				GROUP BY quiz_id
-			) sub`, r.StudentID, classroomID).Scan(&list[i].QuizzesTaken, &list[i].AvgQuizPct)
-
-		// Assignment stats
-		s.DB.QueryRow(ctx, `
-			SELECT COUNT(DISTINCT assignment_id),
-				COALESCE(AVG(CASE WHEN max_grade > 0 THEN grade * 100.0 / max_grade ELSE 0 END), 0)
-			FROM submission
-			WHERE student_id = $1 AND grade IS NOT NULL
-			AND assignment_id IN (SELECT id FROM assignment WHERE classroom_id = $2)`,
-			r.StudentID, classroomID).Scan(&list[i].AssignmentsSubmitted, &list[i].AvgAssignmentPct)
-
-		// If no graded assignments, count submissions at least
-		if list[i].AssignmentsSubmitted == 0 {
-			s.DB.QueryRow(ctx, `
-				SELECT COUNT(DISTINCT assignment_id)
-				FROM submission
-				WHERE student_id = $1
-				AND assignment_id IN (SELECT id FROM assignment WHERE classroom_id = $2)`,
-				r.StudentID, classroomID).Scan(&list[i].AssignmentsSubmitted)
-		}
-
-		// Engagement %
-		totalItems := r.QuizzesTotal + r.AssignmentsTotal
-		doneItems := list[i].QuizzesTaken + list[i].AssignmentsSubmitted
-		if totalItems > 0 {
-			list[i].EngagementPct = float64(doneItems) * 100.0 / float64(totalItems)
-		}
-	}
-
 	return list, nil
 }
 
@@ -1716,78 +1773,89 @@ type AtRiskStudent struct {
 }
 
 func (s *Store) GetAtRiskStudents(ctx context.Context, classroomID int) ([]AtRiskStudent, error) {
-	// Get all approved students
 	rows, err := s.DB.Query(ctx, `
-		SELECT s.id, s.name, COALESCE(s.email, '')
-		FROM student s
-		JOIN classroom_student cs ON s.id = cs.student_id
-		WHERE cs.classroom_id = $1 AND cs.status = 'approved'
-		ORDER BY s.name`, classroomID)
+		WITH totals AS (
+			SELECT
+				(SELECT COUNT(*) FROM assignment WHERE classroom_id=$1) AS total_assignments,
+				(SELECT COUNT(*) FROM live_session WHERE classroom_id=$1) AS total_sessions
+		),
+		students AS (
+			SELECT s.id, s.name, COALESCE(s.email, '') AS email
+			FROM student s
+			JOIN classroom_student cs ON s.id = cs.student_id
+			WHERE cs.classroom_id = $1 AND cs.status = 'approved'
+		),
+		submission_counts AS (
+			SELECT sub.student_id, COUNT(DISTINCT sub.assignment_id) AS submitted
+			FROM submission sub
+			JOIN assignment a ON sub.assignment_id = a.id
+			WHERE a.classroom_id = $1
+			GROUP BY sub.student_id
+		),
+		recent_quiz_scores AS (
+			SELECT student_id,
+				COUNT(*) FILTER (WHERE pct < 50) AS low_count
+			FROM (
+				SELECT qa.student_id,
+					CASE WHEN qa.max_score > 0 THEN qa.score * 100.0 / qa.max_score ELSE 0 END AS pct,
+					ROW_NUMBER() OVER (PARTITION BY qa.student_id ORDER BY qa.finished_at DESC) AS rn
+				FROM quiz_attempt qa
+				JOIN quiz q ON qa.quiz_id = q.id
+				WHERE q.classroom_id = $1 AND qa.finished_at IS NOT NULL
+			) ranked WHERE rn <= 2
+			GROUP BY student_id
+		),
+		attendance_counts AS (
+			SELECT la.student_id, COUNT(DISTINCT la.live_session_id) AS attended
+			FROM live_attendance la
+			JOIN live_session ls ON la.live_session_id = ls.id
+			WHERE ls.classroom_id = $1
+			GROUP BY la.student_id
+		)
+		SELECT st.id, st.name, st.email,
+			t.total_assignments, COALESCE(sc.submitted, 0) AS submitted,
+			COALESCE(rqs.low_count, 0) AS low_quiz_count,
+			t.total_sessions, COALESCE(ac.attended, 0) AS attended
+		FROM students st
+		CROSS JOIN totals t
+		LEFT JOIN submission_counts sc ON sc.student_id = st.id
+		LEFT JOIN recent_quiz_scores rqs ON rqs.student_id = st.id
+		LEFT JOIN attendance_counts ac ON ac.student_id = st.id`, classroomID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	type studentInfo struct {
-		id    int
-		name  string
-		email string
-	}
-	var students []studentInfo
+	var atRisk []AtRiskStudent
 	for rows.Next() {
-		var si studentInfo
-		if err := rows.Scan(&si.id, &si.name, &si.email); err != nil {
+		var (
+			id, totalAssignments, submitted, lowQuizCount, totalSessions, attended int
+			name, email                                                            string
+		)
+		if err := rows.Scan(&id, &name, &email, &totalAssignments, &submitted, &lowQuizCount, &totalSessions, &attended); err != nil {
 			return nil, err
 		}
-		students = append(students, si)
-	}
 
-	// Total assignments and total sessions
-	var totalAssignments, totalSessions int
-	s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM assignment WHERE classroom_id=$1`, classroomID).Scan(&totalAssignments)
-	s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM live_session WHERE classroom_id=$1`, classroomID).Scan(&totalSessions)
+		ar := AtRiskStudent{StudentID: id, Name: name, Email: email}
 
-	var atRisk []AtRiskStudent
-	for _, si := range students {
-		ar := AtRiskStudent{StudentID: si.id, Name: si.name, Email: si.email}
-
-		// Check: missed 2+ assignments
-		var submittedCount int
-		s.DB.QueryRow(ctx, `
-			SELECT COUNT(DISTINCT assignment_id) FROM submission
-			WHERE student_id=$1 AND assignment_id IN (SELECT id FROM assignment WHERE classroom_id=$2)`,
-			si.id, classroomID).Scan(&submittedCount)
-		missedAssignments := totalAssignments - submittedCount
-		if missedAssignments >= 2 {
-			ar.Reasons = append(ar.Reasons, fmt.Sprintf("Missed %d assignments", missedAssignments))
+		// Missed 2+ assignments
+		missed := totalAssignments - submitted
+		if missed >= 2 {
+			ar.Reasons = append(ar.Reasons, fmt.Sprintf("Missed %d assignments", missed))
 			ar.RiskScore += 2
 		}
 
-		// Check: scored <50% on last 2 quizzes
-		var lowScoreCount int
-		s.DB.QueryRow(ctx, `
-			SELECT COUNT(*) FROM (
-				SELECT CASE WHEN a.max_score > 0 THEN a.score * 100.0 / a.max_score ELSE 0 END AS pct
-				FROM quiz_attempt a
-				JOIN quiz q ON a.quiz_id = q.id
-				WHERE a.student_id = $1 AND q.classroom_id = $2 AND a.finished_at IS NOT NULL
-				ORDER BY a.finished_at DESC LIMIT 2
-			) sub WHERE pct < 50`, si.id, classroomID).Scan(&lowScoreCount)
-		if lowScoreCount >= 2 {
+		// Scored <50% on last 2 quizzes
+		if lowQuizCount >= 2 {
 			ar.Reasons = append(ar.Reasons, "Scored <50% on last 2 quizzes")
 			ar.RiskScore += 3
 		}
 
-		// Check: attendance <50%
+		// Attendance <50%
 		if totalSessions > 0 {
-			var sessionsAttended int
-			s.DB.QueryRow(ctx, `
-				SELECT COUNT(DISTINCT live_session_id) FROM live_attendance
-				WHERE student_id=$1 AND live_session_id IN (SELECT id FROM live_session WHERE classroom_id=$2)`,
-				si.id, classroomID).Scan(&sessionsAttended)
-			attendancePct := float64(sessionsAttended) * 100.0 / float64(totalSessions)
-			if attendancePct < 50.0 {
-				ar.Reasons = append(ar.Reasons, fmt.Sprintf("Attendance %.0f%%", attendancePct))
+			pct := float64(attended) * 100.0 / float64(totalSessions)
+			if pct < 50.0 {
+				ar.Reasons = append(ar.Reasons, fmt.Sprintf("Attendance %.0f%%", pct))
 				ar.RiskScore += 2
 			}
 		}
@@ -1797,14 +1865,9 @@ func (s *Store) GetAtRiskStudents(ctx context.Context, classroomID int) ([]AtRis
 		}
 	}
 
-	// Sort by risk score descending
-	for i := 0; i < len(atRisk); i++ {
-		for j := i + 1; j < len(atRisk); j++ {
-			if atRisk[j].RiskScore > atRisk[i].RiskScore {
-				atRisk[i], atRisk[j] = atRisk[j], atRisk[i]
-			}
-		}
-	}
+	sort.Slice(atRisk, func(i, j int) bool {
+		return atRisk[i].RiskScore > atRisk[j].RiskScore
+	})
 
 	return atRisk, nil
 }
@@ -1822,49 +1885,30 @@ type SubmissionTimingStats struct {
 
 func (s *Store) GetSubmissionTimingStats(ctx context.Context, classroomID int) ([]SubmissionTimingStats, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT a.id, a.title, a.deadline
+		SELECT a.id, a.title,
+			a.deadline IS NULL AS no_deadline,
+			COUNT(*) FILTER (WHERE sub.id IS NOT NULL AND a.deadline IS NOT NULL AND sub.submitted_at <= a.deadline - INTERVAL '24 hours') AS early_count,
+			COUNT(*) FILTER (WHERE sub.id IS NOT NULL AND (
+				(a.deadline IS NOT NULL AND sub.submitted_at > a.deadline - INTERVAL '24 hours' AND sub.submitted_at <= a.deadline)
+				OR a.deadline IS NULL
+			)) AS ontime_count,
+			COUNT(*) FILTER (WHERE sub.id IS NOT NULL AND a.deadline IS NOT NULL AND sub.submitted_at > a.deadline) AS late_count
 		FROM assignment a
+		LEFT JOIN submission sub ON sub.assignment_id = a.id
 		WHERE a.classroom_id = $1
+		GROUP BY a.id, a.title, a.deadline, a.created_at
 		ORDER BY a.created_at DESC`, classroomID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	type assignInfo struct {
-		id       int
-		title    string
-		deadline *time.Time
-	}
-	var assigns []assignInfo
-	for rows.Next() {
-		var ai assignInfo
-		if err := rows.Scan(&ai.id, &ai.title, &ai.deadline); err != nil {
-			return nil, err
-		}
-		assigns = append(assigns, ai)
-	}
-
 	var list []SubmissionTimingStats
-	for _, ai := range assigns {
-		st := SubmissionTimingStats{AssignmentID: ai.id, Title: ai.title}
-		if ai.deadline == nil {
-			st.NoDeadline = true
-			// Just count total submissions
-			s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM submission WHERE assignment_id=$1`, ai.id).Scan(&st.OnTimeCount)
-		} else {
-			s.DB.QueryRow(ctx, `
-				SELECT COUNT(*) FROM submission
-				WHERE assignment_id=$1 AND submitted_at <= $2 - INTERVAL '24 hours'`,
-				ai.id, ai.deadline).Scan(&st.EarlyCount)
-			s.DB.QueryRow(ctx, `
-				SELECT COUNT(*) FROM submission
-				WHERE assignment_id=$1 AND submitted_at > $2 - INTERVAL '24 hours' AND submitted_at <= $2`,
-				ai.id, ai.deadline).Scan(&st.OnTimeCount)
-			s.DB.QueryRow(ctx, `
-				SELECT COUNT(*) FROM submission
-				WHERE assignment_id=$1 AND submitted_at > $2`,
-				ai.id, ai.deadline).Scan(&st.LateCount)
+	for rows.Next() {
+		var st SubmissionTimingStats
+		if err := rows.Scan(&st.AssignmentID, &st.Title, &st.NoDeadline,
+			&st.EarlyCount, &st.OnTimeCount, &st.LateCount); err != nil {
+			return nil, err
 		}
 		list = append(list, st)
 	}

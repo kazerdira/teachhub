@@ -62,13 +62,24 @@ func (h *Handler) EditQuiz(c *gin.Context) {
 	classroom, _ := h.Store.GetClassroom(c.Request.Context(), classID)
 	quiz, _ := h.Store.GetQuiz(c.Request.Context(), quizID)
 	questions, _ := h.Store.ListQuizQuestions(c.Request.Context(), quizID)
-	attempts, _ := h.Store.ListQuizAttempts(c.Request.Context(), quizID)
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if page < 1 { page = 1 }
+	const perPage = 50
+	offset := (page - 1) * perPage
+
+	attempts, total, _ := h.Store.ListQuizAttemptsPaged(c.Request.Context(), quizID, perPage, offset)
+	totalPages := (total + perPage - 1) / perPage
+	if totalPages < 1 { totalPages = 1 }
 
 	h.render(c, "admin_quiz_edit.html", gin.H{
-		"Classroom": classroom,
-		"Quiz":      quiz,
-		"Questions": questions,
-		"Attempts":  attempts,
+		"Classroom":  classroom,
+		"Quiz":       quiz,
+		"Questions":  questions,
+		"Attempts":   attempts,
+		"Page":       page,
+		"TotalPages": totalPages,
+		"Total":      total,
 	})
 }
 

@@ -12,7 +12,7 @@
     <span class="badge bg-indigo-50 text-indigo-700">{{t .Lang "max_grade"}}: {{.Assignment.MaxGrade}}</span>
 </div>
 
-<h2 class="font-semibold text-gray-800 mb-3">{{t .Lang "submissions_heading"}} ({{len .Submissions}})</h2>
+<h2 class="font-semibold text-gray-800 mb-3">{{t .Lang "submissions_heading"}} ({{.Total}})</h2>
 
 {{if .Submissions}}
 <div class="space-y-4">
@@ -87,6 +87,18 @@
 {{else}}
 <div class="card p-8 text-center bg-gray-50">
     <p class="text-gray-500">{{t .Lang "no_submissions"}}</p>
+</div>
+{{end}}
+
+{{if gt .TotalPages 1}}
+<div class="flex items-center justify-center gap-2 mt-4">
+    {{if gt .Page 1}}
+    <a href="?page={{sub .Page 1}}" class="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50">← {{t .Lang "prev"}}</a>
+    {{end}}
+    <span class="text-sm text-gray-600">{{.Page}} / {{.TotalPages}}</span>
+    {{if lt .Page .TotalPages}}
+    <a href="?page={{add .Page 1}}" class="px-3 py-1.5 text-sm rounded-lg border hover:bg-gray-50">{{t .Lang "next"}} →</a>
+    {{end}}
 </div>
 {{end}}
 
