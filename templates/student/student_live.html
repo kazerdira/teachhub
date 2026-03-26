@@ -311,6 +311,22 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                     sWbRedrawAll();
                     var zl = document.getElementById('sWbZoomLevel'); if (zl) zl.textContent = Math.round(sWbScale * 100) + '%';
                 } break;
+            case 'teacher-cam-off':
+                trackMap.forEach(function(entry, key) {
+                    if (entry.isTeacher && entry.source !== 'screen_share') {
+                        entry.track.detach().forEach(function(el) { el.remove(); });
+                        trackMap.delete(key);
+                    }
+                });
+                renderLayout(); break;
+            case 'teacher-screen-off':
+                trackMap.forEach(function(entry, key) {
+                    if (entry.isTeacher && entry.source === 'screen_share') {
+                        entry.track.detach().forEach(function(el) { el.remove(); });
+                        trackMap.delete(key);
+                    }
+                });
+                renderLayout(); break;
             case 'teacher-pic':
                 if (msg.url) { teacherPicUrl = msg.url; var ph = document.getElementById('placeholder'); if (ph && ph.style.display !== 'none') updateStudentAvatar(ph); } break;
         }

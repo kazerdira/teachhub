@@ -811,6 +811,8 @@ function toggleCamera() {
             }
         });
         renderLayout();
+        /* Tell students to clean up too */
+        room.localParticipant.publishData(encoder.encode(JSON.stringify({ action: 'teacher-cam-off' })), { reliable: true });
     }
 }
 async function toggleScreenShare() {
@@ -827,6 +829,8 @@ async function toggleScreenShare() {
                 }
             });
             renderLayout();
+            /* Tell students to clean up too */
+            room.localParticipant.publishData(encoder.encode(JSON.stringify({ action: 'teacher-screen-off' })), { reliable: true });
         }
     } catch(e) { screenEnabled = false; console.error('Screen share failed:', e); }
 }
