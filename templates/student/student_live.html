@@ -145,6 +145,8 @@
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
             <span class="text-sm font-medium">{{t .Lang "whiteboard"}}</span>
             <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+            <!-- PDF page info (shown when teacher has PDF loaded) -->
+            <span id="sWbPdfInfo" class="hidden text-xs text-gray-400 ml-2 font-mono"></span>
         </div>
         <div class="flex items-center gap-1">
             <button onclick="sWbZoomOut()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_zoom_out"}}">
@@ -184,6 +186,7 @@
     </div>
 </div>
 
+<script src="/static/js/pdf.min.js"></script>
 <script src="/static/js/livekit-client.umd.js"></script>
 <script>
 var LK = LivekitClient;
@@ -303,6 +306,14 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 sWbImgRect = msg.rect; sWbRedrawAll(); break;
             case 'wb-bg-del':
                 sWbBgObj = null; sWbImgRect = null; sWbRedrawAll(); break;
+            case 'wb-pdf':
+                if (msg.url) loadStudentPdf(msg.url); break;
+            case 'wb-pdf-page':
+                if (msg.page && sWbPdfDoc) renderStudentPdfPage(msg.page); break;
+            case 'wb-pdf-close':
+                closeStudentPdf(); break;
+            case 'wb-clear-strokes':
+                sWbStrokes = []; sWbLiveStroke = null; sWbRedrawAll(); break;
             case 'wb-zoom':
                 if (msg.zoom && sWbCanvas) {
                     sWbScale = msg.zoom.s;
@@ -706,6 +717,12 @@ function clearStudentWb() {
     sWbImgRect = null;
     sWbScale = 1; sWbPanX = 0; sWbPanY = 0;
     var zl = document.getElementById('sWbZoomLevel'); if (zl) zl.textContent = '100%';
+    /* Clear PDF state */
+    if (sWbPdfDoc) {
+        sWbPdfDoc = null; sWbPdfPage = 0; sWbPdfTotal = 0; sWbPdfPageImages = {};
+        var info = document.getElementById('sWbPdfInfo');
+        if (info) info.classList.add('hidden');
+    }
     sWbRedrawAll();
 }
 
@@ -764,6 +781,75 @@ function sWbRedrawAll() {
     if (sWbLiveStroke && sWbLiveStroke.points.length > 1) {
         sDrawStroke(sWbLiveStroke);
     }
+}
+
+/* ─── Student PDF Whiteboard ────────────────────── */
+var sWbPdfDoc = null;
+var sWbPdfPage = 0;
+var sWbPdfTotal = 0;
+var sWbPdfCanvas = null;
+var sWbPdfPageImages = {};
+
+/* Initialize pdf.js worker */
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/js/pdf.worker.min.js';
+}
+
+async function loadStudentPdf(url) {
+    try {
+        var loadingTask = pdfjsLib.getDocument(url);
+        sWbPdfDoc = await loadingTask.promise;
+        sWbPdfTotal = sWbPdfDoc.numPages;
+        sWbPdfPageImages = {};
+        var info = document.getElementById('sWbPdfInfo');
+        if (info) { info.classList.remove('hidden'); info.textContent = '📄 PDF'; }
+    } catch(e) { console.error('Student PDF load error:', e); }
+}
+
+async function renderStudentPdfPage(pageNum) {
+    if (!sWbPdfDoc) return;
+    sWbPdfPage = pageNum;
+    /* Update page info display */
+    var info = document.getElementById('sWbPdfInfo');
+    if (info) { info.classList.remove('hidden'); info.textContent = '📄 ' + pageNum + ' / ' + sWbPdfTotal; }
+    /* Clear strokes for new page */
+    sWbStrokes = [];
+    sWbLiveStroke = null;
+    /* Check cache */
+    if (sWbPdfPageImages[pageNum]) {
+        setStudentPdfBg(sWbPdfPageImages[pageNum]);
+        return;
+    }
+    try {
+        var page = await sWbPdfDoc.getPage(pageNum);
+        var scale = 2;
+        var viewport = page.getViewport({ scale: scale });
+        if (!sWbPdfCanvas) sWbPdfCanvas = document.createElement('canvas');
+        sWbPdfCanvas.width = viewport.width;
+        sWbPdfCanvas.height = viewport.height;
+        var ctx = sWbPdfCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, viewport.width, viewport.height);
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        var dataUrl = sWbPdfCanvas.toDataURL('image/jpeg', 0.92);
+        sWbPdfPageImages[pageNum] = dataUrl;
+        setStudentPdfBg(dataUrl);
+    } catch(e) { console.error('Student PDF render error:', e); }
+}
+
+function setStudentPdfBg(dataUrl) {
+    var img = new Image();
+    img.onload = function() { sWbBgObj = img; sWbRedrawAll(); };
+    img.src = dataUrl;
+}
+
+function closeStudentPdf() {
+    sWbPdfDoc = null;
+    sWbPdfPage = 0;
+    sWbPdfTotal = 0;
+    sWbPdfPageImages = {};
+    var info = document.getElementById('sWbPdfInfo');
+    if (info) info.classList.add('hidden');
 }
 
 document.addEventListener('DOMContentLoaded', initStudentWb);

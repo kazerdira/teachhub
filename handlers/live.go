@@ -253,3 +253,46 @@ func (h *Handler) TeacherPicUpload(c *gin.Context) {
 
 	c.JSON(200, gin.H{"url": "/uploads/" + filePath})
 }
+
+// ─── Live PDF Upload ────────────────────────────────
+
+func (h *Handler) LivePDFUpload(c *gin.Context) {
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
+
+	file, header, err := c.Request.FormFile("pdf")
+	if err != nil {
+		c.JSON(400, gin.H{"error": "no file"})
+		return
+	}
+	defer file.Close()
+
+	ext := strings.ToLower(filepath.Ext(header.Filename))
+	if ext != ".pdf" {
+		c.JSON(400, gin.H{"error": "only PDF files allowed"})
+		return
+	}
+
+	// Max 50MB
+	if header.Size > 50<<20 {
+		c.JSON(400, gin.H{"error": "file too large (max 50MB)"})
+		return
+	}
+
+	fname := fmt.Sprintf("live_pdf_%d_%d%s", classID, time.Now().UnixMilli(), ext)
+	filePath := filepath.Join("live", fname)
+	fullPath := filepath.Join(h.UploadDir, filePath)
+	os.MkdirAll(filepath.Dir(fullPath), 0755)
+
+	dst, err := os.Create(fullPath)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "save failed"})
+		return
+	}
+	defer dst.Close()
+	io.Copy(dst, file)
+
+	c.JSON(200, gin.H{"url": "/uploads/" + filePath})
+}

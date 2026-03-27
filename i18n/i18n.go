@@ -681,6 +681,13 @@ var Translations = map[string]map[string]string{
 	"wb_opened":     {"en": "Whiteboard opened", "fr": "Tableau blanc ouvert"},
 	"wb_closed":     {"en": "Whiteboard closed", "fr": "Tableau blanc fermé"},
 	"wb_cleared":    {"en": "Whiteboard cleared", "fr": "Tableau effacé"},
+	"wb_load_pdf":   {"en": "Load PDF", "fr": "Charger PDF"},
+	"wb_pdf_page":   {"en": "Page", "fr": "Page"},
+	"wb_pdf_of":     {"en": "of", "fr": "sur"},
+	"wb_pdf_prev":   {"en": "Previous Page", "fr": "Page précédente"},
+	"wb_pdf_next":   {"en": "Next Page", "fr": "Page suivante"},
+	"wb_pdf_loaded": {"en": "PDF loaded", "fr": "PDF chargé"},
+	"wb_pdf_close":  {"en": "Close PDF", "fr": "Fermer PDF"},
 
 	// ─────────────────────────────────────────────────
 	// LANGUAGE TOGGLE

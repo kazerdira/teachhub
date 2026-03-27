@@ -142,6 +142,8 @@
 <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="uploadImage(this)">
 <!-- Hidden file input for teacher profile pic -->
 <input type="file" id="teacherPicInput" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="uploadTeacherPic(this)">
+<!-- Hidden file input for PDF -->
+<input type="file" id="pdfFileInput" accept="application/pdf" class="hidden" onchange="uploadPDF(this)">
 
 <!-- ═══ WHITEBOARD OVERLAY ══════════════════════════ -->
 <div id="whiteboardOverlay" class="fixed inset-0 z-30 hidden flex flex-col bg-gray-900">
@@ -198,6 +200,25 @@
         <button id="wbDeleteImgBtn" onclick="wbDeleteImage()" class="text-gray-500 p-1.5 rounded transition hidden" title="{{t .Lang "wb_delete_img"}}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
+        <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
+        <!-- PDF -->
+        <button id="wbPdfBtn" onclick="pickPDF()" class="text-gray-300 hover:text-white p-1.5 rounded transition flex items-center gap-1" title="{{t .Lang "wb_load_pdf"}}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            <span class="hidden sm:inline text-xs">PDF</span>
+        </button>
+        <!-- PDF page nav (hidden until PDF loaded) -->
+        <div id="wbPdfNav" class="hidden flex items-center gap-1">
+            <button onclick="wbPdfPrev()" class="text-gray-300 hover:text-white p-1 rounded transition" title="{{t .Lang "wb_pdf_prev"}}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span id="wbPdfPageInfo" class="text-gray-300 text-xs font-mono min-w-[4rem] text-center">1 / 1</span>
+            <button onclick="wbPdfNext()" class="text-gray-300 hover:text-white p-1 rounded transition" title="{{t .Lang "wb_pdf_next"}}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <button onclick="wbPdfClose()" class="text-red-400 hover:text-red-300 p-1 rounded transition" title="{{t .Lang "wb_pdf_close"}}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
         <div class="w-px h-6 bg-gray-600 mx-0.5 flex-shrink-0"></div>
         <!-- Zoom -->
         <button onclick="wbZoomOut()" class="text-gray-300 hover:text-white p-1.5 rounded transition" title="{{t .Lang "wb_zoom_out"}}">
@@ -376,6 +397,7 @@
 }
 </style>
 
+<script src="/static/js/pdf.min.js"></script>
 <script src="/static/js/livekit-client.umd.js"></script>
 <script>
 const LK = LivekitClient;
@@ -1329,6 +1351,11 @@ function wbPointerDown(e) {
     wbDrawing = true;
     wbRedoStack = [];
     var lineW = wbTool === 'eraser' ? wbLineWidth * 4 : wbLineWidth;
+    /* Stylus pressure: scale line width by pressure (0.1 - 1.0 range) */
+    var pressure = pos.p;
+    if (e.pointerType === 'pen' && pressure > 0) {
+        lineW = Math.max(1, lineW * (0.3 + pressure * 1.4));
+    }
     wbCurrentStroke = {
         tool: wbTool,
         color: wbTool === 'eraser' ? 'eraser' : wbColor,
@@ -1390,12 +1417,17 @@ function wbPointerMove(e) {
         return;
     }
     if (!wbDrawing || !wbCurrentStroke) return;
-    wbCurrentStroke.points.push(pos);
+    /* Use coalesced events for smoother stylus/touch strokes */
+    var events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    for (var i = 0; i < events.length; i++) {
+        wbCurrentStroke.points.push(getWbPos(events[i]));
+    }
     wbRedrawAll();
     drawStroke(wbCurrentStroke, true);
     wbMoveCount++;
     if (wbMoveCount % 2 === 0) {
-        var msg = JSON.stringify({ action: 'wb-draw', point: pos });
+        var lastPt = wbCurrentStroke.points[wbCurrentStroke.points.length - 1];
+        var msg = JSON.stringify({ action: 'wb-draw', point: lastPt });
         room.localParticipant.publishData(encoder.encode(msg), { reliable: false });
     }
 }
@@ -1635,6 +1667,13 @@ function wbClear() {
     wbScale = 1; wbPanX = 0; wbPanY = 0;
     document.getElementById('wbDeleteImgBtn').classList.add('hidden');
     var zl = document.getElementById('wbZoomLevel'); if (zl) zl.textContent = '100%';
+    /* Close PDF if active */
+    if (wbPdfDoc) {
+        wbPdfDoc = null; wbPdfPage = 1; wbPdfTotal = 0; wbPdfUrl = null; wbPdfPageImages = {};
+        document.getElementById('wbPdfNav').classList.add('hidden');
+        document.getElementById('wbPdfBtn').classList.remove('text-emerald-400');
+        document.getElementById('wbPdfBtn').classList.add('text-gray-300');
+    }
     wbRedrawAll();
     broadcastCommand('wb-clear');
     showToast('{{t .Lang "wb_cleared"}}', 'info');
@@ -1693,10 +1732,20 @@ function sendDataTo(identity, msg) {
 function sendWbStateTo(identity) {
     /* open whiteboard */
     sendDataTo(identity, { action: 'wb-open' });
+    /* PDF info for late joiner */
+    if (wbPdfUrl) {
+        sendDataTo(identity, { action: 'wb-pdf', url: wbPdfUrl });
+        sendDataTo(identity, { action: 'wb-pdf-page', page: wbPdfPage });
+    }
     /* background image */
-    if (wbBgImageUrl) {
-        sendDataTo(identity, { action: 'wb-bg', url: wbBgImageUrl });
-        if (wbImgRect) setTimeout(function() { sendDataTo(identity, { action: 'wb-bg-rect', rect: wbImgRect }); }, 100);
+    if (wbBgImageObj && wbImgRect) {
+        /* If PDF is active, send the rendered page data URL directly */
+        if (wbPdfDoc && wbPdfPageImages[wbPdfPage]) {
+            sendDataTo(identity, { action: 'wb-bg', url: wbPdfPageImages[wbPdfPage] });
+        } else if (wbBgImageUrl) {
+            sendDataTo(identity, { action: 'wb-bg', url: wbBgImageUrl });
+        }
+        setTimeout(function() { sendDataTo(identity, { action: 'wb-bg-rect', rect: wbImgRect }); }, 100);
     }
     /* all strokes */
     for (var i = 0; i < wbStrokes.length; i++) {
@@ -1706,6 +1755,166 @@ function sendWbStateTo(identity) {
     var cw = wbCanvas.width, ch = wbCanvas.height;
     sendDataTo(identity, { action: 'wb-zoom', zoom: { s: wbScale, px: wbPanX / cw, py: wbPanY / ch } });
 }
+
+/* ═══════════════════════════════════════════════════
+   PDF WHITEBOARD ENGINE
+   ═══════════════════════════════════════════════════ */
+var wbPdfDoc = null;       // pdf.js document object
+var wbPdfPage = 1;         // current page number
+var wbPdfTotal = 0;        // total pages
+var wbPdfUrl = null;       // URL of the uploaded PDF
+var wbPdfCanvas = null;    // offscreen canvas for rendering PDF pages
+var wbPdfPageImages = {};  // cache: page number → rendered image data URL
+
+/* Initialize pdf.js worker */
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/js/pdf.worker.min.js';
+}
+
+function pickPDF() {
+    if (wbPdfDoc) { /* Already have a PDF — show close option */ wbPdfClose(); return; }
+    document.getElementById('pdfFileInput').click();
+}
+
+async function uploadPDF(input) {
+    var file = input.files[0]; if (!file) return;
+    var formData = new FormData();
+    formData.append('pdf', file);
+    showToast('{{t .Lang "uploading"}}', 'info');
+    try {
+        var csrfEl = document.querySelector('input[name=_csrf]');
+        var headers = csrfEl ? { 'X-CSRF-Token': csrfEl.value } : {};
+        var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/pdf', {
+            method: 'POST', body: formData, headers: headers, credentials: 'same-origin'
+        });
+        if (!resp.ok) { showToast('Upload failed: ' + resp.status, 'error'); input.value = ''; return; }
+        var data = await resp.json();
+        if (data.url) {
+            wbPdfUrl = data.url;
+            await loadPdfDocument(data.url);
+            /* Broadcast PDF URL to students */
+            broadcastCommand('wb-pdf', { url: data.url });
+            showToast('{{t .Lang "wb_pdf_loaded"}}', 'success');
+        } else { showToast(data.error || 'Upload failed', 'error'); }
+    } catch(e) { showToast('Upload failed: ' + e.message, 'error'); }
+    input.value = '';
+}
+
+async function loadPdfDocument(url) {
+    try {
+        var loadingTask = pdfjsLib.getDocument(url);
+        wbPdfDoc = await loadingTask.promise;
+        wbPdfTotal = wbPdfDoc.numPages;
+        wbPdfPage = 1;
+        wbPdfPageImages = {};
+        /* Show nav controls */
+        document.getElementById('wbPdfNav').classList.remove('hidden');
+        document.getElementById('wbPdfBtn').classList.add('text-emerald-400');
+        document.getElementById('wbPdfBtn').classList.remove('text-gray-300');
+        updatePdfPageInfo();
+        /* Render first page as whiteboard background */
+        await renderPdfPage(1);
+    } catch(e) { console.error('PDF load error:', e); showToast('Failed to load PDF', 'error'); }
+}
+
+async function renderPdfPage(pageNum) {
+    if (!wbPdfDoc) return;
+    /* Check cache first */
+    if (wbPdfPageImages[pageNum]) {
+        setPdfAsWbBg(wbPdfPageImages[pageNum]);
+        return;
+    }
+    try {
+        var page = await wbPdfDoc.getPage(pageNum);
+        /* Render at 2x scale for crisp display */
+        var scale = 2;
+        var viewport = page.getViewport({ scale: scale });
+        if (!wbPdfCanvas) { wbPdfCanvas = document.createElement('canvas'); }
+        wbPdfCanvas.width = viewport.width;
+        wbPdfCanvas.height = viewport.height;
+        var ctx = wbPdfCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, viewport.width, viewport.height);
+        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        var dataUrl = wbPdfCanvas.toDataURL('image/jpeg', 0.92);
+        wbPdfPageImages[pageNum] = dataUrl;
+        setPdfAsWbBg(dataUrl);
+    } catch(e) { console.error('PDF render error:', e); }
+}
+
+function setPdfAsWbBg(dataUrl) {
+    /* Clear previous strokes when changing pages */
+    wbStrokes = [];
+    wbRedoStack = [];
+    /* Set as whiteboard background image */
+    var img = new Image();
+    img.onload = function() {
+        wbBgImageObj = img;
+        /* Center the image, aspect-fit at ~90% of canvas */
+        var cw = wbCanvas.width, ch = wbCanvas.height;
+        var iw = img.width, ih = img.height;
+        var sc = Math.min((cw * 0.95) / iw, (ch * 0.95) / ih);
+        var dw = (iw * sc) / cw, dh = (ih * sc) / ch;
+        wbImgRect = { x: (1 - dw) / 2, y: (1 - dh) / 2, w: dw, h: dh };
+        /* Reset zoom */
+        wbScale = 1; wbPanX = 0; wbPanY = 0;
+        var zl = document.getElementById('wbZoomLevel'); if (zl) zl.textContent = '100%';
+        document.getElementById('wbDeleteImgBtn').classList.remove('hidden');
+        document.getElementById('wbDeleteImgBtn').classList.replace('text-gray-500', 'text-red-400');
+        wbRedrawAll();
+        /* Broadcast the page image to students */
+        broadcastCommand('wb-bg', { url: dataUrl });
+        setTimeout(function() { broadcastCommand('wb-bg-rect', { rect: wbImgRect }); }, 50);
+        broadcastCommand('wb-clear-strokes');
+    };
+    img.src = dataUrl;
+}
+
+function updatePdfPageInfo() {
+    var info = document.getElementById('wbPdfPageInfo');
+    if (info) info.textContent = wbPdfPage + ' / ' + wbPdfTotal;
+}
+
+async function wbPdfPrev() {
+    if (!wbPdfDoc || wbPdfPage <= 1) return;
+    wbPdfPage--;
+    updatePdfPageInfo();
+    await renderPdfPage(wbPdfPage);
+    broadcastCommand('wb-pdf-page', { page: wbPdfPage });
+}
+
+async function wbPdfNext() {
+    if (!wbPdfDoc || wbPdfPage >= wbPdfTotal) return;
+    wbPdfPage++;
+    updatePdfPageInfo();
+    await renderPdfPage(wbPdfPage);
+    broadcastCommand('wb-pdf-page', { page: wbPdfPage });
+}
+
+function wbPdfClose() {
+    wbPdfDoc = null;
+    wbPdfPage = 1;
+    wbPdfTotal = 0;
+    wbPdfUrl = null;
+    wbPdfPageImages = {};
+    document.getElementById('wbPdfNav').classList.add('hidden');
+    document.getElementById('wbPdfBtn').classList.remove('text-emerald-400');
+    document.getElementById('wbPdfBtn').classList.add('text-gray-300');
+    /* Clear whiteboard */
+    wbBgImageObj = null;
+    wbBgImageUrl = null;
+    wbImgRect = null;
+    wbStrokes = [];
+    wbRedoStack = [];
+    document.getElementById('wbDeleteImgBtn').classList.add('hidden');
+    wbRedrawAll();
+    broadcastCommand('wb-pdf-close');
+    showToast('{{t .Lang "wb_pdf_close"}}', 'info');
+}
+
+/* ─── Send PDF state to late joiners ─── */
+var origSendWbStateTo = sendWbStateTo;
+/* Extend sendWbStateTo to include PDF info */
 
 /* Init whiteboard on page load */
 document.addEventListener('DOMContentLoaded', initWhiteboard);
