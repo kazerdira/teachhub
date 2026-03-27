@@ -1,4 +1,4 @@
-const CACHE_NAME = 'teachhub-v1';
+const CACHE_NAME = 'teachhub-v2';
 const SHELL_ASSETS = [
   '/static/css/style.css',
   '/static/js/htmx.min.js',
