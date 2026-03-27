@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -152,6 +153,33 @@ func (h *Handler) ExportAttendanceCSV(c *gin.Context) {
 
 // ─── Classroom Report (Print-friendly) ──────────────────
 
+type reportStudent struct {
+	Name                 string
+	Email                string
+	AvgQuizPct           float64
+	QuizzesTaken         int
+	QuizzesTotal         int
+	AssignmentsSubmitted int
+	AssignmentsTotal     int
+	AvgAssignmentPct     float64
+	AttendancePct        float64
+	OverallPct           float64
+	Status               string // "excellent","good","average","struggling"
+}
+
+func studentStatus(pct float64) string {
+	switch {
+	case pct >= 80:
+		return "excellent"
+	case pct >= 60:
+		return "good"
+	case pct >= 40:
+		return "average"
+	default:
+		return "struggling"
+	}
+}
+
 func (h *Handler) AdminClassroomReport(c *gin.Context) {
 	classID, _ := strconv.Atoi(c.Param("id"))
 	classroom, err := h.Store.GetClassroomForAdmin(c.Request.Context(), classID, adminID(c))
@@ -166,8 +194,52 @@ func (h *Handler) AdminClassroomReport(c *gin.Context) {
 	attendanceRates, _ := h.Store.GetStudentAttendanceRates(c.Request.Context(), classID)
 	atRiskStudents, _ := h.Store.GetAtRiskStudents(c.Request.Context(), classID)
 
+	// Build attendance lookup by student ID
+	attendMap := make(map[int]float64, len(attendanceRates))
+	for _, a := range attendanceRates {
+		attendMap[a.StudentID] = a.AttendancePct
+	}
+
+	// Build per-student report cards merging roster + attendance
+	students := make([]reportStudent, 0, len(rosterStats))
+	for _, r := range rosterStats {
+		attPct := attendMap[r.StudentID]
+		// Overall = weighted average: 40% quiz, 40% assignments, 20% attendance
+		parts := 0.0
+		weights := 0.0
+		if r.QuizzesTaken > 0 {
+			parts += r.AvgQuizPct * 0.4
+			weights += 0.4
+		}
+		if r.AssignmentsSubmitted > 0 {
+			parts += r.AvgAssignmentPct * 0.4
+			weights += 0.4
+		}
+		if attPct > 0 {
+			parts += attPct * 0.2
+			weights += 0.2
+		}
+		overall := 0.0
+		if weights > 0 {
+			overall = parts / weights * 1.0 // normalise back
+		}
+		students = append(students, reportStudent{
+			Name:                 r.Name,
+			Email:                r.Email,
+			AvgQuizPct:           r.AvgQuizPct,
+			QuizzesTaken:         r.QuizzesTaken,
+			QuizzesTotal:         r.QuizzesTotal,
+			AssignmentsSubmitted: r.AssignmentsSubmitted,
+			AssignmentsTotal:     r.AssignmentsTotal,
+			AvgAssignmentPct:     r.AvgAssignmentPct,
+			AttendancePct:        attPct,
+			OverallPct:           overall,
+			Status:               studentStatus(overall),
+		})
+	}
+
 	// Compute class-wide stats
-	var avgQuizPct, avgAssignPct float64
+	var avgQuizPct, avgAssignPct, avgAttendPct float64
 	if len(quizStats) > 0 {
 		total := 0.0
 		for _, q := range quizStats {
@@ -188,16 +260,26 @@ func (h *Handler) AdminClassroomReport(c *gin.Context) {
 			avgAssignPct = total / float64(count)
 		}
 	}
+	if len(attendanceRates) > 0 {
+		total := 0.0
+		for _, a := range attendanceRates {
+			total += a.AttendancePct
+		}
+		avgAttendPct = total / float64(len(attendanceRates))
+	}
+
+	now := time.Now()
 
 	h.render(c, "admin_report.html", gin.H{
 		"Classroom":       classroom,
 		"QuizStats":       quizStats,
 		"AssignmentStats": assignStats,
-		"RosterStats":     rosterStats,
-		"AttendanceRates": attendanceRates,
+		"Students":        students,
 		"AtRiskStudents":  atRiskStudents,
 		"AvgQuizPct":      avgQuizPct,
 		"AvgAssignPct":    avgAssignPct,
+		"AvgAttendPct":    avgAttendPct,
 		"StudentCount":    len(rosterStats),
+		"Now":             now,
 	})
 }

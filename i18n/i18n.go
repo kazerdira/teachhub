@@ -342,6 +342,22 @@ var Translations = map[string]map[string]string{
 	"student_roster":      {"en": "👥 Student Roster Summary", "fr": "👥 Résumé de la liste des étudiants"},
 	"at_risk_section":     {"en": "⚠️ At-Risk Students", "fr": "⚠️ Étudiants en difficulté"},
 	"report_footer":       {"en": "TeachHub Classroom Report", "fr": "Rapport de classe TeachHub"},
+	"rpt_attendance":      {"en": "Attendance", "fr": "Présence"},
+	"rpt_quiz_results":    {"en": "📊 Quiz Results", "fr": "📊 Résultats des quiz"},
+	"rpt_assign_results":  {"en": "📊 Assignment Results", "fr": "📊 Résultats des devoirs"},
+	"rpt_student_cards":   {"en": "👤 Student Report Cards", "fr": "👤 Bulletins des étudiants"},
+	"rpt_quizzes":         {"en": "Quizzes", "fr": "Quiz"},
+	"rpt_assignments":     {"en": "Assignments", "fr": "Devoirs"},
+	"rpt_overall":         {"en": "Overall", "fr": "Global"},
+	"rpt_excellent":       {"en": "Excellent", "fr": "Excellent"},
+	"rpt_good":            {"en": "Good", "fr": "Bien"},
+	"rpt_average":         {"en": "Average", "fr": "Moyen"},
+	"rpt_struggling":      {"en": "Needs Help", "fr": "En difficulté"},
+	"rpt_submitted":       {"en": "submitted", "fr": "soumis"},
+	"rpt_students":        {"en": "students", "fr": "étudiants"},
+	"rpt_grade_dist":      {"en": "Grades", "fr": "Notes"},
+	"rpt_needs_attention": {"en": "⚠️ Students Needing Attention", "fr": "⚠️ Étudiants nécessitant une attention"},
+	"rpt_class_avg":       {"en": "Class Average", "fr": "Moyenne de classe"},
 
 	// ─────────────────────────────────────────────────
 	// ADMIN STUDENT DETAIL

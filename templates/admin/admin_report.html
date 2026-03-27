@@ -3,182 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classroom Report — {{.Classroom.Name}}</title>
+    <title>{{t .Lang "report_heading"}} — {{.Classroom.Name}}</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
-        @media print {
-            body { font-size: 11px; }
-            .no-print { display: none !important; }
-            .card { break-inside: avoid; box-shadow: none !important; border: 1px solid #e5e7eb; }
-            table { font-size: 10px; }
-            @page { margin: 1cm; }
+        :root {
+            --green: #059669; --yellow: #d97706; --red: #dc2626;
+            --green-bg: #ecfdf5; --yellow-bg: #fefce8; --red-bg: #fef2f2;
+            --blue: #4f46e5; --blue-bg: #eef2ff;
         }
-        .card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; }
+        body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; }
+        .bar { height: 22px; border-radius: 6px; background: #f1f5f9; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+        .bar-label { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 700; color: #1e293b; }
+        .fill-green { background: linear-gradient(90deg, #34d399, #059669); }
+        .fill-yellow { background: linear-gradient(90deg, #fcd34d, #f59e0b); }
+        .fill-red { background: linear-gradient(90deg, #fca5a5, #ef4444); }
+        .fill-blue { background: linear-gradient(90deg, #a5b4fc, #6366f1); }
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+        .badge-excellent { background: var(--green-bg); color: var(--green); }
+        .badge-good { background: var(--blue-bg); color: var(--blue); }
+        .badge-average { background: var(--yellow-bg); color: var(--yellow); }
+        .badge-struggling { background: var(--red-bg); color: var(--red); }
+        .rpt-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; }
+        .metric { text-align: center; padding: 20px 12px; }
+        .metric-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+        .metric-label { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
+        .grade-block { display: inline-flex; flex-direction: column; align-items: center; min-width: 36px; }
+        .grade-bar-v { width: 26px; border-radius: 4px 4px 0 0; background: #e2e8f0; }
+        .grade-letter { font-size: 10px; font-weight: 700; color: #64748b; margin-top: 2px; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
+        .student-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; break-inside: avoid; }
+        .student-name { font-size: 0.95rem; font-weight: 700; }
+        .student-email { font-size: 0.7rem; color: #94a3b8; }
+        .mini-label { font-size: 0.7rem; color: #64748b; margin-bottom: 2px; display: flex; justify-content: space-between; }
+        .mini-bar { height: 10px; border-radius: 4px; background: #f1f5f9; overflow: hidden; margin-bottom: 8px; }
+        .mini-bar-fill { height: 100%; border-radius: 4px; }
+
+        @media print {
+            body { font-size: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .rpt-card, .student-card { box-shadow: none !important; border: 1px solid #cbd5e1; }
+            .student-card { page-break-inside: avoid; }
+            @page { margin: 0.8cm; size: A4; }
+            .page-break { page-break-before: always; }
+        }
     </style>
 </head>
-<body class="bg-white min-h-screen p-8 max-w-4xl mx-auto">
+<body class="bg-gray-50 min-h-screen">
 
-    <!-- Print button -->
+<div class="max-w-4xl mx-auto p-6">
+
+    <!-- Toolbar (no-print) -->
     <div class="no-print mb-6 flex items-center justify-between">
-        <a href="/admin/classroom/{{.Classroom.ID}}/analytics" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back_to_analytics"}}</a>
-        <button onclick="window.print()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">
+        <a href="/admin/classroom/{{.Classroom.ID}}/analytics" class="text-indigo-600 text-sm font-medium hover:underline">{{t .Lang "back_to_analytics"}}</a>
+        <button onclick="window.print()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-sm">
             {{t .Lang "report_print"}}
         </button>
     </div>
 
-    <!-- Header -->
-    <div class="text-center mb-8 border-b pb-6">
-        <h1 class="text-2xl font-bold text-gray-900">{{t .Lang "report_heading"}}</h1>
-        <h2 class="text-xl font-semibold text-indigo-600 mt-2">{{.Classroom.Name}}</h2>
-        <p class="text-sm text-gray-400 mt-1">{{t .Lang "report_generated"}} {{.Classroom.CreatedAt.Format "January 2, 2006"}}</p>
+    <!-- ═══════════════ HEADER ═══════════════ -->
+    <div class="text-center mb-8 pb-6 border-b-2 border-indigo-100">
+        <div class="text-3xl mb-1">📚</div>
+        <h1 class="text-2xl font-extrabold text-gray-900">{{t .Lang "report_heading"}}</h1>
+        <h2 class="text-xl font-bold text-indigo-600 mt-1">{{.Classroom.Name}}</h2>
+        <p class="text-xs text-gray-400 mt-2">{{t .Lang "report_generated"}} {{.Now.Format "02/01/2006"}}</p>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-4 gap-4 mb-8">
-        <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-indigo-600">{{.StudentCount}}</div>
-            <div class="text-xs text-gray-500">{{t .Lang "tab_students"}}</div>
+    <!-- ═══════════════ SUMMARY CARDS ═══════════════ -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="rpt-card metric">
+            <div class="metric-value text-indigo-600">{{.StudentCount}}</div>
+            <div class="metric-label">{{t .Lang "tab_students"}}</div>
         </div>
-        <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-emerald-600">{{printf "%.0f" .AvgQuizPct}}%</div>
-            <div class="text-xs text-gray-500">{{t .Lang "avg_quiz_score"}}</div>
+        <div class="rpt-card metric">
+            <div class="metric-value" style="color: {{if ge .AvgQuizPct 80.0}}var(--green){{else if ge .AvgQuizPct 60.0}}var(--yellow){{else}}var(--red){{end}}">{{printf "%.0f" .AvgQuizPct}}%</div>
+            <div class="metric-label">{{t .Lang "avg_quiz_score"}}</div>
+            <div class="bar mt-2" style="height:8px"><div class="bar-fill {{if ge .AvgQuizPct 80.0}}fill-green{{else if ge .AvgQuizPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .AvgQuizPct}}%"></div></div>
         </div>
-        <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-blue-600">{{printf "%.0f" .AvgAssignPct}}%</div>
-            <div class="text-xs text-gray-500">{{t .Lang "avg_assign_grade"}}</div>
+        <div class="rpt-card metric">
+            <div class="metric-value" style="color: {{if ge .AvgAssignPct 80.0}}var(--green){{else if ge .AvgAssignPct 60.0}}var(--yellow){{else}}var(--red){{end}}">{{printf "%.0f" .AvgAssignPct}}%</div>
+            <div class="metric-label">{{t .Lang "avg_assign_grade"}}</div>
+            <div class="bar mt-2" style="height:8px"><div class="bar-fill {{if ge .AvgAssignPct 80.0}}fill-green{{else if ge .AvgAssignPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .AvgAssignPct}}%"></div></div>
         </div>
-        <div class="card p-4 text-center">
-            <div class="text-2xl font-bold text-red-600">{{len .AtRiskStudents}}</div>
-            <div class="text-xs text-gray-500">{{t .Lang "at_risk_students"}}</div>
+        <div class="rpt-card metric">
+            <div class="metric-value" style="color: {{if ge .AvgAttendPct 80.0}}var(--green){{else if ge .AvgAttendPct 60.0}}var(--yellow){{else}}var(--red){{end}}">{{printf "%.0f" .AvgAttendPct}}%</div>
+            <div class="metric-label">{{t .Lang "rpt_attendance"}}</div>
+            <div class="bar mt-2" style="height:8px"><div class="bar-fill {{if ge .AvgAttendPct 80.0}}fill-green{{else if ge .AvgAttendPct 60.0}}fill-yellow{{else}}fill-blue{{end}}" style="width:{{printf "%.0f" .AvgAttendPct}}%"></div></div>
         </div>
     </div>
 
-    <!-- Quiz Performance -->
+    <!-- ═══════════════ QUIZ RESULTS ═══════════════ -->
     {{if .QuizStats}}
     <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">{{t .Lang "quiz_perf_report"}}</h3>
-        <div class="card overflow-hidden">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                        <th class="px-4 py-2">{{t .Lang "quiz"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "tab_students"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "average"}} %</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "highest"}} %</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "lowest"}} %</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {{range .QuizStats}}
-                    <tr>
-                        <td class="px-4 py-2 font-medium text-gray-900">{{.Title}}</td>
-                        <td class="px-4 py-2 text-center text-gray-600">{{.StudentCount}}</td>
-                        <td class="px-4 py-2 text-center font-semibold
-                            {{if ge .AvgPct 80.0}}text-emerald-600
-                            {{else if ge .AvgPct 60.0}}text-yellow-600
-                            {{else}}text-red-600{{end}}">{{printf "%.0f" .AvgPct}}%</td>
-                        <td class="px-4 py-2 text-center text-gray-600">{{printf "%.0f" .HighestPct}}%</td>
-                        <td class="px-4 py-2 text-center text-gray-600">{{printf "%.0f" .LowestPct}}%</td>
-                    </tr>
-                    {{end}}
-                </tbody>
-            </table>
+        <div class="section-title">{{t .Lang "rpt_quiz_results"}}</div>
+        <div class="space-y-3">
+            {{range .QuizStats}}
+            <div class="rpt-card p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-semibold text-sm text-gray-800">{{.Title}}</span>
+                    <span class="text-xs text-gray-400">{{.StudentCount}} {{t $.Lang "rpt_students"}}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                        <div class="bar">
+                            <div class="bar-fill {{if ge .AvgPct 80.0}}fill-green{{else if ge .AvgPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .AvgPct}}%"></div>
+                            <span class="bar-label">{{printf "%.0f" .AvgPct}}%</span>
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-400 whitespace-nowrap w-28 text-right">
+                        <span class="text-green-600 font-semibold">↑{{printf "%.0f" .HighestPct}}%</span>
+                        <span class="mx-1">·</span>
+                        <span class="text-red-500 font-semibold">↓{{printf "%.0f" .LowestPct}}%</span>
+                    </div>
+                </div>
+            </div>
+            {{end}}
         </div>
     </div>
     {{end}}
 
-    <!-- Assignment Overview -->
+    <!-- ═══════════════ ASSIGNMENT RESULTS ═══════════════ -->
     {{if .AssignmentStats}}
     <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">{{t .Lang "assignment_overview"}}</h3>
-        <div class="card overflow-hidden">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                        <th class="px-4 py-2">{{t .Lang "assignment"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "submissions_heading"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "graded"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "avg_assign_grade"}} %</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {{range .AssignmentStats}}
-                    <tr>
-                        <td class="px-4 py-2 font-medium text-gray-900">{{.Title}}</td>
-                        <td class="px-4 py-2 text-center text-gray-600">{{.SubmissionCount}}/{{.EnrolledCount}}</td>
-                        <td class="px-4 py-2 text-center text-gray-600">{{.GradedCount}}</td>
-                        <td class="px-4 py-2 text-center font-semibold
-                            {{if ge .AvgPct 80.0}}text-emerald-600
-                            {{else if ge .AvgPct 60.0}}text-yellow-600
-                            {{else}}text-red-600{{end}}">
-                            {{if gt .GradedCount 0}}{{printf "%.0f" .AvgPct}}%{{else}}—{{end}}
-                        </td>
-                    </tr>
-                    {{end}}
-                </tbody>
-            </table>
+        <div class="section-title">{{t .Lang "rpt_assign_results"}}</div>
+        <div class="space-y-3">
+            {{range .AssignmentStats}}
+            <div class="rpt-card p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-semibold text-sm text-gray-800">{{.Title}}</span>
+                    <span class="text-xs text-gray-400">{{.SubmissionCount}}/{{.EnrolledCount}} {{t $.Lang "rpt_submitted"}}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex-1">
+                        <div class="bar">
+                            {{if gt .GradedCount 0}}
+                            <div class="bar-fill {{if ge .AvgPct 80.0}}fill-green{{else if ge .AvgPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .AvgPct}}%"></div>
+                            <span class="bar-label">{{printf "%.0f" .AvgPct}}%</span>
+                            {{else}}
+                            <span class="bar-label" style="color:#94a3b8">—</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <!-- Grade distribution mini chart -->
+                    <div class="flex items-end gap-1" style="height:36px">
+                        <div class="grade-block"><div class="grade-bar-v" style="height:{{if gt (index .GradeBins 0) 0}}24px{{else}}2px{{end}}; background:#059669"></div><div class="grade-letter">A</div></div>
+                        <div class="grade-block"><div class="grade-bar-v" style="height:{{if gt (index .GradeBins 1) 0}}24px{{else}}2px{{end}}; background:#3b82f6"></div><div class="grade-letter">B</div></div>
+                        <div class="grade-block"><div class="grade-bar-v" style="height:{{if gt (index .GradeBins 2) 0}}24px{{else}}2px{{end}}; background:#f59e0b"></div><div class="grade-letter">C</div></div>
+                        <div class="grade-block"><div class="grade-bar-v" style="height:{{if gt (index .GradeBins 3) 0}}24px{{else}}2px{{end}}; background:#f97316"></div><div class="grade-letter">D</div></div>
+                        <div class="grade-block"><div class="grade-bar-v" style="height:{{if gt (index .GradeBins 4) 0}}24px{{else}}2px{{end}}; background:#ef4444"></div><div class="grade-letter">F</div></div>
+                    </div>
+                </div>
+            </div>
+            {{end}}
         </div>
     </div>
     {{end}}
 
-    <!-- Student Roster -->
-    {{if .RosterStats}}
+    <!-- ═══════════════ STUDENT REPORT CARDS ═══════════════ -->
+    {{if .Students}}
+    <div class="page-break"></div>
     <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">{{t .Lang "student_roster"}}</h3>
-        <div class="card overflow-hidden">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                        <th class="px-4 py-2">{{t .Lang "student"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "quiz_avg"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "assign_avg"}}</th>
-                        <th class="px-4 py-2 text-center">{{t .Lang "engagement"}}</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {{range .RosterStats}}
-                    <tr>
-                        <td class="px-4 py-2">
-                            <div class="font-medium text-gray-900">{{.Name}}</div>
-                            {{if .Email}}<div class="text-[10px] text-gray-400">{{.Email}}</div>{{end}}
-                        </td>
-                        <td class="px-4 py-2 text-center
-                            {{if ge .AvgQuizPct 80.0}}text-emerald-600
-                            {{else if ge .AvgQuizPct 60.0}}text-yellow-600
-                            {{else}}text-red-600{{end}} font-medium">
-                            {{if gt .QuizzesTaken 0}}{{printf "%.0f" .AvgQuizPct}}%{{else}}—{{end}}
-                        </td>
-                        <td class="px-4 py-2 text-center
-                            {{if ge .AvgAssignmentPct 80.0}}text-emerald-600
-                            {{else if ge .AvgAssignmentPct 60.0}}text-yellow-600
-                            {{else}}text-red-600{{end}} font-medium">
-                            {{if gt .AssignmentsSubmitted 0}}{{printf "%.0f" .AvgAssignmentPct}}%{{else}}—{{end}}
-                        </td>
-                        <td class="px-4 py-2 text-center text-gray-600">{{printf "%.0f" .EngagementPct}}%</td>
-                    </tr>
-                    {{end}}
-                </tbody>
-            </table>
+        <div class="section-title">{{t .Lang "rpt_student_cards"}}</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {{range .Students}}
+            <div class="student-card">
+                <!-- Name + badge row -->
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <div class="student-name">{{.Name}}</div>
+                        {{if .Email}}<div class="student-email">{{.Email}}</div>{{end}}
+                    </div>
+                    <span class="badge badge-{{.Status}}">
+                        {{if eq .Status "excellent"}}★ {{t $.Lang "rpt_excellent"}}
+                        {{else if eq .Status "good"}}● {{t $.Lang "rpt_good"}}
+                        {{else if eq .Status "average"}}◐ {{t $.Lang "rpt_average"}}
+                        {{else}}▼ {{t $.Lang "rpt_struggling"}}{{end}}
+                    </span>
+                </div>
+
+                <!-- Overall bar -->
+                <div class="mini-label">
+                    <span>{{t $.Lang "rpt_overall"}}</span>
+                    <span class="font-bold" style="color:{{if ge .OverallPct 80.0}}var(--green){{else if ge .OverallPct 60.0}}var(--yellow){{else}}var(--red){{end}}">{{printf "%.0f" .OverallPct}}%</span>
+                </div>
+                <div class="mini-bar"><div class="mini-bar-fill {{if ge .OverallPct 80.0}}fill-green{{else if ge .OverallPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .OverallPct}}%"></div></div>
+
+                <!-- Quizzes bar -->
+                <div class="mini-label">
+                    <span>{{t $.Lang "rpt_quizzes"}} ({{.QuizzesTaken}}/{{.QuizzesTotal}})</span>
+                    <span>{{if gt .QuizzesTaken 0}}{{printf "%.0f" .AvgQuizPct}}%{{else}}—{{end}}</span>
+                </div>
+                <div class="mini-bar"><div class="mini-bar-fill {{if ge .AvgQuizPct 80.0}}fill-green{{else if ge .AvgQuizPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{if gt .QuizzesTaken 0}}{{printf "%.0f" .AvgQuizPct}}%{{else}}0%{{end}}"></div></div>
+
+                <!-- Assignments bar -->
+                <div class="mini-label">
+                    <span>{{t $.Lang "rpt_assignments"}} ({{.AssignmentsSubmitted}}/{{.AssignmentsTotal}})</span>
+                    <span>{{if gt .AssignmentsSubmitted 0}}{{printf "%.0f" .AvgAssignmentPct}}%{{else}}—{{end}}</span>
+                </div>
+                <div class="mini-bar"><div class="mini-bar-fill {{if ge .AvgAssignmentPct 80.0}}fill-green{{else if ge .AvgAssignmentPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{if gt .AssignmentsSubmitted 0}}{{printf "%.0f" .AvgAssignmentPct}}%{{else}}0%{{end}}"></div></div>
+
+                <!-- Attendance bar -->
+                <div class="mini-label">
+                    <span>{{t $.Lang "rpt_attendance"}}</span>
+                    <span>{{printf "%.0f" .AttendancePct}}%</span>
+                </div>
+                <div class="mini-bar"><div class="mini-bar-fill fill-blue" style="width:{{printf "%.0f" .AttendancePct}}%"></div></div>
+            </div>
+            {{end}}
         </div>
     </div>
     {{end}}
 
-    <!-- At-Risk Students -->
+    <!-- ═══════════════ AT-RISK ═══════════════ -->
     {{if .AtRiskStudents}}
     <div class="mb-8">
-        <h3 class="text-lg font-semibold text-gray-800 mb-3">{{t .Lang "at_risk_section"}}</h3>
+        <div class="section-title">{{t .Lang "rpt_needs_attention"}}</div>
         <div class="space-y-2">
             {{range .AtRiskStudents}}
-            <div class="card p-3 border-l-4
-                {{if ge .RiskScore 5}}border-l-red-500
-                {{else if ge .RiskScore 3}}border-l-orange-500
-                {{else}}border-l-yellow-500{{end}}">
-                <div class="flex items-center gap-2">
-                    <span class="font-semibold text-gray-900 text-sm">{{.Name}}</span>
+            <div class="rpt-card p-3 flex items-center gap-3 border-l-4
+                {{if ge .RiskScore 5}}border-l-red-500 bg-red-50
+                {{else if ge .RiskScore 3}}border-l-orange-400 bg-orange-50
+                {{else}}border-l-yellow-400 bg-yellow-50{{end}}">
+                <div class="flex-1">
+                    <span class="font-bold text-sm text-gray-900">{{.Name}}</span>
+                    {{if .Email}}<span class="text-xs text-gray-400 ml-2">{{.Email}}</span>{{end}}
+                </div>
+                <div class="flex flex-wrap gap-1">
                     {{range .Reasons}}
-                    <span class="text-[9px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded">{{.}}</span>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white border border-red-200 text-red-600">{{.}}</span>
                     {{end}}
                 </div>
             </div>
@@ -187,10 +239,12 @@
     </div>
     {{end}}
 
-    <!-- Footer -->
-    <div class="text-center text-xs text-gray-400 mt-8 pt-4 border-t">
-        <p>{{t .Lang "report_footer"}} — {{.Classroom.Name}}</p>
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <div class="text-center text-xs text-gray-300 mt-10 pt-4 border-t border-gray-100">
+        {{t .Lang "report_footer"}} — {{.Classroom.Name}} — {{.Now.Format "02/01/2006"}}
     </div>
+
+</div>
 
 </body>
 </html>
