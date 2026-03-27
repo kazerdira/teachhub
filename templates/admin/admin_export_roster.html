@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{t .Lang "export_roster"}} — {{.Classroom.Name}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root { --green: #059669; --yellow: #d97706; --red: #dc2626; --blue: #4f46e5; }
+        body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; }
+        .rpt-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; }
+        .bar { height: 14px; border-radius: 4px; background: #f1f5f9; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; }
+        .fill-green { background: linear-gradient(90deg, #34d399, #059669); }
+        .fill-yellow { background: linear-gradient(90deg, #fcd34d, #f59e0b); }
+        .fill-red { background: linear-gradient(90deg, #fca5a5, #ef4444); }
+        .fill-blue { background: linear-gradient(90deg, #a5b4fc, #6366f1); }
+        @media print {
+            body { font-size: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .rpt-card { box-shadow: none !important; border: 1px solid #cbd5e1; }
+            tr { page-break-inside: avoid; }
+            @page { margin: 0.8cm; size: A4 landscape; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="max-w-6xl mx-auto p-6">
+
+    <!-- Toolbar -->
+    <div class="no-print mb-6 flex items-center justify-between">
+        <a href="/admin/classroom/{{.Classroom.ID}}/analytics?sub=students" class="text-indigo-600 text-sm font-medium hover:underline">{{t .Lang "back_to_analytics"}}</a>
+        <button onclick="window.print()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-sm">
+            {{t .Lang "report_print"}}
+        </button>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center mb-6 pb-4 border-b-2 border-indigo-100">
+        <h1 class="text-xl font-extrabold text-gray-900">👥 {{t .Lang "student_roster"}}</h1>
+        <h2 class="text-lg font-bold text-indigo-600 mt-1">{{.Classroom.Name}}</h2>
+        <p class="text-xs text-gray-400 mt-1">{{t .Lang "report_generated"}} {{.Now.Format "02/01/2006"}} · {{len .Data}} {{t .Lang "rpt_students"}}</p>
+    </div>
+
+    <!-- Table -->
+    <div class="rpt-card overflow-hidden">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase">
+                    <th class="px-4 py-3">{{t .Lang "student"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "rpt_quizzes"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "rpt_assignments"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "rpt_attendance"}}</th>
+                    <th class="px-4 py-3 text-center">{{t .Lang "engagement"}}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{range .Data}}
+                <tr>
+                    <td class="px-4 py-3">
+                        <div class="font-semibold text-gray-900">{{.Name}}</div>
+                        {{if .Email}}<div class="text-[10px] text-gray-400">{{.Email}}</div>{{end}}
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="bar flex-1"><div class="bar-fill {{if ge .AvgQuizPct 80.0}}fill-green{{else if ge .AvgQuizPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .AvgQuizPct}}%"></div></div>
+                            <span class="text-xs font-bold w-10 text-right {{if ge .AvgQuizPct 80.0}}text-emerald-600{{else if ge .AvgQuizPct 60.0}}text-yellow-600{{else}}text-red-600{{end}}">{{if gt .QuizzesTaken 0}}{{printf "%.0f" .AvgQuizPct}}%{{else}}—{{end}}</span>
+                        </div>
+                        <div class="text-[10px] text-gray-400 mt-0.5">{{.QuizzesTaken}} {{t $.Lang "total"}}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="bar flex-1"><div class="bar-fill {{if ge .AvgAssignmentPct 80.0}}fill-green{{else if ge .AvgAssignmentPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .AvgAssignmentPct}}%"></div></div>
+                            <span class="text-xs font-bold w-10 text-right {{if ge .AvgAssignmentPct 80.0}}text-emerald-600{{else if ge .AvgAssignmentPct 60.0}}text-yellow-600{{else}}text-red-600{{end}}">{{if gt .AssignmentsSubmitted 0}}{{printf "%.0f" .AvgAssignmentPct}}%{{else}}—{{end}}</span>
+                        </div>
+                        <div class="text-[10px] text-gray-400 mt-0.5">{{.AssignmentsSubmitted}} {{t $.Lang "rpt_submitted"}}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="bar flex-1"><div class="bar-fill fill-blue" style="width:{{printf "%.0f" .AttendancePct}}%"></div></div>
+                            <span class="text-xs font-bold w-10 text-right text-indigo-600">{{printf "%.0f" .AttendancePct}}%</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="bar flex-1"><div class="bar-fill {{if ge .EngagementPct 80.0}}fill-green{{else if ge .EngagementPct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .EngagementPct}}%"></div></div>
+                            <span class="text-xs font-bold w-10 text-right">{{printf "%.0f" .EngagementPct}}%</span>
+                        </div>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center text-xs text-gray-300 mt-8 pt-4 border-t border-gray-100">
+        {{t .Lang "report_footer"}} — {{.Classroom.Name}} — {{.Now.Format "02/01/2006"}}
+    </div>
+</div>
+</body>
+</html>

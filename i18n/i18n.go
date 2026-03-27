@@ -221,10 +221,10 @@ var Translations = map[string]map[string]string{
 	// ─────────────────────────────────────────────────
 	"analytics_heading":  {"en": "📊 Analytics", "fr": "📊 Statistiques"},
 	"print_report":       {"en": "🖨️ Print Report", "fr": "🖨️ Imprimer le rapport"},
-	"export_roster":      {"en": "📥 Roster CSV", "fr": "📥 CSV Liste"},
-	"export_quizzes":     {"en": "📥 Quiz CSV", "fr": "📥 CSV Quiz"},
-	"export_assignments": {"en": "📥 Assignments CSV", "fr": "📥 CSV Devoirs"},
-	"export_attendance":  {"en": "📥 Attendance CSV", "fr": "📥 CSV Présences"},
+	"export_roster":      {"en": "� Roster", "fr": "👥 Liste"},
+	"export_quizzes":     {"en": "📝 Quiz Results", "fr": "📝 Résultats Quiz"},
+	"export_assignments": {"en": "📋 Assignment Grades", "fr": "📋 Notes Devoirs"},
+	"export_attendance":  {"en": "📅 Attendance", "fr": "📅 Présences"},
 
 	// Sub-tabs
 	"sub_quizzes":     {"en": "Quizzes", "fr": "Quiz"},
@@ -357,7 +357,11 @@ var Translations = map[string]map[string]string{
 	"rpt_students":        {"en": "students", "fr": "étudiants"},
 	"rpt_grade_dist":      {"en": "Grades", "fr": "Notes"},
 	"rpt_needs_attention": {"en": "⚠️ Students Needing Attention", "fr": "⚠️ Étudiants nécessitant une attention"},
-	"rpt_class_avg":       {"en": "Class Average", "fr": "Moyenne de classe"},
+	"rpt_class_avg":             {"en": "Class Average", "fr": "Moyenne de classe"},
+	"rpt_sessions":              {"en": "sessions", "fr": "séances"},
+	"rpt_attendance_summary":    {"en": "📊 Attendance Summary", "fr": "📊 Résumé de présence"},
+	"rpt_sessions_attended":     {"en": "Sessions Attended", "fr": "Séances présentes"},
+	"rpt_total_minutes":         {"en": "Total Minutes", "fr": "Minutes totales"},
 
 	// ─────────────────────────────────────────────────
 	// ADMIN STUDENT DETAIL

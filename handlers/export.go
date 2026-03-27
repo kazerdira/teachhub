@@ -1,15 +1,13 @@
 package handlers
 
 import (
-	"encoding/csv"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// ─── CSV Export Handlers ────────────────────────────────
+// ─── Export Handlers (Print-friendly HTML) ───────────────
 
 func (h *Handler) ExportRosterCSV(c *gin.Context) {
 	classID, _ := strconv.Atoi(c.Param("id"))
@@ -21,24 +19,24 @@ func (h *Handler) ExportRosterCSV(c *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("%s_roster.csv", classroom.Name)
-	c.Header("Content-Type", "text/csv")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	h.render(c, "admin_export_roster.html", gin.H{
+		"Classroom": classroom,
+		"Data":      data,
+		"Now":       time.Now(),
+	})
+}
 
-	w := csv.NewWriter(c.Writer)
-	w.Write([]string{"Name", "Email", "Quiz Avg %", "Quizzes Taken", "Assignment Avg %", "Assignments Submitted", "Attendance %", "Engagement %"})
-	for _, r := range data {
-		w.Write([]string{
-			r.Name, r.Email,
-			fmt.Sprintf("%.1f", r.AvgQuizPct),
-			strconv.Itoa(r.QuizzesTaken),
-			fmt.Sprintf("%.1f", r.AvgAssignmentPct),
-			strconv.Itoa(r.AssignmentsSubmitted),
-			fmt.Sprintf("%.1f", r.AttendancePct),
-			fmt.Sprintf("%.1f", r.EngagementPct),
-		})
-	}
-	w.Flush()
+type quizGroup struct {
+	Title string
+	Rows  []quizGroupRow
+}
+type quizGroupRow struct {
+	StudentName  string
+	StudentEmail string
+	Score        int
+	MaxScore     int
+	Pct          float64
+	StartedAt    time.Time
 }
 
 func (h *Handler) ExportQuizzesCSV(c *gin.Context) {
@@ -51,26 +49,46 @@ func (h *Handler) ExportQuizzesCSV(c *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("%s_quiz_results.csv", classroom.Name)
-	c.Header("Content-Type", "text/csv")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
-
-	w := csv.NewWriter(c.Writer)
-	w.Write([]string{"Quiz", "Student", "Email", "Score", "Max Score", "Percentage", "Started At", "Finished At"})
+	// Group by quiz title
+	var groups []quizGroup
+	groupMap := map[string]int{}
 	for _, r := range data {
-		finished := ""
-		if r.FinishedAt != nil {
-			finished = r.FinishedAt.Format("2006-01-02 15:04:05")
+		idx, ok := groupMap[r.QuizTitle]
+		if !ok {
+			idx = len(groups)
+			groupMap[r.QuizTitle] = idx
+			groups = append(groups, quizGroup{Title: r.QuizTitle})
 		}
-		w.Write([]string{
-			r.QuizTitle, r.StudentName, r.StudentEmail,
-			strconv.Itoa(r.Score), strconv.Itoa(r.MaxScore),
-			fmt.Sprintf("%.1f", r.Pct),
-			r.StartedAt.Format("2006-01-02 15:04:05"),
-			finished,
+		groups[idx].Rows = append(groups[idx].Rows, quizGroupRow{
+			StudentName:  r.StudentName,
+			StudentEmail: r.StudentEmail,
+			Score:        r.Score,
+			MaxScore:     r.MaxScore,
+			Pct:          r.Pct,
+			StartedAt:    r.StartedAt,
 		})
 	}
-	w.Flush()
+
+	h.render(c, "admin_export_quizzes.html", gin.H{
+		"Classroom": classroom,
+		"Groups":    groups,
+		"Now":       time.Now(),
+	})
+}
+
+type assignGroup struct {
+	Title    string
+	MaxGrade float64
+	Rows     []assignGroupRow
+}
+type assignGroupRow struct {
+	StudentName  string
+	StudentEmail string
+	Grade        *float64
+	MaxGrade     float64
+	Pct          float64
+	Status       string
+	SubmittedAt  time.Time
 }
 
 func (h *Handler) ExportAssignmentsCSV(c *gin.Context) {
@@ -83,26 +101,43 @@ func (h *Handler) ExportAssignmentsCSV(c *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("%s_assignment_grades.csv", classroom.Name)
-	c.Header("Content-Type", "text/csv")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
-
-	w := csv.NewWriter(c.Writer)
-	w.Write([]string{"Assignment", "Student", "Email", "Grade", "Max Grade", "Percentage", "Status", "Submitted At"})
+	// Group by assignment title
+	var groups []assignGroup
+	groupMap := map[string]int{}
 	for _, r := range data {
-		grade := ""
-		if r.Grade != nil {
-			grade = fmt.Sprintf("%.1f", *r.Grade)
+		idx, ok := groupMap[r.AssignmentTitle]
+		if !ok {
+			idx = len(groups)
+			groupMap[r.AssignmentTitle] = idx
+			groups = append(groups, assignGroup{Title: r.AssignmentTitle, MaxGrade: r.MaxGrade})
 		}
-		w.Write([]string{
-			r.AssignmentTitle, r.StudentName, r.StudentEmail,
-			grade, fmt.Sprintf("%.1f", r.MaxGrade),
-			fmt.Sprintf("%.1f", r.Pct),
-			r.Status,
-			r.SubmittedAt.Format("2006-01-02 15:04:05"),
+		groups[idx].Rows = append(groups[idx].Rows, assignGroupRow{
+			StudentName:  r.StudentName,
+			StudentEmail: r.StudentEmail,
+			Grade:        r.Grade,
+			MaxGrade:     r.MaxGrade,
+			Pct:          r.Pct,
+			Status:       r.Status,
+			SubmittedAt:  r.SubmittedAt,
 		})
 	}
-	w.Flush()
+
+	h.render(c, "admin_export_assignments.html", gin.H{
+		"Classroom": classroom,
+		"Groups":    groups,
+		"Now":       time.Now(),
+	})
+}
+
+type attendSession struct {
+	Date     time.Time
+	Duration *int
+	Students []attendStudent
+}
+type attendStudent struct {
+	Name         string
+	Attended     bool
+	TimeSpentMin int
 }
 
 func (h *Handler) ExportAttendanceCSV(c *gin.Context) {
@@ -115,40 +150,33 @@ func (h *Handler) ExportAttendanceCSV(c *gin.Context) {
 		return
 	}
 
-	filename := fmt.Sprintf("%s_attendance.csv", classroom.Name)
-	c.Header("Content-Type", "text/csv")
-	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	// Get per-student summary
+	summary, _ := h.Store.GetStudentAttendanceRates(c.Request.Context(), classID)
 
-	w := csv.NewWriter(c.Writer)
-	w.Write([]string{"Student", "Email", "Session Date", "Session Duration (min)", "Attended", "Joined At", "Left At", "Time Spent (min)"})
+	// Group by session date
+	var sessions []attendSession
+	sessionMap := map[string]int{}
 	for _, r := range data {
-		dur := ""
-		if r.SessionDuration != nil {
-			dur = strconv.Itoa(*r.SessionDuration)
+		key := r.SessionDate.Format("2006-01-02T15:04")
+		idx, ok := sessionMap[key]
+		if !ok {
+			idx = len(sessions)
+			sessionMap[key] = idx
+			sessions = append(sessions, attendSession{Date: r.SessionDate, Duration: r.SessionDuration})
 		}
-		attended := "No"
-		if r.Attended {
-			attended = "Yes"
-		}
-		joined := ""
-		if r.JoinedAt != nil {
-			joined = r.JoinedAt.Format("2006-01-02 15:04:05")
-		}
-		left := ""
-		if r.LeftAt != nil {
-			left = r.LeftAt.Format("2006-01-02 15:04:05")
-		}
-		timeSpent := ""
-		if r.Attended {
-			timeSpent = strconv.Itoa(r.TimeSpentMin)
-		}
-		w.Write([]string{
-			r.StudentName, r.StudentEmail,
-			r.SessionDate.Format("2006-01-02 15:04:05"),
-			dur, attended, joined, left, timeSpent,
+		sessions[idx].Students = append(sessions[idx].Students, attendStudent{
+			Name:         r.StudentName,
+			Attended:     r.Attended,
+			TimeSpentMin: r.TimeSpentMin,
 		})
 	}
-	w.Flush()
+
+	h.render(c, "admin_export_attendance.html", gin.H{
+		"Classroom": classroom,
+		"Summary":   summary,
+		"Sessions":  sessions,
+		"Now":       time.Now(),
+	})
 }
 
 // ─── Classroom Report (Print-friendly) ──────────────────

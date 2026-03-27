@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{t .Lang "export_assignments"}} — {{.Classroom.Name}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root { --green: #059669; --yellow: #d97706; --red: #dc2626; }
+        body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; }
+        .rpt-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; }
+        .bar { height: 14px; border-radius: 4px; background: #f1f5f9; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 4px; }
+        .fill-green { background: linear-gradient(90deg, #34d399, #059669); }
+        .fill-yellow { background: linear-gradient(90deg, #fcd34d, #f59e0b); }
+        .fill-red { background: linear-gradient(90deg, #fca5a5, #ef4444); }
+        .status-badge { display: inline-block; padding: 1px 8px; border-radius: 9999px; font-size: 10px; font-weight: 600; }
+        @media print {
+            body { font-size: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .rpt-card { box-shadow: none !important; border: 1px solid #cbd5e1; page-break-inside: avoid; }
+            @page { margin: 0.8cm; size: A4; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+<div class="max-w-4xl mx-auto p-6">
+
+    <!-- Toolbar -->
+    <div class="no-print mb-6 flex items-center justify-between">
+        <a href="/admin/classroom/{{.Classroom.ID}}/analytics?sub=assignments" class="text-indigo-600 text-sm font-medium hover:underline">{{t .Lang "back_to_analytics"}}</a>
+        <button onclick="window.print()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-sm">
+            {{t .Lang "report_print"}}
+        </button>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center mb-6 pb-4 border-b-2 border-indigo-100">
+        <h1 class="text-xl font-extrabold text-gray-900">📋 {{t .Lang "rpt_assign_results"}}</h1>
+        <h2 class="text-lg font-bold text-indigo-600 mt-1">{{.Classroom.Name}}</h2>
+        <p class="text-xs text-gray-400 mt-1">{{t .Lang "report_generated"}} {{.Now.Format "02/01/2006"}}</p>
+    </div>
+
+    <!-- Grouped by assignment -->
+    {{range .Groups}}
+    <div class="rpt-card mb-4 overflow-hidden">
+        <div class="bg-blue-50 px-4 py-3 border-b border-blue-100">
+            <span class="font-bold text-sm text-blue-700">{{.Title}}</span>
+            <span class="text-xs text-blue-400 ml-2">(max: {{printf "%.0f" .MaxGrade}})</span>
+        </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 text-left text-[10px] font-semibold text-gray-500 uppercase">
+                    <th class="px-4 py-2">{{t $.Lang "student"}}</th>
+                    <th class="px-4 py-2 text-center">{{t $.Lang "graded"}}</th>
+                    <th class="px-4 py-2" style="width:30%">%</th>
+                    <th class="px-4 py-2 text-center">{{t $.Lang "status"}}</th>
+                    <th class="px-4 py-2 text-center text-gray-400">{{t $.Lang "date"}}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {{range .Rows}}
+                <tr>
+                    <td class="px-4 py-2">
+                        <div class="font-medium text-gray-900">{{.StudentName}}</div>
+                        {{if .StudentEmail}}<div class="text-[10px] text-gray-400">{{.StudentEmail}}</div>{{end}}
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        {{if .Grade}}<span class="font-bold {{if ge .Pct 80.0}}text-emerald-600{{else if ge .Pct 60.0}}text-yellow-600{{else}}text-red-600{{end}}">{{printf "%.0f" (derefFloat .Grade)}}/{{printf "%.0f" .MaxGrade}}</span>{{else}}<span class="text-gray-300">—</span>{{end}}
+                    </td>
+                    <td class="px-4 py-2">
+                        {{if .Grade}}
+                        <div class="flex items-center gap-2">
+                            <div class="bar flex-1"><div class="bar-fill {{if ge .Pct 80.0}}fill-green{{else if ge .Pct 60.0}}fill-yellow{{else}}fill-red{{end}}" style="width:{{printf "%.0f" .Pct}}%"></div></div>
+                            <span class="text-xs font-bold w-10 text-right">{{printf "%.0f" .Pct}}%</span>
+                        </div>
+                        {{else}}<span class="text-xs text-gray-300">—</span>{{end}}
+                    </td>
+                    <td class="px-4 py-2 text-center">
+                        <span class="status-badge
+                            {{if eq .Status "graded"}}bg-emerald-50 text-emerald-700
+                            {{else if eq .Status "submitted"}}bg-blue-50 text-blue-700
+                            {{else}}bg-gray-100 text-gray-500{{end}}">{{.Status}}</span>
+                    </td>
+                    <td class="px-4 py-2 text-center text-[10px] text-gray-400">{{.SubmittedAt.Format "02/01/2006"}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+    {{end}}
+
+    <!-- Footer -->
+    <div class="text-center text-xs text-gray-300 mt-8 pt-4 border-t border-gray-100">
+        {{t .Lang "report_footer"}} — {{.Classroom.Name}} — {{.Now.Format "02/01/2006"}}
+    </div>
+</div>
+</body>
+</html>
