@@ -108,6 +108,7 @@ var Translations = map[string]map[string]string{
 	"attempts":          {"en": "attempts", "fr": "tentatives"},
 	"attempt":           {"en": "attempt", "fr": "tentative"},
 	"edit":              {"en": "Edit", "fr": "Modifier"},
+	"cancel":            {"en": "Cancel", "fr": "Annuler"},
 	"unpublish":         {"en": "Unpublish", "fr": "Dépublier"},
 	"publish":           {"en": "Publish", "fr": "Publier"},
 	"quiz_empty":        {"en": "No quizzes yet", "fr": "Aucun quiz pour le moment"},

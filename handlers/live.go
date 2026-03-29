@@ -66,7 +66,7 @@ func (h *Handler) StartLiveClass(c *gin.Context) {
 		return
 	}
 
-	roomName := fmt.Sprintf("classroom-%d", classID)
+	roomName := fmt.Sprintf("classroom-%d-%d", classID, time.Now().Unix())
 
 	_, err = h.Store.CreateLiveSession(c.Request.Context(), classID, roomName)
 	if err != nil {

@@ -111,7 +111,7 @@ func (h *Handler) AdminDeleteRemark(c *gin.Context) {
 	studentID, _ := strconv.Atoi(c.Param("studentId"))
 	remarkID, _ := strconv.Atoi(c.Param("remarkId"))
 
-	h.Store.DeleteStudentRemark(c.Request.Context(), remarkID)
+	h.Store.DeleteStudentRemark(c.Request.Context(), remarkID, classID)
 
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d/student/%d", classID, studentID))
 }

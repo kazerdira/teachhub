@@ -46,7 +46,7 @@ func (h *Handler) DeleteQuiz(c *gin.Context) {
 		return
 	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
-	h.Store.DeleteQuiz(c.Request.Context(), quizID)
+	h.Store.DeleteQuiz(c.Request.Context(), quizID, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=quizzes", classID))
 }
 
@@ -135,7 +135,7 @@ func (h *Handler) DeleteQuestion(c *gin.Context) {
 	}
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	qID, _ := strconv.Atoi(c.Param("qId"))
-	h.Store.DeleteQuizQuestion(c.Request.Context(), qID)
+	h.Store.DeleteQuizQuestion(c.Request.Context(), qID, quizID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d/quiz/%d/edit", classID, quizID))
 }
 
@@ -210,7 +210,7 @@ func (h *Handler) ReviewAttempt(c *gin.Context) {
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 	attemptID, _ := strconv.Atoi(c.Param("attemptId"))
 	score, _ := strconv.Atoi(c.PostForm("score"))
-	h.Store.ReviewQuizAttempt(c.Request.Context(), attemptID, score)
+	h.Store.ReviewQuizAttempt(c.Request.Context(), attemptID, score, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d/quiz/%d/edit", classID, quizID))
 }
 

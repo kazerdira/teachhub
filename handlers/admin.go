@@ -219,7 +219,7 @@ func (h *Handler) DeleteCategory(c *gin.Context) {
 		return
 	}
 	catID, _ := strconv.Atoi(c.Param("catId"))
-	h.Store.DeleteCategory(c.Request.Context(), catID)
+	h.Store.DeleteCategory(c.Request.Context(), catID, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=resources", classID))
 }
 
@@ -290,7 +290,7 @@ func (h *Handler) DeleteResource(c *gin.Context) {
 	if err == nil && res.FilePath != "" {
 		os.Remove(filepath.Join(h.UploadDir, res.FilePath))
 	}
-	h.Store.DeleteResource(c.Request.Context(), resID)
+	h.Store.DeleteResource(c.Request.Context(), resID, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=resources", classID))
 }
 
@@ -301,10 +301,18 @@ func (h *Handler) DownloadResource(c *gin.Context) {
 		c.String(404, "Not found")
 		return
 	}
-	// Track view if student is logged in
-	if student := middleware.GetStudent(c); student != nil {
-		h.Store.TrackResourceView(c.Request.Context(), resID, student.ID)
+	// Auth: must be an enrolled student in this classroom
+	student := middleware.GetStudent(c)
+	if student == nil {
+		c.String(403, "Access denied")
+		return
 	}
+	in, _ := h.Store.IsStudentInClassroom(c.Request.Context(), student.ID, res.ClassroomID)
+	if !in {
+		c.String(403, "Access denied")
+		return
+	}
+	h.Store.TrackResourceView(c.Request.Context(), resID, student.ID)
 	if res.ExternalURL != "" {
 		c.Redirect(http.StatusFound, res.ExternalURL)
 		return
@@ -346,7 +354,37 @@ func (h *Handler) DeleteAssignment(c *gin.Context) {
 		return
 	}
 	aID, _ := strconv.Atoi(c.Param("assignId"))
-	h.Store.DeleteAssignment(c.Request.Context(), aID)
+	h.Store.DeleteAssignment(c.Request.Context(), aID, classID)
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments", classID))
+}
+
+func (h *Handler) EditAssignment(c *gin.Context) {
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
+	aID, _ := strconv.Atoi(c.Param("assignId"))
+
+	title := strings.TrimSpace(c.PostForm("title"))
+	if title == "" {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments", classID))
+		return
+	}
+	desc := strings.TrimSpace(c.PostForm("description"))
+	responseType := c.DefaultPostForm("response_type", "file")
+	maxChars, _ := strconv.Atoi(c.DefaultPostForm("max_chars", "0"))
+	maxFileSizeMB, _ := strconv.Atoi(c.DefaultPostForm("max_file_size", "10"))
+	maxFileSize := int64(maxFileSizeMB) * 1024 * 1024
+	maxGrade, _ := strconv.ParseFloat(c.DefaultPostForm("max_grade", "20"), 64)
+
+	var deadline *time.Time
+	if dStr := c.PostForm("deadline"); dStr != "" {
+		if t, err := time.Parse("2006-01-02T15:04", dStr); err == nil {
+			deadline = &t
+		}
+	}
+
+	h.Store.UpdateAssignment(c.Request.Context(), aID, classID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments", classID))
 }
 
@@ -406,18 +444,20 @@ func (h *Handler) ReviewSubmission(c *gin.Context) {
 		}
 	}
 
-	h.Store.UpdateSubmissionStatus(c.Request.Context(), subID, status, feedback, grade, maxGrade)
+	h.Store.UpdateSubmissionStatus(c.Request.Context(), subID, classID, status, feedback, grade, maxGrade)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d/assignment/%d/submissions", classID, assignID))
 }
 
 func (h *Handler) DownloadSubmission(c *gin.Context) {
 	subID, _ := strconv.Atoi(c.Param("subId"))
-	// We need to get the submission to find the file
-	// Quick inline query
+	// Verify submission belongs to a classroom this teacher owns
 	var filePath, fileName string
-	h.Store.DB.QueryRow(c.Request.Context(),
-		`SELECT file_path, file_name FROM submission WHERE id=$1`, subID).Scan(&filePath, &fileName)
-	if filePath == "" {
+	err := h.Store.DB.QueryRow(c.Request.Context(),
+		`SELECT sub.file_path, sub.file_name FROM submission sub
+		 JOIN assignment a ON sub.assignment_id = a.id
+		 JOIN classroom c ON a.classroom_id = c.id
+		 WHERE sub.id=$1 AND c.admin_id=$2`, subID, adminID(c)).Scan(&filePath, &fileName)
+	if err != nil || filePath == "" {
 		c.String(404, "Not found")
 		return
 	}
@@ -484,7 +524,7 @@ func (h *Handler) DeleteAllowedStudent(c *gin.Context) {
 		return
 	}
 	allowedID, _ := strconv.Atoi(c.Param("allowedId"))
-	h.Store.DeleteAllowedStudent(c.Request.Context(), allowedID)
+	h.Store.DeleteAllowedStudent(c.Request.Context(), allowedID, classID)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=students", classID))
 }
 

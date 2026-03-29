@@ -188,27 +188,70 @@ function toggleAssignmentFields() {
 {{if .Assignments}}
 <div class="space-y-3">
     {{range .Assignments}}
-    <div class="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div class="min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-                <h4 class="font-semibold text-gray-900 text-sm">{{.Title}}</h4>
-                <span class="badge {{if eq .ResponseType "file"}}bg-blue-50 text-blue-600{{else if eq .ResponseType "text"}}bg-emerald-50 text-emerald-600{{else}}bg-purple-50 text-purple-600{{end}}">
-                    {{if eq .ResponseType "file"}}📎 file{{else if eq .ResponseType "text"}}📝 text{{else}}📎📝 both{{end}}
-                </span>
+    <div class="card p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h4 class="font-semibold text-gray-900 text-sm">{{.Title}}</h4>
+                    <span class="badge {{if eq .ResponseType "file"}}bg-blue-50 text-blue-600{{else if eq .ResponseType "text"}}bg-emerald-50 text-emerald-600{{else}}bg-purple-50 text-purple-600{{end}}">
+                        {{if eq .ResponseType "file"}}📎 file{{else if eq .ResponseType "text"}}📝 text{{else}}📎📝 both{{end}}
+                    </span>
+                </div>
+                {{if .Description}}<p class="text-xs text-gray-500 mt-1">{{.Description}}</p>{{end}}
+                <p class="text-xs text-gray-400 mt-1">
+                    {{.SubmissionCount}} {{t $.Lang "submissions"}} · {{.GradedCount}} {{t $.Lang "graded"}} · Max: {{.MaxGrade}}
+                    {{if .Deadline}} · {{t $.Lang "due"}} {{.Deadline.Format "Jan 2, 2006 3:04 PM"}}{{end}}
+                    {{if and (gt .MaxFileSize 0) (ne .ResponseType "text")}} · Max {{fileSizeMB .MaxFileSize}}MB{{end}}
+                    {{if and (gt .MaxChars 0) (ne .ResponseType "file")}} · Max {{.MaxChars}} chars{{end}}
+                </p>
             </div>
-            {{if .Description}}<p class="text-xs text-gray-500 mt-1">{{.Description}}</p>{{end}}
-            <p class="text-xs text-gray-400 mt-1">
-                {{.SubmissionCount}} {{t $.Lang "submissions"}} · {{.GradedCount}} {{t $.Lang "graded"}} · Max: {{.MaxGrade}}
-                {{if .Deadline}} · {{t $.Lang "due"}} {{.Deadline.Format "Jan 2, 2006 3:04 PM"}}{{end}}
-                {{if and (gt .MaxFileSize 0) (ne .ResponseType "text")}} · Max {{fileSizeMB .MaxFileSize}}MB{{end}}
-                {{if and (gt .MaxChars 0) (ne .ResponseType "file")}} · Max {{.MaxChars}} chars{{end}}
-            </p>
-        </div>
-        <div class="flex items-center gap-3">
-            <a href="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/submissions" class="text-indigo-600 text-sm hover:underline font-medium">{{t $.Lang "view"}}</a>
-            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/delete" onsubmit="return confirm('{{t $.Lang "confirm_delete_item"}}')">
+            <div class="flex items-center gap-3">
+                <a href="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/submissions" class="text-indigo-600 text-sm hover:underline font-medium">{{t $.Lang "view"}}</a>
+                <button onclick="document.getElementById('editAssign{{.ID}}').classList.toggle('hidden')" class="text-amber-600 text-sm hover:underline font-medium">{{t $.Lang "edit"}}</button>
+                <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/delete" onsubmit="return confirm('{{t $.Lang "confirm_delete_item"}}')">
 {{csrfField $.CSRFToken}}
-                <button class="text-red-500 text-sm hover:underline">{{t $.Lang "delete"}}</button>
+                    <button class="text-red-500 text-sm hover:underline">{{t $.Lang "delete"}}</button>
+                </form>
+            </div>
+        </div>
+        <!-- Inline edit form -->
+        <div id="editAssign{{.ID}}" class="hidden mt-4 pt-4 border-t border-gray-100">
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/edit" class="space-y-3">
+{{csrfField $.CSRFToken}}
+                <input type="text" name="title" value="{{.Title}}" required class="input w-full">
+                <textarea name="description" rows="2" class="input w-full" placeholder="{{t $.Lang "assign_instructions"}}">{{.Description}}</textarea>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-medium text-gray-500 mb-1 block">{{t $.Lang "assign_response_type"}}</label>
+                        <select name="response_type" class="input w-full">
+                            <option value="file" {{if eq .ResponseType "file"}}selected{{end}}>{{t $.Lang "assign_file"}}</option>
+                            <option value="text" {{if eq .ResponseType "text"}}selected{{end}}>{{t $.Lang "assign_text"}}</option>
+                            <option value="both" {{if eq .ResponseType "both"}}selected{{end}}>{{t $.Lang "assign_both"}}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-gray-500 mb-1 block">{{t $.Lang "deadline_optional"}}</label>
+                        <input type="datetime-local" name="deadline" value="{{if .Deadline}}{{.Deadline.Format "2006-01-02T15:04"}}{{end}}" class="input w-full">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs font-medium text-gray-500 mb-1 block">{{t $.Lang "max_file_size"}}</label>
+                        <input type="number" name="max_file_size" value="{{fileSizeMB .MaxFileSize}}" min="1" max="100" class="input w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-gray-500 mb-1 block">{{t $.Lang "max_chars"}}</label>
+                        <input type="number" name="max_chars" value="{{.MaxChars}}" min="0" class="input w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-gray-500 mb-1 block">{{t $.Lang "max_grade"}}</label>
+                        <input type="number" name="max_grade" value="{{.MaxGrade}}" min="1" step="0.5" class="input w-full">
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn-primary px-4 py-1.5 text-sm">{{t $.Lang "save_settings"}}</button>
+                    <button type="button" onclick="document.getElementById('editAssign{{.ID}}').classList.add('hidden')" class="px-4 py-1.5 text-sm text-gray-600 hover:text-gray-800">{{t $.Lang "cancel"}}</button>
+                </div>
             </form>
         </div>
     </div>

@@ -257,3 +257,4 @@ CREATE INDEX IF NOT EXISTS idx_live_session_classroom ON live_session(classroom_
 CREATE INDEX IF NOT EXISTS idx_live_session_active ON live_session(active);
 CREATE INDEX IF NOT EXISTS idx_live_attendance_session ON live_attendance(live_session_id);
 CREATE INDEX IF NOT EXISTS idx_live_attendance_student ON live_attendance(student_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempt_quiz_student_finished ON quiz_attempt(quiz_id, student_id, finished_at);

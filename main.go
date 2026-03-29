@@ -349,6 +349,7 @@ func main() {
 
 		// Assignments
 		admin.POST("/classroom/:id/assignment", h.CreateAssignment)
+		admin.POST("/classroom/:id/assignment/:assignId/edit", h.EditAssignment)
 		admin.POST("/classroom/:id/assignment/:assignId/delete", h.DeleteAssignment)
 		admin.GET("/classroom/:id/assignment/:assignId/submissions", h.ViewSubmissions)
 		admin.POST("/classroom/:id/assignment/:assignId/submission/:subId/review", h.ReviewSubmission)

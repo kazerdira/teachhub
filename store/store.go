@@ -466,8 +466,8 @@ func (s *Store) AddAllowedStudent(ctx context.Context, classroomID int, email, n
 	return err
 }
 
-func (s *Store) DeleteAllowedStudent(ctx context.Context, id int) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM allowed_student WHERE id=$1`, id)
+func (s *Store) DeleteAllowedStudent(ctx context.Context, id, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM allowed_student WHERE id=$1 AND classroom_id=$2`, id, classroomID)
 	return err
 }
 
@@ -522,8 +522,8 @@ func (s *Store) CreateCategory(ctx context.Context, classroomID int, name string
 	return id, err
 }
 
-func (s *Store) DeleteCategory(ctx context.Context, id int) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM category WHERE id=$1`, id)
+func (s *Store) DeleteCategory(ctx context.Context, id, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM category WHERE id=$1 AND classroom_id=$2`, id, classroomID)
 	return err
 }
 
@@ -574,8 +574,8 @@ func (s *Store) GetResource(ctx context.Context, id int) (*Resource, error) {
 	return r, err
 }
 
-func (s *Store) DeleteResource(ctx context.Context, id int) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM resource WHERE id=$1`, id)
+func (s *Store) DeleteResource(ctx context.Context, id, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM resource WHERE id=$1 AND classroom_id=$2`, id, classroomID)
 	return err
 }
 
@@ -628,8 +628,16 @@ func (s *Store) CreateAssignment(ctx context.Context, classroomID int, title, de
 	return id, err
 }
 
-func (s *Store) DeleteAssignment(ctx context.Context, id int) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM assignment WHERE id=$1`, id)
+func (s *Store) DeleteAssignment(ctx context.Context, id, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM assignment WHERE id=$1 AND classroom_id=$2`, id, classroomID)
+	return err
+}
+
+func (s *Store) UpdateAssignment(ctx context.Context, id, classroomID int, title, desc string, deadline *time.Time, responseType string, maxChars int, maxFileSize int64, maxGrade float64) error {
+	_, err := s.DB.Exec(ctx,
+		`UPDATE assignment SET title=$3, description=$4, deadline=$5, response_type=$6, max_chars=$7, max_file_size=$8, max_grade=$9
+		 WHERE id=$1 AND classroom_id=$2`,
+		id, classroomID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade)
 	return err
 }
 
@@ -725,13 +733,16 @@ func (s *Store) CreateSubmission(ctx context.Context, assignmentID, studentID in
 	return id, err
 }
 
-func (s *Store) UpdateSubmissionStatus(ctx context.Context, id int, status, feedback string, grade *float64, maxGrade *float64) error {
+func (s *Store) UpdateSubmissionStatus(ctx context.Context, id int, classroomID int, status, feedback string, grade *float64, maxGrade *float64) error {
 	if grade != nil {
-		_, err := s.DB.Exec(ctx, `UPDATE submission SET status=$2, feedback=$3, grade=$4, max_grade=$5, graded_at=NOW() WHERE id=$1`,
-			id, status, feedback, *grade, *maxGrade)
+		_, err := s.DB.Exec(ctx, `UPDATE submission SET status=$2, feedback=$3, grade=$4, max_grade=$5, graded_at=NOW()
+			WHERE id=$1 AND assignment_id IN (SELECT id FROM assignment WHERE classroom_id=$6)`,
+			id, status, feedback, *grade, *maxGrade, classroomID)
 		return err
 	}
-	_, err := s.DB.Exec(ctx, `UPDATE submission SET status=$2, feedback=$3 WHERE id=$1`, id, status, feedback)
+	_, err := s.DB.Exec(ctx, `UPDATE submission SET status=$2, feedback=$3
+		WHERE id=$1 AND assignment_id IN (SELECT id FROM assignment WHERE classroom_id=$4)`,
+		id, status, feedback, classroomID)
 	return err
 }
 
@@ -783,8 +794,8 @@ func (s *Store) UpdateQuiz(ctx context.Context, id int, title, desc string, publ
 	return err
 }
 
-func (s *Store) DeleteQuiz(ctx context.Context, id int) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM quiz WHERE id=$1`, id)
+func (s *Store) DeleteQuiz(ctx context.Context, id, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM quiz WHERE id=$1 AND classroom_id=$2`, id, classroomID)
 	return err
 }
 
@@ -831,8 +842,8 @@ func (s *Store) UpdateQuizQuestion(ctx context.Context, id int, qType, content s
 	return err
 }
 
-func (s *Store) DeleteQuizQuestion(ctx context.Context, id int) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM quiz_question WHERE id=$1`, id)
+func (s *Store) DeleteQuizQuestion(ctx context.Context, id, quizID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM quiz_question WHERE id=$1 AND quiz_id=$2`, id, quizID)
 	return err
 }
 
@@ -958,8 +969,10 @@ func (s *Store) GetAllStudentAttempts(ctx context.Context, quizID, studentID int
 	return list, nil
 }
 
-func (s *Store) ReviewQuizAttempt(ctx context.Context, id, score int) error {
-	_, err := s.DB.Exec(ctx, `UPDATE quiz_attempt SET score=$2, reviewed=true WHERE id=$1`, id, score)
+func (s *Store) ReviewQuizAttempt(ctx context.Context, id, score, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `UPDATE quiz_attempt SET score=$2, reviewed=true
+		WHERE id=$1 AND quiz_id IN (SELECT id FROM quiz WHERE classroom_id=$3)`,
+		id, score, classroomID)
 	return err
 }
 
@@ -987,9 +1000,10 @@ func (s *Store) CreateLiveSession(ctx context.Context, classroomID int, roomName
 	defer tx.Rollback(ctx)
 
 	// End any existing active sessions first
-	tx.Exec(ctx, `UPDATE live_session SET active=false WHERE classroom_id=$1 AND active=true`, classroomID)
-	// Delete old inactive sessions for this classroom so room_name unique constraint doesn't block
-	tx.Exec(ctx, `DELETE FROM live_session WHERE classroom_id=$1 AND active=false`, classroomID)
+	tx.Exec(ctx, `UPDATE live_session SET active=false, ended_at=NOW(),
+		duration_minutes = EXTRACT(EPOCH FROM (NOW() - created_at))::int / 60
+		WHERE classroom_id=$1 AND active=true`, classroomID)
+	// Keep old inactive sessions for attendance history (no delete)
 	var id int
 	err = tx.QueryRow(ctx,
 		`INSERT INTO live_session (classroom_id, room_name) VALUES ($1, $2) RETURNING id`,
@@ -1577,8 +1591,8 @@ func (s *Store) AddStudentRemark(ctx context.Context, classroomID, studentID int
 	return err
 }
 
-func (s *Store) DeleteStudentRemark(ctx context.Context, remarkID int) error {
-	_, err := s.DB.Exec(ctx, `DELETE FROM student_remark WHERE id=$1`, remarkID)
+func (s *Store) DeleteStudentRemark(ctx context.Context, remarkID, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM student_remark WHERE id=$1 AND classroom_id=$2`, remarkID, classroomID)
 	return err
 }
 
@@ -1658,7 +1672,10 @@ func (s *Store) GetStudentDashboardStats(ctx context.Context, classroomID int) (
 
 func (s *Store) TrackResourceView(ctx context.Context, resourceID, studentID int) error {
 	_, err := s.DB.Exec(ctx,
-		`INSERT INTO resource_view (resource_id, student_id) VALUES ($1, $2)`,
+		`INSERT INTO resource_view (resource_id, student_id)
+		 SELECT $1, $2 WHERE NOT EXISTS (
+		   SELECT 1 FROM resource_view WHERE resource_id=$1 AND student_id=$2 AND viewed_at > NOW() - INTERVAL '1 hour'
+		 )`,
 		resourceID, studentID)
 	return err
 }
