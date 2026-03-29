@@ -208,6 +208,7 @@ func main() {
 		"templates/student/*.html",
 		"templates/platform/*.html",
 		"templates/landing.html",
+		"templates/parent_report.html",
 	} {
 		tmpl, err = tmpl.ParseGlob(pattern)
 		if err != nil {
@@ -228,6 +229,7 @@ func main() {
 
 	// Rate limiters: 5 attempts then block for 15 minutes
 	loginRL := middleware.NewRateLimiter(5, 15*time.Minute)
+	parentRL := middleware.NewRateLimiter(60, 1*time.Minute) // 60 req/min per IP for parent pages
 
 	// Router
 	if isProduction {
@@ -248,6 +250,9 @@ func main() {
 	r.GET("/apply", h.ApplyPage)
 	r.POST("/apply", h.ApplySubmit)
 	r.GET("/apply/success", h.ApplySuccess)
+
+	// ─── Parent Progress Report (public, no auth) ──────
+	r.GET("/p/:code", middleware.RateLimitAll(parentRL), h.ParentReport)
 
 	// ─── Language Toggle ─────────────────────────────────
 	r.GET("/set-lang", func(c *gin.Context) {
@@ -338,6 +343,7 @@ func main() {
 		admin.GET("/classroom/:id/student/:studentId", h.AdminStudentDetail)
 		admin.POST("/classroom/:id/student/:studentId/remark", h.AdminAddRemark)
 		admin.POST("/classroom/:id/student/:studentId/remark/:remarkId/delete", h.AdminDeleteRemark)
+		admin.POST("/classroom/:id/student/:studentId/regenerate-parent-code", h.RegenerateParentCode)
 
 		// Categories
 		admin.POST("/classroom/:id/category", h.CreateCategory)

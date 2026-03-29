@@ -90,8 +90,19 @@ CREATE TABLE IF NOT EXISTS classroom_student (
     student_id   INT NOT NULL REFERENCES student(id) ON DELETE CASCADE,
     status       TEXT NOT NULL DEFAULT 'approved' CHECK (status IN ('approved', 'pending', 'rejected')),
     joined_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    parent_code  TEXT UNIQUE DEFAULT encode(gen_random_bytes(6), 'hex'),
     PRIMARY KEY (classroom_id, student_id)
 );
+
+-- Add parent_code to existing rows (migration-safe)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='classroom_student' AND column_name='parent_code') THEN
+        ALTER TABLE classroom_student ADD COLUMN parent_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(6), 'hex');
+    END IF;
+END $$;
+
+-- Backfill parent_code for any rows that got NULL
+UPDATE classroom_student SET parent_code = encode(gen_random_bytes(6), 'hex') WHERE parent_code IS NULL;
 
 -- ─── Pre-registered allowed students ────────────────────
 CREATE TABLE IF NOT EXISTS allowed_student (
@@ -258,3 +269,4 @@ CREATE INDEX IF NOT EXISTS idx_live_session_active ON live_session(active);
 CREATE INDEX IF NOT EXISTS idx_live_attendance_session ON live_attendance(live_session_id);
 CREATE INDEX IF NOT EXISTS idx_live_attendance_student ON live_attendance(student_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempt_quiz_student_finished ON quiz_attempt(quiz_id, student_id, finished_at);
+CREATE INDEX IF NOT EXISTS idx_cs_parent_code ON classroom_student(parent_code);

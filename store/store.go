@@ -99,6 +99,7 @@ type Student struct {
 	Email        string
 	CreatedAt    time.Time
 	MemberStatus string // approved, pending, rejected — only set in classroom context
+	ParentCode   string // per-classroom secret link for parent reports
 }
 
 type AllowedStudent struct {
@@ -321,7 +322,7 @@ func (s *Store) SetClassroomTeacherPic(ctx context.Context, classroomID, adminID
 
 func (s *Store) ListClassroomStudents(ctx context.Context, classroomID int) ([]Student, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT s.id, s.name, COALESCE(s.email,''), s.created_at, cs.status
+		SELECT s.id, s.name, COALESCE(s.email,''), s.created_at, cs.status, COALESCE(cs.parent_code,'')
 		FROM student s JOIN classroom_student cs ON s.id=cs.student_id
 		WHERE cs.classroom_id=$1 ORDER BY cs.status, s.name`, classroomID)
 	if err != nil {
@@ -331,7 +332,7 @@ func (s *Store) ListClassroomStudents(ctx context.Context, classroomID int) ([]S
 	var list []Student
 	for rows.Next() {
 		var st Student
-		if err := rows.Scan(&st.ID, &st.Name, &st.Email, &st.CreatedAt, &st.MemberStatus); err != nil {
+		if err := rows.Scan(&st.ID, &st.Name, &st.Email, &st.CreatedAt, &st.MemberStatus, &st.ParentCode); err != nil {
 			return nil, err
 		}
 		list = append(list, st)
@@ -428,6 +429,53 @@ func (s *Store) GetStudentClassrooms(ctx context.Context, studentID int) ([]Clas
 func (s *Store) RemoveStudentFromClassroom(ctx context.Context, studentID, classroomID int) error {
 	_, err := s.DB.Exec(ctx, `DELETE FROM classroom_student WHERE classroom_id=$1 AND student_id=$2`, classroomID, studentID)
 	return err
+}
+
+// ─── Parent Report ──────────────────────────────────────
+
+// ParentReportData holds everything needed to render the parent progress page.
+type ParentReportData struct {
+	StudentID     int
+	StudentName   string
+	ClassroomID   int
+	ClassroomName string
+	TeacherName   string
+}
+
+// GetStudentByParentCode looks up a student+classroom from the secret parent_code.
+func (s *Store) GetStudentByParentCode(ctx context.Context, code string) (*ParentReportData, error) {
+	d := &ParentReportData{}
+	err := s.DB.QueryRow(ctx, `
+		SELECT cs.student_id, s.name, cs.classroom_id, c.name, a.username
+		FROM classroom_student cs
+		JOIN student s ON s.id = cs.student_id
+		JOIN classroom c ON c.id = cs.classroom_id
+		JOIN admin a ON a.id = c.admin_id
+		WHERE cs.parent_code = $1 AND cs.status = 'approved'`, code).
+		Scan(&d.StudentID, &d.StudentName, &d.ClassroomID, &d.ClassroomName, &d.TeacherName)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
+// RegenerateParentCode creates a new parent_code for a student in a classroom.
+func (s *Store) RegenerateParentCode(ctx context.Context, classroomID, studentID int) (string, error) {
+	var code string
+	err := s.DB.QueryRow(ctx,
+		`UPDATE classroom_student SET parent_code = encode(gen_random_bytes(6), 'hex')
+		 WHERE classroom_id = $1 AND student_id = $2 RETURNING parent_code`,
+		classroomID, studentID).Scan(&code)
+	return code, err
+}
+
+// GetParentCode returns the current parent_code for a student in a classroom.
+func (s *Store) GetParentCode(ctx context.Context, classroomID, studentID int) (string, error) {
+	var code string
+	err := s.DB.QueryRow(ctx,
+		`SELECT COALESCE(parent_code, '') FROM classroom_student WHERE classroom_id = $1 AND student_id = $2`,
+		classroomID, studentID).Scan(&code)
+	return code, err
 }
 
 // ─── Allowed Students ───────────────────────────────────

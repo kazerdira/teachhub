@@ -164,6 +164,13 @@ func (h *Handler) AdminStudentDetail(c *gin.Context) {
 		}
 	}
 
+	// Get parent code for this student
+	parentCode, _ := h.Store.GetParentCode(c.Request.Context(), classID, studentID)
+	parentURL := ""
+	if parentCode != "" {
+		parentURL = fmt.Sprintf("%s/p/%s", h.BaseURL, parentCode)
+	}
+
 	h.render(c, "admin_student_detail.html", gin.H{
 		"Classroom":     classroom,
 		"Student":       student,
@@ -172,6 +179,8 @@ func (h *Handler) AdminStudentDetail(c *gin.Context) {
 		"AvgQuizPct":    avgQuizPct,
 		"AvgAssignPct":  avgAssignPct,
 		"Remarks":       remarks,
+		"ParentCode":    parentCode,
+		"ParentURL":     parentURL,
 	})
 }
 

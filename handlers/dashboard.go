@@ -93,7 +93,10 @@ func (h *Handler) StudentDashboard(c *gin.Context) {
 // ─── Admin: Add Remark to Student ───────────────────────
 
 func (h *Handler) AdminAddRemark(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	studentID, _ := strconv.Atoi(c.Param("studentId"))
 	content := strings.TrimSpace(c.PostForm("content"))
 
@@ -107,7 +110,10 @@ func (h *Handler) AdminAddRemark(c *gin.Context) {
 // ─── Admin: Delete Remark ───────────────────────────────
 
 func (h *Handler) AdminDeleteRemark(c *gin.Context) {
-	classID := h.ownsClassroom(c); if classID == 0 { return }
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
 	studentID, _ := strconv.Atoi(c.Param("studentId"))
 	remarkID, _ := strconv.Atoi(c.Param("remarkId"))
 

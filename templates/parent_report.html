@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{.StudentName}} — {{.ClassroomName}}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;color:#1e293b;line-height:1.5;padding:0 0 2rem}
+.banner{padding:1.25rem 1rem;color:#fff;text-align:center}
+.banner.green{background:linear-gradient(135deg,#059669,#10b981)}
+.banner.amber{background:linear-gradient(135deg,#d97706,#f59e0b)}
+.banner.red{background:linear-gradient(135deg,#dc2626,#ef4444)}
+.banner.gray{background:linear-gradient(135deg,#6b7280,#9ca3af)}
+.banner h1{font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
+.banner p{font-size:.8rem;opacity:.9}
+.container{max-width:480px;margin:0 auto;padding:0 .75rem}
+.card{background:#fff;border-radius:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:1rem;overflow:hidden}
+.card-header{padding:.75rem 1rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:.5rem;font-weight:600;font-size:.9rem}
+.card-body{padding:.75rem 1rem}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1rem}
+.stat{background:#f8fafc;border-radius:.5rem;padding:.75rem;text-align:center}
+.stat-value{font-size:1.5rem;font-weight:700}
+.stat-value.green{color:#059669}
+.stat-value.amber{color:#d97706}
+.stat-value.red{color:#dc2626}
+.stat-value.blue{color:#2563eb}
+.stat-label{font-size:.7rem;color:#94a3b8;margin-top:.15rem}
+.tbl{width:100%;font-size:.8rem;border-collapse:collapse}
+.tbl th{text-align:left;padding:.5rem;color:#64748b;font-weight:500;font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid #e2e8f0}
+.tbl td{padding:.5rem;border-bottom:1px solid #f1f5f9}
+.tbl tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:.1rem .4rem;border-radius:9999px;font-size:.65rem;font-weight:600}
+.badge-green{background:#d1fae5;color:#065f46}
+.badge-yellow{background:#fef3c7;color:#92400e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-gray{background:#f1f5f9;color:#475569}
+.badge-orange{background:#ffedd5;color:#9a3412}
+.dots{display:flex;gap:3px;flex-wrap:wrap;padding:.5rem 0}
+.dot{width:20px;height:20px;border-radius:50%;display:inline-block}
+.dot-green{background:#10b981}
+.dot-red{background:#ef4444}
+.dot-gray{background:#e2e8f0}
+.remark{padding:.6rem;border-left:3px solid #a78bfa;margin-bottom:.5rem;background:#faf5ff;border-radius:0 .375rem .375rem 0;font-size:.8rem}
+.remark-date{font-size:.65rem;color:#94a3b8;margin-top:.2rem}
+.empty{text-align:center;padding:1.5rem 1rem;color:#94a3b8;font-size:.85rem}
+.footer{text-align:center;margin-top:2rem;padding:1rem;font-size:.75rem;color:#94a3b8}
+.footer a{color:#6366f1;text-decoration:none;font-weight:600}
+.footer a:hover{text-decoration:underline}
+.updated{font-size:.7rem;color:rgba(255,255,255,.75);margin-top:.25rem}
+.pos-indicator{font-size:.7rem;margin-top:.15rem}
+</style>
+</head>
+<body>
+
+<!-- Banner -->
+<div class="banner {{.Banner}}">
+    <h1>{{.StudentName}}</h1>
+    <p>{{.ClassroomName}} · {{.TeacherName}}</p>
+    {{if eq .Lang "fr"}}
+    <p class="updated">Dernière mise à jour : maintenant</p>
+    {{else}}
+    <p class="updated">Last updated: now</p>
+    {{end}}
+</div>
+
+<div class="container">
+
+<!-- Summary Stats -->
+<div class="stats">
+    <div class="stat">
+        <div class="stat-value {{if ge .AvgQuizPct 60.0}}green{{else if ge .AvgQuizPct 40.0}}amber{{else if gt .AvgQuizPct 0.0}}red{{else}}blue{{end}}">
+            {{if gt (len .QuizDetails) 0}}{{printf "%.0f" .AvgQuizPct}}%{{else}}—{{end}}
+        </div>
+        <div class="stat-label">{{if eq .Lang "fr"}}Moy. Quiz{{else}}Quiz Avg{{end}}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value {{if ge .AvgAssignPct 60.0}}green{{else if ge .AvgAssignPct 40.0}}amber{{else if gt .AvgAssignPct 0.0}}red{{else}}blue{{end}}">
+            {{if gt .AvgAssignPct 0.0}}{{printf "%.0f" .AvgAssignPct}}%{{else}}—{{end}}
+        </div>
+        <div class="stat-label">{{if eq .Lang "fr"}}Moy. Devoirs{{else}}Assignment Avg{{end}}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value {{if ge .AttendancePct 80.0}}green{{else if ge .AttendancePct 50.0}}amber{{else if gt .AttendancePct 0.0}}red{{else}}blue{{end}}">
+            {{if gt .TotalSessions 0}}{{printf "%.0f" .AttendancePct}}%{{else}}—{{end}}
+        </div>
+        <div class="stat-label">{{if eq .Lang "fr"}}Présence{{else}}Attendance{{end}}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-value {{if ge .OverallAvg .ClassAvg}}green{{else}}amber{{end}}">
+            {{if gt .OverallAvg 0.0}}{{printf "%.0f" .OverallAvg}}%{{else}}—{{end}}
+        </div>
+        <div class="stat-label">
+            {{if eq .Lang "fr"}}Moyenne générale{{else}}Overall Avg{{end}}
+            {{if gt .ClassAvg 0.0}}
+            <div class="pos-indicator">
+                {{if ge .OverallAvg .ClassAvg}}
+                ✅ {{if eq .Lang "fr"}}Au-dessus de la classe ({{printf "%.0f" .ClassAvg}}%){{else}}Above class avg ({{printf "%.0f" .ClassAvg}}%){{end}}
+                {{else}}
+                ⚠️ {{if eq .Lang "fr"}}En dessous de la classe ({{printf "%.0f" .ClassAvg}}%){{else}}Below class avg ({{printf "%.0f" .ClassAvg}}%){{end}}
+                {{end}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<!-- Quiz Scores -->
+<div class="card">
+    <div class="card-header">📝 {{if eq .Lang "fr"}}Notes des Quiz{{else}}Quiz Scores{{end}}</div>
+    <div class="card-body">
+        {{if .QuizDetails}}
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>{{if eq .Lang "fr"}}Quiz{{else}}Quiz{{end}}</th>
+                    <th style="text-align:center">{{if eq .Lang "fr"}}Note{{else}}Score{{end}}</th>
+                    <th style="text-align:center">%</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .QuizDetails}}
+                <tr>
+                    <td>{{.QuizTitle}}</td>
+                    <td style="text-align:center">{{if .Score}}{{deref .Score}}/{{deref .MaxScore}}{{else}}—{{end}}</td>
+                    <td style="text-align:center">
+                        {{if .Score}}
+                        <span class="badge {{if ge .Pct 80.0}}badge-green{{else if ge .Pct 60.0}}badge-yellow{{else if ge .Pct 40.0}}badge-orange{{else}}badge-red{{end}}">{{printf "%.0f" .Pct}}%</span>
+                        {{else}}—{{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <div class="empty">{{if eq .Lang "fr"}}Aucun quiz complété{{else}}No quizzes completed yet{{end}}</div>
+        {{end}}
+    </div>
+</div>
+
+<!-- Assignments -->
+<div class="card">
+    <div class="card-header">📋 {{if eq .Lang "fr"}}Devoirs{{else}}Assignments{{end}}</div>
+    <div class="card-body">
+        {{if .AssignDetails}}
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th>{{if eq .Lang "fr"}}Devoir{{else}}Assignment{{end}}</th>
+                    <th style="text-align:center">{{if eq .Lang "fr"}}Note{{else}}Grade{{end}}</th>
+                    <th style="text-align:center">{{if eq .Lang "fr"}}Statut{{else}}Status{{end}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .AssignDetails}}
+                <tr>
+                    <td>{{.Title}}</td>
+                    <td style="text-align:center">
+                        {{if .Grade}}
+                        <span class="badge {{if ge .Pct 80.0}}badge-green{{else if ge .Pct 60.0}}badge-yellow{{else if ge .Pct 40.0}}badge-orange{{else}}badge-red{{end}}">{{printf "%.1f" (derefFloat .Grade)}}/{{printf "%.0f" .MaxGrade}}</span>
+                        {{else}}—{{end}}
+                    </td>
+                    <td style="text-align:center">
+                        {{if eq .Status "reviewed"}}
+                        <span class="badge badge-green">{{if eq $.Lang "fr"}}Corrigé{{else}}Reviewed{{end}}</span>
+                        {{else if eq .Status "submitted"}}
+                        <span class="badge badge-yellow">{{if eq $.Lang "fr"}}Soumis{{else}}Submitted{{end}}</span>
+                        {{else}}
+                        <span class="badge badge-gray">{{.Status}}</span>
+                        {{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <div class="empty">{{if eq .Lang "fr"}}Aucun devoir soumis{{else}}No assignments submitted yet{{end}}</div>
+        {{end}}
+    </div>
+</div>
+
+<!-- Attendance -->
+<div class="card">
+    <div class="card-header">📅 {{if eq .Lang "fr"}}Présence{{else}}Attendance{{end}} 
+        {{if gt .TotalSessions 0}}
+        <span style="font-weight:400;font-size:.75rem;color:#64748b;margin-left:auto">{{.Attended}}/{{.TotalSessions}}</span>
+        {{end}}
+    </div>
+    <div class="card-body">
+        {{if .Attendance}}
+        <div class="dots">
+            {{range .Attendance}}
+            <div class="dot {{if .Attended}}dot-green{{else}}dot-red{{end}}" title="{{.SessionDate.Format "Jan 2, 2006"}} — {{if .Attended}}{{if eq $.Lang "fr"}}Présent{{else}}Present{{end}}{{else}}{{if eq $.Lang "fr"}}Absent{{else}}Absent{{end}}{{end}}"></div>
+            {{end}}
+        </div>
+        <div style="font-size:.7rem;color:#94a3b8;margin-top:.25rem">
+            {{if eq .Lang "fr"}}Dernières séances · 🟢 = présent · 🔴 = absent{{else}}Recent sessions · 🟢 = present · 🔴 = absent{{end}}
+        </div>
+        {{else}}
+        <div class="empty">{{if eq .Lang "fr"}}Aucune séance enregistrée{{else}}No sessions recorded yet{{end}}</div>
+        {{end}}
+    </div>
+</div>
+
+<!-- Teacher Remarks -->
+<div class="card">
+    <div class="card-header">💬 {{if eq .Lang "fr"}}Remarques de l'enseignant{{else}}Teacher Remarks{{end}}</div>
+    <div class="card-body">
+        {{if .Remarks}}
+        {{range .Remarks}}
+        <div class="remark">
+            {{.Content}}
+            <div class="remark-date">{{.CreatedAt.Format "Jan 2, 2006"}}</div>
+        </div>
+        {{end}}
+        {{else}}
+        <div class="empty">{{if eq .Lang "fr"}}Aucune remarque{{else}}No remarks yet{{end}}</div>
+        {{end}}
+    </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- Footer with viral loop -->
+<div class="footer">
+    <p>Powered by <a href="{{.FooterLink}}">TeachHub</a></p>
+    {{if eq .Lang "fr"}}
+    <p style="margin-top:.25rem">Vous êtes enseignant ? <a href="{{.FooterLink}}">Créez votre espace →</a></p>
+    {{else}}
+    <p style="margin-top:.25rem">Are you a teacher? <a href="{{.FooterLink}}">Create your space →</a></p>
+    {{end}}
+</div>
+
+</body>
+</html>

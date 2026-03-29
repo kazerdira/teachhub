@@ -21,6 +21,40 @@
     </div>
 </div>
 
+<!-- Parent Report Actions -->
+{{if .ParentURL}}
+<div class="card p-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+    <div>
+        <h3 class="font-semibold text-gray-800 text-sm flex items-center gap-2">📊 {{t .Lang "parent_report"}}</h3>
+        <p class="text-xs text-gray-500 mt-0.5">{{t .Lang "parent_report_desc"}}</p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="copyParentLink('{{.ParentURL}}')" id="copyBtn" class="inline-flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">
+            📋 {{t .Lang "copy_link"}}
+        </button>
+        <a href="https://wa.me/?text={{if eq .Lang "fr"}}Bonjour%2C%20voici%20le%20suivi%20de%20{{.Student.Name}}%20dans%20ma%20classe%3A%20{{.ParentURL}}{{else}}Hello%2C%20here%20is%20{{.Student.Name}}%27s%20progress%20report%3A%20{{.ParentURL}}{{end}}" target="_blank"
+           class="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-700 transition">
+            📱 {{t .Lang "share_whatsapp"}}
+        </a>
+        <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/student/{{.Student.ID}}/regenerate-parent-code" onsubmit="return confirm('{{t .Lang "regen_confirm"}}')">
+{{csrfField $.CSRFToken}}
+            <button type="submit" class="inline-flex items-center gap-1 text-gray-400 hover:text-red-500 text-xs transition" title="{{t .Lang "regen_code"}}">↻ {{t .Lang "regen_code"}}</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function copyParentLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        var btn = document.getElementById('copyBtn');
+        var orig = btn.innerHTML;
+        btn.innerHTML = '✓ {{t .Lang "copied"}}';
+        setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    });
+}
+</script>
+{{end}}
+
 <!-- Quiz Attempts -->
 <div class="mb-8">
     <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">

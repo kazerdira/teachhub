@@ -332,6 +332,39 @@ func (rl *RateLimiter) Reset(ip string) {
 	rl.mu.Unlock()
 }
 
+// RateLimitAll returns a middleware that rate-limits ALL request methods (GET+POST).
+// Used for public pages like parent reports where we want to prevent brute-force URL scanning.
+func RateLimitAll(rl *RateLimiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ip := c.ClientIP()
+		rl.mu.Lock()
+		entry, exists := rl.attempts[ip]
+		if !exists {
+			entry = &rateLimitEntry{}
+			rl.attempts[ip] = entry
+		}
+
+		if !entry.blockedAt.IsZero() {
+			if time.Since(entry.blockedAt) < rl.window {
+				rl.mu.Unlock()
+				c.String(http.StatusTooManyRequests, "Too many requests. Please try again later.")
+				c.Abort()
+				return
+			}
+			entry.attempts = 0
+			entry.blockedAt = time.Time{}
+		}
+
+		entry.attempts++
+		if entry.attempts >= rl.max {
+			entry.blockedAt = time.Now()
+		}
+		rl.mu.Unlock()
+
+		c.Next()
+	}
+}
+
 // ─── Security Headers ──────────────────────────────────
 
 func SecurityHeaders() gin.HandlerFunc {
