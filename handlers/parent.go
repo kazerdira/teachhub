@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -122,7 +123,9 @@ func (h *Handler) ParentReport(c *gin.Context) {
 		lang = "fr"
 	}
 
-	c.HTML(http.StatusOK, "parent_report.html", gin.H{
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.Status(http.StatusOK)
+	if err := h.Tmpl.ExecuteTemplate(c.Writer, "parent_report.html", gin.H{
 		"StudentName":   data.StudentName,
 		"ClassroomName": data.ClassroomName,
 		"TeacherName":   data.TeacherName,
@@ -141,7 +144,10 @@ func (h *Handler) ParentReport(c *gin.Context) {
 		"Lang":          lang,
 		"BaseURL":       h.BaseURL,
 		"FooterLink":    fmt.Sprintf("%s/apply", h.BaseURL),
-	})
+	}); err != nil {
+		log.Printf("Parent report template error: %v", err)
+		c.String(http.StatusInternalServerError, "Something went wrong")
+	}
 }
 
 // RegenerateParentCode generates a new parent code for a student (invalidates old link).
