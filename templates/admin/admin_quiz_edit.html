@@ -168,33 +168,15 @@
     </form>
 </div>
 
-<!-- AI Generation -->
+<!-- AI Generation (coming soon)
 <details class="card mb-8">
-    <summary class="p-4 cursor-pointer font-semibold text-purple-900 hover:bg-purple-50/50 rounded-xl flex items-center gap-2">{{t .Lang "ai_generate"}}</summary>
-    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/quiz/{{.Quiz.ID}}/generate" class="p-5 pt-2 space-y-4 border-t border-purple-100">
-{{csrfField $.CSRFToken}}
-        <textarea name="topic" required class="input w-full" rows="2" placeholder="{{t .Lang "ai_topic_ph"}}"></textarea>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "ai_num_questions"}}</label>
-                <input type="number" name="num_questions" value="5" min="1" max="20" class="input w-full">
-            </div>
-            <div>
-                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "ai_difficulty"}}</label>
-                <select name="difficulty" class="input w-full">
-                    <option value="easy">{{t .Lang "ai_easy"}}</option>
-                    <option value="intermediate" selected>{{t .Lang "ai_intermediate"}}</option>
-                    <option value="hard">{{t .Lang "ai_hard"}}</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "ai_types"}}</label>
-                <input type="text" name="question_types" value="mcq,true_false,fill_blank" class="input w-full">
-            </div>
-        </div>
-        <button class="bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition">{{t .Lang "ai_generate_btn"}}</button>
+    <summary class="p-4 cursor-pointer font-semibold text-purple-900 hover:bg-purple-50/50 rounded-xl flex items-center gap-2">ai_generate</summary>
+    <form method="POST" action="/admin/classroom/0/quiz/0/generate" class="p-5 pt-2 space-y-4 border-t border-purple-100">
+        <textarea name="topic" required class="input w-full" rows="2"></textarea>
+        <button class="bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition">Generate</button>
     </form>
 </details>
+-->
 
 <!-- Attempts -->
 {{if .Attempts}}
