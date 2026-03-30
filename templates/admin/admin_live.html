@@ -2015,8 +2015,10 @@ document.addEventListener('DOMContentLoaded', initWhiteboard);
 
 /* ─── Mini-player (YouTube-style) ───────────────── */
 var liveMini = false;
+var miniTransitioning = false;
 function minimizeLive() {
-    if (liveMini) return;
+    if (liveMini || miniTransitioning) return;
+    miniTransitioning = true;
     var el = document.getElementById('liveSession');
     var rect = el.getBoundingClientRect();
     /* snapshot current position as fixed */
@@ -2049,9 +2051,12 @@ function minimizeLive() {
     var fr = document.getElementById('classroomFrame');
     fr.src = '/admin/classroom/{{.Classroom.ID}}';
     fr.classList.add('active');
+    /* allow clicks after animation settles */
+    setTimeout(function() { miniTransitioning = false; }, 550);
 }
 function expandLive() {
-    if (!liveMini) return;
+    if (!liveMini || miniTransitioning) return;
+    miniTransitioning = true;
     var el = document.getElementById('liveSession');
     /* animate back to full viewport */
     var pad = window.innerWidth >= 768 ? 8 : 0;
@@ -2071,16 +2076,16 @@ function expandLive() {
         el.classList.remove('mini-animating');
         el.removeAttribute('style');
         liveMini = false;
+        miniTransitioning = false;
         fr.src = 'about:blank';
     }
     el.addEventListener('transitionend', cleanup, { once: true });
     /* safety fallback */
     setTimeout(cleanup, 600);
 }
-/* click mini-player to expand */
-document.getElementById('liveSession').addEventListener('click', function(e) {
-    if (!liveMini) return;
-    if (e.target.closest('#miniPlayerBar button')) return;
+/* click mini-player to expand — only on the mini overlay itself */
+document.getElementById('miniPlayerBar').addEventListener('click', function(e) {
+    if (e.target.closest('button')) return;
     expandLive();
 });
 /* recalc position on resize while minimized */
