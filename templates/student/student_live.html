@@ -101,6 +101,8 @@
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 @keyframes hand-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+@keyframes fade-in { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.animate-fade-in { animation: fade-in 0.25s ease-out; }
 .hand-raised { animation: hand-pulse 1.5s ease-in-out infinite; background: #f59e0b !important; }
 .hand-raised:hover { background: #d97706 !important; }
 #mainStage > video { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
@@ -265,7 +267,7 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
             case 'mute-mic':
                 micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgMicMuted, 'warning'); break;
             case 'unmute-mic':
-                micEnabled = true; room.localParticipant.setMicrophoneEnabled(true); updateMicUI(); showToast(msgMicUnmuted, 'success'); break;
+                showUnmuteRequest(); break;
             case 'mute-all':
                 micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgAllMuted, 'warning'); break;
             case 'cam-off':
@@ -422,6 +424,39 @@ function disableCamButton() {
 
 /* ─── Controls ──────────────────────────────────── */
 function toggleMicrophone() { micEnabled = !micEnabled; room.localParticipant.setMicrophoneEnabled(micEnabled); updateMicUI(); }
+
+function showUnmuteRequest() {
+    /* dismiss any previous prompt */
+    var old = document.getElementById('unmutePrompt');
+    if (old) old.remove();
+    var prompt = document.createElement('div');
+    prompt.id = 'unmutePrompt';
+    prompt.className = 'fixed top-16 left-1/2 -translate-x-1/2 z-[70] bg-gray-800 border border-gray-600 rounded-2xl shadow-2xl px-5 py-4 flex flex-col items-center gap-3 animate-fade-in';
+    prompt.style.minWidth = '260px';
+    prompt.innerHTML =
+        '<div class="flex items-center gap-2 text-white text-sm font-medium">' +
+            '<svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>' +
+            '<span>{{t .Lang "unmute_request_title"}}</span>' +
+        '</div>' +
+        '<div class="flex gap-2 w-full">' +
+            '<button id="unmuteAcceptBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 rounded-lg transition">{{t .Lang "unmute_accept"}}</button>' +
+            '<button id="unmuteDeclineBtn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white text-sm font-medium py-2 rounded-lg transition">{{t .Lang "unmute_decline"}}</button>' +
+        '</div>';
+    document.body.appendChild(prompt);
+    document.getElementById('unmuteAcceptBtn').onclick = function() {
+        micEnabled = true; room.localParticipant.setMicrophoneEnabled(true); updateMicUI();
+        showToast(msgMicUnmuted, 'success');
+        sendToTeacher('unmute-accept');
+        prompt.remove();
+    };
+    document.getElementById('unmuteDeclineBtn').onclick = function() {
+        sendToTeacher('unmute-decline');
+        showToast('{{t .Lang "unmute_decline"}}', 'info');
+        prompt.remove();
+    };
+    /* auto-dismiss after 15s (treat as decline) */
+    setTimeout(function() { if (document.getElementById('unmutePrompt')) { sendToTeacher('unmute-decline'); prompt.remove(); } }, 15000);
+}
 function toggleCamera() {
     if (!camApproved) { showToast(msgAskTeacher, 'warning'); return; }
     camEnabled = !camEnabled; room.localParticipant.setCameraEnabled(camEnabled); updateCamUI();

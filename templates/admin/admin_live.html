@@ -622,8 +622,13 @@ function denyCam(index) {
 /* ─── Teacher Controls ──────────────────────────── */
 function toggleStudentMic(identity) {
     var info = participants.get(identity); if (!info) return;
-    if (info.micMuted) { sendCommand('unmute-mic', identity); info.micMuted = false; showToast(msgUnmuted + ' ' + info.name, 'info'); }
-    else { sendCommand('mute-mic', identity); info.micMuted = true; showToast(msgMuted + ' ' + info.name, 'warning'); }
+    if (info.micMuted) {
+        sendCommand('unmute-mic', identity);
+        showToast('{{t .Lang "toast_unmute_requested"}}' + ' ' + info.name, 'info');
+    } else {
+        sendCommand('mute-mic', identity); info.micMuted = true;
+        showToast(msgMuted + ' ' + info.name, 'warning');
+    }
     renderParticipantList();
 }
 function forceStudentCamOff(identity) {
@@ -860,6 +865,12 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
             if (sharedImageUrl) {
                 room.localParticipant.publishData(encoder.encode(JSON.stringify({ action: 'image-share', url: sharedImageUrl })), { reliable: true, destinationIdentities: [participant.identity] });
             }
+        } else if (msg.action === 'unmute-accept' && participant) {
+            var info = participants.get(participant.identity);
+            if (info) { info.micMuted = false; renderParticipantList(); }
+            showToast((participant.name || participant.identity) + ' ' + msgUnmuted, 'success');
+        } else if (msg.action === 'unmute-decline' && participant) {
+            showToast((participant.name || participant.identity) + ' {{t .Lang "toast_unmute_declined"}}', 'warning');
         }
     } catch(e) { console.error('Data parse error:', e); }
 });
