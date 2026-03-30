@@ -258,6 +258,7 @@ function sendToTeacher(action) {
 room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
     try {
         var msg = JSON.parse(decoder.decode(payload));
+        console.log('[DATA] received action:', msg.action, 'from:', participant ? participant.identity : 'unknown');
         switch(msg.action) {
             case 'chat':
                 var chatSender = msg.sender || (participant ? (participant.name || participant.identity) : 'Unknown');
@@ -267,6 +268,7 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
             case 'mute-mic':
                 micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgMicMuted, 'warning'); break;
             case 'unmute-mic':
+                console.log('[UNMUTE] received unmute-mic from teacher');
                 showUnmuteRequest(); break;
             case 'mute-all':
                 micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgAllMuted, 'warning'); break;
@@ -426,6 +428,7 @@ function disableCamButton() {
 function toggleMicrophone() { micEnabled = !micEnabled; room.localParticipant.setMicrophoneEnabled(micEnabled); updateMicUI(); }
 
 function showUnmuteRequest() {
+    console.log('[UNMUTE] showUnmuteRequest() called');
     /* dismiss any previous prompt */
     var old = document.getElementById('unmutePrompt');
     if (old) old.remove();
