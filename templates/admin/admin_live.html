@@ -387,18 +387,18 @@
 
 <!-- ═══ MINI-PLAYER BAR (visible when minimized) ═══ -->
 <div id="miniPlayerBar">
-    <div class="flex items-center justify-between px-3 py-2">
-        <div class="flex items-center gap-2 min-w-0">
-            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
-            <span class="text-white text-xs font-medium truncate">{{.Classroom.Name}}</span>
+    <div class="flex items-center justify-between px-2 py-1.5">
+        <div class="flex items-center gap-1.5 min-w-0">
+            <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
+            <span class="text-white font-medium truncate" style="font-size:10px">{{.Classroom.Name}}</span>
         </div>
-        <div class="flex items-center gap-1">
-            <button onclick="event.stopPropagation(); toggleMicrophone()" class="text-white p-1.5 rounded-full hover:bg-white/20 transition" title="Mic">
-                <svg id="miniMicOn" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
-                <svg id="miniMicOff" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+        <div class="flex items-center gap-0.5">
+            <button onclick="event.stopPropagation(); toggleMicrophone()" class="text-white p-1 rounded-full hover:bg-white/20 transition" title="Mic">
+                <svg id="miniMicOn" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
+                <svg id="miniMicOff" class="w-3 h-3 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
             </button>
-            <button onclick="event.stopPropagation(); expandLive()" class="text-white p-1.5 rounded-full hover:bg-white/20 transition" title="Expand">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg>
+            <button onclick="event.stopPropagation(); expandLive()" class="text-white p-1 rounded-full hover:bg-white/20 transition" title="Expand">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg>
             </button>
         </div>
     </div>
@@ -2035,15 +2035,15 @@ function minimizeLive() {
     /* enable transition & fly to corner */
     el.classList.add('mini-animating');
     requestAnimationFrame(function() {
-        var mW = window.innerWidth < 768 ? 280 : 380;
-        var mH = window.innerWidth < 768 ? 170 : 230;
-        var mg = 16;
+        var mW = window.innerWidth < 768 ? 180 : 240;
+        var mH = window.innerWidth < 768 ? 110 : 140;
+        var mg = 12;
         el.style.top = (window.innerHeight - mH - mg) + 'px';
         el.style.left = (window.innerWidth - mW - mg) + 'px';
         el.style.width = mW + 'px';
         el.style.height = mH + 'px';
-        el.style.borderRadius = '16px';
-        el.style.boxShadow = '0 25px 50px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1)';
+        el.style.borderRadius = '12px';
+        el.style.boxShadow = '0 20px 40px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08)';
     });
     el.classList.add('minimized');
     liveMini = true;
@@ -2092,9 +2092,9 @@ document.getElementById('miniPlayerBar').addEventListener('click', function(e) {
 window.addEventListener('resize', function() {
     if (!liveMini) return;
     var el = document.getElementById('liveSession');
-    var mW = window.innerWidth < 768 ? 280 : 380;
-    var mH = window.innerWidth < 768 ? 170 : 230;
-    var mg = 16;
+    var mW = window.innerWidth < 768 ? 180 : 240;
+    var mH = window.innerWidth < 768 ? 110 : 140;
+    var mg = 12;
     el.style.top = (window.innerHeight - mH - mg) + 'px';
     el.style.left = (window.innerWidth - mW - mg) + 'px';
     el.style.width = mW + 'px';
