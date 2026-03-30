@@ -386,21 +386,20 @@
 <form id="endClassForm" method="POST" action="/admin/classroom/{{.Classroom.ID}}/live/end" class="hidden">{{csrfField $.CSRFToken}}</form>
 
 <!-- ═══ MINI-PLAYER BAR (visible when minimized) ═══ -->
-<div id="miniPlayerBar">
-    <div class="flex items-center justify-between px-2 py-1.5">
-        <div class="flex items-center gap-1.5 min-w-0">
-            <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
-            <span class="text-white font-medium truncate" style="font-size:10px">{{.Classroom.Name}}</span>
+<div id="miniPlayerBar" onclick="expandLive()">
+    <!-- Centered expand icon -->
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div class="bg-black/40 backdrop-blur-sm rounded-full p-2.5">
+            <svg class="w-6 h-6 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg>
         </div>
-        <div class="flex items-center gap-0.5">
-            <button onclick="event.stopPropagation(); toggleMicrophone()" class="text-white p-1 rounded-full hover:bg-white/20 transition" title="Mic">
-                <svg id="miniMicOn" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
-                <svg id="miniMicOff" class="w-3 h-3 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
-            </button>
-            <button onclick="event.stopPropagation(); expandLive()" class="text-white p-1 rounded-full hover:bg-white/20 transition" title="Expand">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg>
-            </button>
-        </div>
+    </div>
+    <!-- Bottom bar: LIVE dot + mic -->
+    <div class="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2.5 py-1.5" style="background:linear-gradient(transparent,rgba(0,0,0,0.7))">
+        <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+        <button onclick="event.stopPropagation(); toggleMicrophone()" class="text-white p-1.5 rounded-full hover:bg-white/20 transition">
+            <svg id="miniMicOn" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>
+            <svg id="miniMicOff" class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+        </button>
     </div>
 </div>
 
@@ -433,11 +432,10 @@
 #liveSession.minimized .bg-gradient-to-r.from-gray-900 { display: none; }
 #liveSession.minimized .bg-gray-900.border-t.border-gray-800 { display: none; }
 #liveSession.minimized #mainStage { border-radius: 0; flex: 1; }
-#liveSession.minimized #placeholder { transform: scale(0.4); }
+#liveSession.minimized #placeholder { transform: scale(0.4); pointer-events: none; }
 #miniPlayerBar {
-    display: none; position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
-    background: linear-gradient(transparent, rgba(0,0,0,0.85));
-    pointer-events: auto;
+    display: none; position: absolute; inset: 0; z-index: 10;
+    cursor: pointer; pointer-events: auto;
 }
 #liveSession.minimized #miniPlayerBar { display: block; }
 #classroomFrame {
@@ -2084,11 +2082,6 @@ function expandLive() {
     /* safety fallback */
     setTimeout(cleanup, 600);
 }
-/* click mini-player to expand — only on the mini overlay itself */
-document.getElementById('miniPlayerBar').addEventListener('click', function(e) {
-    if (e.target.closest('button')) return;
-    expandLive();
-});
 /* recalc position on resize while minimized */
 window.addEventListener('resize', function() {
     if (!liveMini) return;
