@@ -9,5 +9,9 @@ rtc:
   port_range_end: 7892
   use_external_ip: true
   node_ip: NODE_IP
+turn:
+  enabled: true
+  domain: teachhub.chickenkiller.com
+  udp_port: 3478
 keys:
   teachhub: LIVEKIT_SECRET

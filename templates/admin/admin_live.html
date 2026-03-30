@@ -3,6 +3,14 @@
 <!-- Toast notification container -->
 <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
+<!-- Reconnecting banner -->
+<div id="reconnectBanner" class="fixed top-0 left-0 right-0 z-[60] bg-amber-500 text-white text-center py-2 text-sm font-medium hidden">
+    <div class="flex items-center justify-center gap-2">
+        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+        Reconnecting…
+    </div>
+</div>
+
 <div class="flex h-full overflow-hidden">
     <!-- ═══ SIDEBAR (Desktop) ═══════════════════════ -->
     <div id="desktopSidebar" class="hidden md:flex md:w-80 flex-shrink-0 flex-col gap-2 overflow-hidden">
@@ -401,7 +409,11 @@
 <script src="/static/js/livekit-client.umd.js"></script>
 <script>
 const LK = LivekitClient;
-const room = new LK.Room({ adaptiveStream: true, dynacast: true });
+const room = new LK.Room({
+    adaptiveStream: true,
+    dynacast: true,
+    publishDefaults: { dtx: true, red: true }
+});
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -779,6 +791,12 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
             showToast((participant.name || participant.identity) + ' {{t .Lang "toast_hand_lowered"}}', 'info');
         } else if (msg.action === 'poll-vote' && participant) {
             handlePollVote(participant.identity, msg.optionIndex);
+        } else if (msg.action === 'wb-request-state' && participant) {
+            /* Student reconnected — re-send all live state */
+            if (wbActive) sendWbStateTo(participant.identity);
+            if (sharedImageUrl) {
+                room.localParticipant.publishData(encoder.encode(JSON.stringify({ action: 'image-share', url: sharedImageUrl })), { reliable: true, destinationIdentities: [participant.identity] });
+            }
         }
     } catch(e) { console.error('Data parse error:', e); }
 });
@@ -802,6 +820,15 @@ room.on(LK.RoomEvent.ActiveSpeakersChanged, function(speakers) {
         var entry = trackMap.get(k);
         el.classList.toggle('speaking', entry && sids[entry.participant.sid] ? true : false);
     });
+});
+
+/* ─── Reconnection Handling ─────────────────────── */
+room.on(LK.RoomEvent.Reconnecting, function() {
+    document.getElementById('reconnectBanner').classList.remove('hidden');
+});
+room.on(LK.RoomEvent.Reconnected, function() {
+    document.getElementById('reconnectBanner').classList.add('hidden');
+    showToast('Connection restored ✓', 'success');
 });
 
 /* ─── Local Controls ────────────────────────────── */

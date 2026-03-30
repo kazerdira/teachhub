@@ -3,6 +3,14 @@
 <!-- Toast notification container -->
 <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
+<!-- Reconnecting banner -->
+<div id="reconnectBanner" class="fixed top-0 left-0 right-0 z-[60] bg-amber-500 text-white text-center py-2 text-sm font-medium hidden">
+    <div class="flex items-center justify-center gap-2">
+        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+        Reconnecting…
+    </div>
+</div>
+
 <div class="flex flex-col h-full overflow-hidden">
     <!-- Header bar -->
     <div class="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-3 py-2 md:px-5 md:py-2.5 flex items-center justify-between flex-shrink-0">
@@ -190,7 +198,11 @@
 <script src="/static/js/livekit-client.umd.js"></script>
 <script>
 var LK = LivekitClient;
-var room = new LK.Room({ adaptiveStream: true, dynacast: true });
+var room = new LK.Room({
+    adaptiveStream: true,
+    dynacast: true,
+    publishDefaults: { dtx: true, red: true }
+});
 var encoder = new TextEncoder();
 var decoder = new TextDecoder();
 
@@ -992,6 +1004,22 @@ room.on(LK.RoomEvent.ActiveSpeakersChanged, function(speakers) {
         var entry = trackMap.get(k);
         el.classList.toggle('speaking', entry && sids[entry.participant.sid] ? true : false);
     });
+});
+
+/* ─── Reconnection Handling ─────────────────────── */
+room.on(LK.RoomEvent.Reconnecting, function() {
+    document.getElementById('reconnectBanner').classList.remove('hidden');
+});
+room.on(LK.RoomEvent.Reconnected, function() {
+    document.getElementById('reconnectBanner').classList.add('hidden');
+    showToast('Connection restored ✓', 'success');
+    /* Re-request whiteboard + shared image state from teacher */
+    try {
+        room.localParticipant.publishData(
+            encoder.encode(JSON.stringify({ action: 'wb-request-state' })),
+            { reliable: true, destinationIdentities: ['admin'] }
+        );
+    } catch(e) { console.warn('Could not request state:', e); }
 });
 
 /* ─── Connect ───────────────────────────────────── */

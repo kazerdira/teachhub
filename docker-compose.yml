@@ -22,6 +22,7 @@ services:
       - "7880:7880"
       - "7881:7881"
       - "7882-7892:7882-7892/udp"
+      - "3478:3478/udp"
     volumes:
       - ./livekit.yaml:/livekit.yaml:ro
     healthcheck:
