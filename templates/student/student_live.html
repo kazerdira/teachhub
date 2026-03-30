@@ -258,7 +258,6 @@ function sendToTeacher(action) {
 room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
     try {
         var msg = JSON.parse(decoder.decode(payload));
-        console.log('[DATA] received action:', msg.action, 'from:', participant ? participant.identity : 'unknown');
         switch(msg.action) {
             case 'chat':
                 var chatSender = msg.sender || (participant ? (participant.name || participant.identity) : 'Unknown');
@@ -268,7 +267,6 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
             case 'mute-mic':
                 micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgMicMuted, 'warning'); break;
             case 'unmute-mic':
-                console.log('[UNMUTE] received unmute-mic from teacher');
                 showUnmuteRequest(); break;
             case 'mute-all':
                 micEnabled = false; room.localParticipant.setMicrophoneEnabled(false); updateMicUI(); showToast(msgAllMuted, 'warning'); break;
@@ -428,22 +426,20 @@ function disableCamButton() {
 function toggleMicrophone() { micEnabled = !micEnabled; room.localParticipant.setMicrophoneEnabled(micEnabled); updateMicUI(); }
 
 function showUnmuteRequest() {
-    console.log('[UNMUTE] showUnmuteRequest() called');
     /* dismiss any previous prompt */
     var old = document.getElementById('unmutePrompt');
     if (old) old.remove();
     var prompt = document.createElement('div');
     prompt.id = 'unmutePrompt';
-    prompt.className = 'fixed top-16 left-1/2 -translate-x-1/2 z-[70] bg-gray-800 border border-gray-600 rounded-2xl shadow-2xl px-5 py-4 flex flex-col items-center gap-3 animate-fade-in';
-    prompt.style.minWidth = '260px';
+    prompt.style.cssText = 'position:fixed;top:4rem;left:50%;transform:translateX(-50%);z-index:9999;background:#1f2937;border:1px solid #4b5563;border-radius:1rem;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);padding:1rem 1.25rem;display:flex;flex-direction:column;align-items:center;gap:0.75rem;min-width:260px;animation:fade-in 0.25s ease-out;';
     prompt.innerHTML =
-        '<div class="flex items-center gap-2 text-white text-sm font-medium">' +
-            '<svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>' +
+        '<div style="display:flex;align-items:center;gap:0.5rem;color:white;font-size:0.875rem;font-weight:500;">' +
+            '<svg style="width:1.25rem;height:1.25rem;color:#fbbf24;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-14 0m7 7v4m-4 0h8M12 1a3 3 0 00-3 3v4a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>' +
             '<span>{{t .Lang "unmute_request_title"}}</span>' +
         '</div>' +
-        '<div class="flex gap-2 w-full">' +
-            '<button id="unmuteAcceptBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 rounded-lg transition">{{t .Lang "unmute_accept"}}</button>' +
-            '<button id="unmuteDeclineBtn" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white text-sm font-medium py-2 rounded-lg transition">{{t .Lang "unmute_decline"}}</button>' +
+        '<div style="display:flex;gap:0.5rem;width:100%;">' +
+            '<button id="unmuteAcceptBtn" style="flex:1;background:#16a34a;color:white;font-size:0.875rem;font-weight:500;padding:0.5rem 0;border:none;border-radius:0.5rem;cursor:pointer;">{{t .Lang "unmute_accept"}}</button>' +
+            '<button id="unmuteDeclineBtn" style="flex:1;background:#4b5563;color:white;font-size:0.875rem;font-weight:500;padding:0.5rem 0;border:none;border-radius:0.5rem;cursor:pointer;">{{t .Lang "unmute_decline"}}</button>' +
         '</div>';
     document.body.appendChild(prompt);
     document.getElementById('unmuteAcceptBtn').onclick = function() {
