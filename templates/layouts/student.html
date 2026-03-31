@@ -37,6 +37,112 @@
 
 {{define "student_foot"}}
     </main>
+<!-- Upload Progress Overlay -->
+<div id="uploadOverlay" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;min-width:300px;max-width:360px;background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.15);padding:1rem 1.25rem;font-family:Inter,system-ui,sans-serif;transition:all 0.3s ease;opacity:0;transform:translateY(20px);">
+  <div style="display:flex;align-items:center;gap:0.625rem;margin-bottom:0.75rem;">
+    <div id="uploadIconWrap" style="width:2.25rem;height:2.25rem;border-radius:0.625rem;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg id="uploadIconArrow" style="width:1.125rem;height:1.125rem;color:#fff;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18M17 8l4 4m0 0l-4 4"/></svg>
+      <svg id="uploadIconCheck" style="display:none;width:1.125rem;height:1.125rem;color:#fff;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div id="uploadFileName" style="font-size:0.8125rem;font-weight:600;color:#1f2937;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Uploading...</div>
+      <div id="uploadStatus" style="font-size:0.6875rem;color:#6b7280;margin-top:1px;">Starting...</div>
+    </div>
+    <div id="uploadPercent" style="font-size:0.875rem;font-weight:700;color:#6366f1;flex-shrink:0;">0%</div>
+  </div>
+  <div style="width:100%;height:6px;background:#f3f4f6;border-radius:999px;overflow:hidden;">
+    <div id="uploadBar" style="height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:999px;transition:width 0.3s ease;"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var overlay=document.getElementById('uploadOverlay'),bar=document.getElementById('uploadBar'),
+      pct=document.getElementById('uploadPercent'),fname=document.getElementById('uploadFileName'),
+      status=document.getElementById('uploadStatus'),iconArrow=document.getElementById('uploadIconArrow'),
+      iconCheck=document.getElementById('uploadIconCheck'),iconWrap=document.getElementById('uploadIconWrap'),hideTimer=null;
+  function show(name){
+    clearTimeout(hideTimer);
+    fname.textContent=name||'Uploading...';
+    status.textContent='Starting...';
+    pct.textContent='0%';pct.style.color='#6366f1';
+    bar.style.width='0%';bar.style.background='linear-gradient(90deg,#6366f1,#818cf8)';
+    iconArrow.style.display='';iconCheck.style.display='none';
+    iconWrap.style.background='linear-gradient(135deg,#6366f1,#4f46e5)';
+    overlay.style.display='block';
+    setTimeout(function(){overlay.style.opacity='1';overlay.style.transform='translateY(0)';},10);
+  }
+  function progress(p){
+    var v=Math.min(100,Math.max(0,Math.round(p)));
+    bar.style.width=v+'%';pct.textContent=v+'%';
+    if(v<100)status.textContent='Uploading... '+v+'%';
+  }
+  function done(ok,msg){
+    bar.style.width='100%';
+    if(ok){
+      pct.textContent='✓';pct.style.color='#16a34a';
+      bar.style.background='linear-gradient(90deg,#16a34a,#22c55e)';
+      iconWrap.style.background='linear-gradient(135deg,#16a34a,#22c55e)';
+      iconArrow.style.display='none';iconCheck.style.display='';
+      status.textContent=msg||'Upload complete!';
+    } else {
+      pct.textContent='✗';pct.style.color='#dc2626';
+      bar.style.background='#dc2626';
+      iconWrap.style.background='#dc2626';
+      status.textContent=msg||'Upload failed';
+    }
+    hideTimer=setTimeout(hide,ok?2000:4000);
+  }
+  function hide(){
+    overlay.style.opacity='0';overlay.style.transform='translateY(20px)';
+    setTimeout(function(){overlay.style.display='none';},300);
+  }
+  window._upProgress={show:show,progress:progress,done:done,hide:hide};
+  /* Helper: upload FormData with progress */
+  window.uploadWithProgress=function(url,formData,fileName,opts){
+    opts=opts||{};
+    return new Promise(function(resolve,reject){
+      show(fileName||'File');
+      var xhr=new XMLHttpRequest();
+      xhr.open(opts.method||'POST',url);
+      if(opts.headers){for(var k in opts.headers)xhr.setRequestHeader(k,opts.headers[k]);}
+      xhr.upload.onprogress=function(e){if(e.lengthComputable)progress(e.loaded/e.total*100);};
+      xhr.onload=function(){
+        if(xhr.status>=200&&xhr.status<300){
+          done(true);
+          try{resolve(JSON.parse(xhr.responseText));}catch(e){resolve(xhr.responseText);}
+        } else {
+          done(false,'Error '+xhr.status);
+          reject(new Error('HTTP '+xhr.status));
+        }
+      };
+      xhr.onerror=function(){done(false,'Network error');reject(new Error('Network error'));};
+      xhr.send(formData);
+    });
+  };
+  /* Auto-intercept multipart forms */
+  document.addEventListener('submit',function(e){
+    var form=e.target;
+    if(!form||form.getAttribute('enctype')!=='multipart/form-data')return;
+    var fileInput=form.querySelector('input[type=file]');
+    if(!fileInput||!fileInput.files||!fileInput.files.length)return;
+    e.preventDefault();
+    var fd=new FormData(form);
+    var file=fileInput.files[0];
+    show(file.name);
+    var xhr=new XMLHttpRequest();
+    xhr.open(form.method||'POST',form.action);
+    xhr.upload.onprogress=function(ev){if(ev.lengthComputable)progress(ev.loaded/ev.total*100);};
+    xhr.onload=function(){
+      if(xhr.status>=200&&xhr.status<400){
+        done(true);
+        setTimeout(function(){window.location.href=xhr.responseURL||form.action;},800);
+      } else { done(false,'Error '+xhr.status); }
+    };
+    xhr.onerror=function(){done(false,'Network error');};
+    xhr.send(fd);
+  });
+})();
+</script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');</script>
 </body>
 </html>
@@ -72,6 +178,89 @@
 {{define "student_live_foot"}}
         </div>
     </main>
+<!-- Upload Progress Overlay -->
+<div id="uploadOverlay" style="display:none;position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;min-width:280px;max-width:340px;background:rgba(17,24,39,0.95);border:1px solid #374151;border-radius:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.4);padding:1rem 1.25rem;font-family:Inter,system-ui,sans-serif;transition:all 0.3s ease;opacity:0;transform:translateY(20px);backdrop-filter:blur(8px);">
+  <div style="display:flex;align-items:center;gap:0.625rem;margin-bottom:0.75rem;">
+    <div id="uploadIconWrap" style="width:2.25rem;height:2.25rem;border-radius:0.625rem;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg id="uploadIconArrow" style="width:1.125rem;height:1.125rem;color:#fff;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18M17 8l4 4m0 0l-4 4"/></svg>
+      <svg id="uploadIconCheck" style="display:none;width:1.125rem;height:1.125rem;color:#fff;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div id="uploadFileName" style="font-size:0.8125rem;font-weight:600;color:#f3f4f6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Uploading...</div>
+      <div id="uploadStatus" style="font-size:0.6875rem;color:#9ca3af;margin-top:1px;">Starting...</div>
+    </div>
+    <div id="uploadPercent" style="font-size:0.875rem;font-weight:700;color:#818cf8;flex-shrink:0;">0%</div>
+  </div>
+  <div style="width:100%;height:6px;background:#1f2937;border-radius:999px;overflow:hidden;">
+    <div id="uploadBar" style="height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:999px;transition:width 0.3s ease;"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var overlay=document.getElementById('uploadOverlay'),bar=document.getElementById('uploadBar'),
+      pct=document.getElementById('uploadPercent'),fname=document.getElementById('uploadFileName'),
+      status=document.getElementById('uploadStatus'),iconArrow=document.getElementById('uploadIconArrow'),
+      iconCheck=document.getElementById('uploadIconCheck'),iconWrap=document.getElementById('uploadIconWrap'),hideTimer=null;
+  function show(name){
+    clearTimeout(hideTimer);
+    fname.textContent=name||'Uploading...';
+    status.textContent='Starting...';
+    pct.textContent='0%';pct.style.color='#818cf8';
+    bar.style.width='0%';bar.style.background='linear-gradient(90deg,#6366f1,#818cf8)';
+    iconArrow.style.display='';iconCheck.style.display='none';
+    iconWrap.style.background='linear-gradient(135deg,#6366f1,#4f46e5)';
+    overlay.style.display='block';
+    setTimeout(function(){overlay.style.opacity='1';overlay.style.transform='translateY(0)';},10);
+  }
+  function progress(p){
+    var v=Math.min(100,Math.max(0,Math.round(p)));
+    bar.style.width=v+'%';pct.textContent=v+'%';
+    if(v<100)status.textContent='Uploading... '+v+'%';
+  }
+  function done(ok,msg){
+    bar.style.width='100%';
+    if(ok){
+      pct.textContent='\u2713';pct.style.color='#4ade80';
+      bar.style.background='linear-gradient(90deg,#16a34a,#22c55e)';
+      iconWrap.style.background='linear-gradient(135deg,#16a34a,#22c55e)';
+      iconArrow.style.display='none';iconCheck.style.display='';
+      status.textContent=msg||'Upload complete!';
+    } else {
+      pct.textContent='\u2717';pct.style.color='#f87171';
+      bar.style.background='#dc2626';
+      iconWrap.style.background='#dc2626';
+      status.textContent=msg||'Upload failed';
+    }
+    hideTimer=setTimeout(hide,ok?2000:4000);
+  }
+  function hide(){
+    overlay.style.opacity='0';overlay.style.transform='translateY(20px)';
+    setTimeout(function(){overlay.style.display='none';},300);
+  }
+  window._upProgress={show:show,progress:progress,done:done,hide:hide};
+  window.uploadWithProgress=function(url,formData,fileName,opts){
+    opts=opts||{};
+    return new Promise(function(resolve,reject){
+      show(fileName||'File');
+      var xhr=new XMLHttpRequest();
+      xhr.open(opts.method||'POST',url);
+      if(opts.headers){for(var k in opts.headers)xhr.setRequestHeader(k,opts.headers[k]);}
+      xhr.upload.onprogress=function(e){if(e.lengthComputable)progress(e.loaded/e.total*100);};
+      xhr.onload=function(){
+        if(xhr.status>=200&&xhr.status<300){
+          done(true);
+          try{resolve(JSON.parse(xhr.responseText));}catch(e){resolve(xhr.responseText);}
+        } else {
+          done(false,'Error '+xhr.status);
+          reject(new Error('HTTP '+xhr.status));
+        }
+      };
+      xhr.onerror=function(){done(false,'Network error');reject(new Error('Network error'));};
+      xhr.send(formData);
+    });
+  };
+})();
+</script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');</script>
 </body>
 </html>

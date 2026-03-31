@@ -998,18 +998,16 @@ function updateAvatarPlaceholder(ph) {
 
 async function uploadTeacherPic(input) {
     if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
     var fd = new FormData();
-    fd.append('pic', input.files[0]);
+    fd.append('pic', file);
     fd.append('_csrf', '{{.CSRFToken}}');
     try {
-        var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/teacher-pic', { method: 'POST', body: fd });
-        var data = await resp.json();
+        var data = await uploadWithProgress('/admin/classroom/{{.Classroom.ID}}/live/teacher-pic', fd, file.name);
         if (data.url) {
             teacherPicUrl = data.url;
-            /* refresh placeholder if visible */
             var ph = document.getElementById('placeholder');
             if (ph && ph.style.display !== 'none') updateAvatarPlaceholder(ph);
-            /* broadcast new pic to students */
             broadcastCommand('teacher-pic', { url: data.url });
             showToast('Profile picture updated!', 'success');
         }
@@ -1265,16 +1263,12 @@ async function uploadImage(input) {
     var file = input.files[0]; if (!file) return;
     var formData = new FormData();
     formData.append('image', file);
-    showToast('{{t .Lang "uploading"}}', 'info');
     try {
         var csrfMeta = document.querySelector('input[name=_csrf]');
         var csrfToken = csrfMeta ? csrfMeta.value : '';
-        var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/image', {
-            method: 'POST',
-            headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
-            body: formData
+        var data = await uploadWithProgress('/admin/classroom/{{.Classroom.ID}}/live/image', formData, file.name, {
+            headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {}
         });
-        var data = await resp.json();
         if (data.url) {
             sharedImageUrl = data.url;
             var msg = { action: 'image-share', url: data.url };
@@ -1884,19 +1878,13 @@ async function uploadPDF(input) {
     var file = input.files[0]; if (!file) return;
     var formData = new FormData();
     formData.append('pdf', file);
-    showToast('{{t .Lang "uploading"}}', 'info');
     try {
         var csrfEl = document.querySelector('input[name=_csrf]');
         var headers = csrfEl ? { 'X-CSRF-Token': csrfEl.value } : {};
-        var resp = await fetch('/admin/classroom/{{.Classroom.ID}}/live/pdf', {
-            method: 'POST', body: formData, headers: headers, credentials: 'same-origin'
-        });
-        if (!resp.ok) { showToast('Upload failed: ' + resp.status, 'error'); input.value = ''; return; }
-        var data = await resp.json();
+        var data = await uploadWithProgress('/admin/classroom/{{.Classroom.ID}}/live/pdf', formData, file.name, { headers: headers });
         if (data.url) {
             wbPdfUrl = data.url;
             await loadPdfDocument(data.url);
-            /* Broadcast PDF URL to students */
             broadcastCommand('wb-pdf', { url: data.url });
             showToast('{{t .Lang "wb_pdf_loaded"}}', 'success');
         } else { showToast(data.error || 'Upload failed', 'error'); }
