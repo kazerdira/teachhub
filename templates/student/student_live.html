@@ -637,6 +637,7 @@ function removeSharedImage() {
 
 /* ─── Whiteboard Receiver ───────────────────────── */
 var sWbCanvas, sWbCtx;
+var sWbStrokeCanvas, sWbStrokeCtx; // offscreen canvas for strokes (eraser-safe)
 var sWbStrokes = [];
 var sWbBgObj = null;
 var sWbImgRect = null;
@@ -680,6 +681,8 @@ function initStudentWb() {
     sWbCanvas = document.getElementById('wbCanvas');
     if (!sWbCanvas) return;
     sWbCtx = sWbCanvas.getContext('2d');
+    sWbStrokeCanvas = document.createElement('canvas');
+    sWbStrokeCtx = sWbStrokeCanvas.getContext('2d');
     window.addEventListener('resize', resizeStudentWb);
     /* Pinch-to-zoom+pan */
     sWbCanvas.addEventListener('touchstart', function(e) {
@@ -731,6 +734,7 @@ function resizeStudentWb() {
     var parent = sWbCanvas.parentElement;
     sWbCanvas.width = parent.clientWidth;
     sWbCanvas.height = parent.clientHeight;
+    if (sWbStrokeCanvas) { sWbStrokeCanvas.width = sWbCanvas.width; sWbStrokeCanvas.height = sWbCanvas.height; }
     sWbRedrawAll();
 }
 
@@ -779,38 +783,39 @@ function setStudentWbBg(url) {
     img.src = url;
 }
 
-function sDrawStroke(stroke) {
-    if (!sWbCtx || stroke.points.length < 2) return;
-    sWbCtx.save();
-    sWbCtx.lineCap = 'round';
-    sWbCtx.lineJoin = 'round';
-    sWbCtx.globalAlpha = stroke.alpha || 1;
+function sDrawStrokeOn(ctx, stroke) {
+    if (!ctx || stroke.points.length < 2) return;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.globalAlpha = stroke.alpha || 1;
     if (stroke.color === 'eraser') {
-        sWbCtx.globalCompositeOperation = 'destination-out';
-        sWbCtx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
     } else {
-        sWbCtx.globalCompositeOperation = 'source-over';
-        sWbCtx.strokeStyle = stroke.color;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = stroke.color;
     }
     var w = sWbCanvas.width, h = sWbCanvas.height;
     var pts = stroke.points;
-    sWbCtx.lineWidth = stroke.width;
-    sWbCtx.beginPath();
-    sWbCtx.moveTo(pts[0].x * w, pts[0].y * h);
+    ctx.lineWidth = stroke.width;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x * w, pts[0].y * h);
     if (pts.length === 2) {
-        sWbCtx.lineTo(pts[1].x * w, pts[1].y * h);
+        ctx.lineTo(pts[1].x * w, pts[1].y * h);
     } else {
         for (var i = 1; i < pts.length - 1; i++) {
             var cx = (pts[i].x * w + pts[i + 1].x * w) / 2;
             var cy = (pts[i].y * h + pts[i + 1].y * h) / 2;
-            sWbCtx.quadraticCurveTo(pts[i].x * w, pts[i].y * h, cx, cy);
+            ctx.quadraticCurveTo(pts[i].x * w, pts[i].y * h, cx, cy);
         }
         var last = pts[pts.length - 1];
-        sWbCtx.lineTo(last.x * w, last.y * h);
+        ctx.lineTo(last.x * w, last.y * h);
     }
-    sWbCtx.stroke();
-    sWbCtx.restore();
+    ctx.stroke();
+    ctx.restore();
 }
+function sDrawStroke(stroke) { sDrawStrokeOn(sWbCtx, stroke); }
 
 function sWbRedrawAll() {
     if (!sWbCtx) return;
@@ -821,11 +826,24 @@ function sWbRedrawAll() {
     if (sWbBgObj && sWbImgRect) {
         sWbCtx.drawImage(sWbBgObj, sWbImgRect.x * cw, sWbImgRect.y * ch, sWbImgRect.w * cw, sWbImgRect.h * ch);
     }
-    for (var i = 0; i < sWbStrokes.length; i++) {
-        sDrawStroke(sWbStrokes[i]);
-    }
-    if (sWbLiveStroke && sWbLiveStroke.points.length > 1) {
-        sDrawStroke(sWbLiveStroke);
+    /* Collect all strokes including live */
+    var allStrokes = sWbStrokes.slice();
+    if (sWbLiveStroke && sWbLiveStroke.points.length > 1) allStrokes.push(sWbLiveStroke);
+    var hasEraser = allStrokes.some(function(s){ return s.color === 'eraser'; });
+    if (hasEraser && sWbStrokeCtx) {
+        sWbStrokeCtx.setTransform(1, 0, 0, 1, 0, 0);
+        sWbStrokeCtx.clearRect(0, 0, cw, ch);
+        sWbStrokeCtx.setTransform(sWbScale, 0, 0, sWbScale, sWbPanX, sWbPanY);
+        for (var i = 0; i < allStrokes.length; i++) {
+            sDrawStrokeOn(sWbStrokeCtx, allStrokes[i]);
+        }
+        sWbCtx.setTransform(1, 0, 0, 1, 0, 0);
+        sWbCtx.drawImage(sWbStrokeCanvas, 0, 0);
+        sWbCtx.setTransform(sWbScale, 0, 0, sWbScale, sWbPanX, sWbPanY);
+    } else {
+        for (var i = 0; i < allStrokes.length; i++) {
+            sDrawStrokeOn(sWbCtx, allStrokes[i]);
+        }
     }
 }
 
