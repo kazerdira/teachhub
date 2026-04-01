@@ -8,66 +8,96 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;color:#1e293b;line-height:1.5;padding:0 0 2rem}
-.banner{padding:1.25rem 1rem;color:#fff;text-align:center}
+
+/* Banner */
+.banner{padding:1.5rem 1rem 1.25rem;color:#fff;text-align:center;position:relative;overflow:hidden}
+.banner::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.15) 0%,transparent 60%)}
 .banner.green{background:linear-gradient(135deg,#059669,#10b981)}
 .banner.amber{background:linear-gradient(135deg,#d97706,#f59e0b)}
 .banner.red{background:linear-gradient(135deg,#dc2626,#ef4444)}
 .banner.gray{background:linear-gradient(135deg,#6b7280,#9ca3af)}
-.banner h1{font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
-.banner p{font-size:.8rem;opacity:.9}
+.banner h1{font-size:1.35rem;font-weight:700;margin-bottom:.1rem;position:relative}
+.banner p{font-size:.8rem;opacity:.9;position:relative}
+.banner .updated{font-size:.7rem;opacity:.65;margin-top:.35rem;position:relative}
+.banner .trend-badge{display:inline-block;margin-top:.4rem;padding:.15rem .6rem;border-radius:9999px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.2);backdrop-filter:blur(4px);position:relative}
+
+/* Container */
 .container{max-width:480px;margin:0 auto;padding:0 .75rem}
-.card{background:#fff;border-radius:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-top:1rem;overflow:hidden}
-.card-header{padding:.75rem 1rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:.5rem;font-weight:600;font-size:.9rem}
-.card-body{padding:.75rem 1rem}
+
+/* Stats grid */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:1rem}
-.stat{background:#f8fafc;border-radius:.5rem;padding:.75rem;text-align:center}
+.stat{background:#fff;border-radius:.75rem;padding:.75rem;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .stat-value{font-size:1.5rem;font-weight:700}
 .stat-value.green{color:#059669}
 .stat-value.amber{color:#d97706}
 .stat-value.red{color:#dc2626}
-.stat-value.blue{color:#2563eb}
+.stat-value.blue{color:#6366f1}
 .stat-label{font-size:.7rem;color:#94a3b8;margin-top:.15rem}
+.stat .pos-indicator{font-size:.65rem;margin-top:.15rem;color:#64748b}
+
+/* Cards */
+.card{background:#fff;border-radius:.75rem;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-top:1rem;overflow:hidden}
+.card-header{padding:.75rem 1rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:.5rem;font-weight:600;font-size:.9rem}
+.card-body{padding:.75rem 1rem}
+
+/* Table */
 .tbl{width:100%;font-size:.8rem;border-collapse:collapse}
 .tbl th{text-align:left;padding:.5rem;color:#64748b;font-weight:500;font-size:.7rem;text-transform:uppercase;letter-spacing:.03em;border-bottom:1px solid #e2e8f0}
-.tbl td{padding:.5rem;border-bottom:1px solid #f1f5f9}
+.tbl td{padding:.5rem;border-bottom:1px solid #f1f5f9;vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
-.badge{display:inline-block;padding:.1rem .4rem;border-radius:9999px;font-size:.65rem;font-weight:600}
+.tbl .date-cell{font-size:.65rem;color:#94a3b8;display:block;margin-top:.1rem}
+
+/* Badges */
+.badge{display:inline-block;padding:.1rem .45rem;border-radius:9999px;font-size:.65rem;font-weight:600}
 .badge-green{background:#d1fae5;color:#065f46}
 .badge-yellow{background:#fef3c7;color:#92400e}
 .badge-red{background:#fee2e2;color:#991b1b}
 .badge-gray{background:#f1f5f9;color:#475569}
 .badge-orange{background:#ffedd5;color:#9a3412}
-.dots{display:flex;gap:3px;flex-wrap:wrap;padding:.5rem 0}
-.dot{width:20px;height:20px;border-radius:50%;display:inline-block}
-.dot-green{background:#10b981}
-.dot-red{background:#ef4444}
-.dot-gray{background:#e2e8f0}
-.remark{padding:.6rem;border-left:3px solid #a78bfa;margin-bottom:.5rem;background:#faf5ff;border-radius:0 .375rem .375rem 0;font-size:.8rem}
+
+/* Attendance */
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:.35rem;padding:.25rem 0}
+.att-item{text-align:center;padding:.35rem .2rem;border-radius:.375rem;font-size:.6rem;line-height:1.3}
+.att-item.present{background:#d1fae5;color:#065f46}
+.att-item.absent{background:#fee2e2;color:#991b1b}
+.att-item .att-icon{font-size:.85rem;display:block}
+.att-item .att-date{display:block;margin-top:.1rem}
+
+/* Remarks */
+.remark{padding:.65rem;border-left:3px solid #a78bfa;margin-bottom:.5rem;background:#faf5ff;border-radius:0 .375rem .375rem 0;font-size:.8rem}
 .remark-date{font-size:.65rem;color:#94a3b8;margin-top:.2rem}
-.empty{text-align:center;padding:1.5rem 1rem;color:#94a3b8;font-size:.85rem}
+
+/* Empty */
+.empty{text-align:center;padding:1.25rem 1rem;color:#94a3b8;font-size:.85rem}
+.empty-icon{font-size:1.5rem;margin-bottom:.25rem}
+
+/* Footer */
 .footer{text-align:center;margin-top:2rem;padding:1rem;font-size:.75rem;color:#94a3b8}
 .footer a{color:#6366f1;text-decoration:none;font-weight:600}
 .footer a:hover{text-decoration:underline}
-.updated{font-size:.7rem;color:rgba(255,255,255,.75);margin-top:.25rem}
-.pos-indicator{font-size:.7rem;margin-top:.15rem}
 </style>
 </head>
 <body>
 
-<!-- Banner -->
+<!-- ═══ Banner ═══ -->
 <div class="banner {{.Banner}}">
-    <h1>{{.StudentName}}</h1>
+    <h1>📊 {{.StudentName}}</h1>
     <p>{{.ClassroomName}} · {{.TeacherName}}</p>
-    {{if eq .Lang "fr"}}
-    <p class="updated">Dernière mise à jour : maintenant</p>
-    {{else}}
-    <p class="updated">Last updated: now</p>
+    {{if eq .Trend "up"}}
+    <div class="trend-badge">📈 {{if eq .Lang "fr"}}En progression{{else}}Improving{{end}}</div>
+    {{else if eq .Trend "down"}}
+    <div class="trend-badge">📉 {{if eq .Lang "fr"}}En baisse{{else}}Declining{{end}}</div>
+    {{else if eq .Trend "stable"}}
+    <div class="trend-badge">➡️ {{if eq .Lang "fr"}}Stable{{else}}Stable{{end}}</div>
     {{end}}
+    <p class="updated">
+        {{if eq .Lang "fr"}}Mis à jour le {{.GeneratedAt.Format "02/01/2006 à 15:04"}}{{else}}Updated {{.GeneratedAt.Format "Jan 2, 2006 at 3:04 PM"}}{{end}}
+    </p>
 </div>
 
 <div class="container">
 
-<!-- Summary Stats -->
+<!-- ═══ Summary Stats ═══ -->
 <div class="stats">
     <div class="stat">
         <div class="stat-value {{if ge .AvgQuizPct 60.0}}green{{else if ge .AvgQuizPct 40.0}}amber{{else if gt .AvgQuizPct 0.0}}red{{else}}blue{{end}}">
@@ -95,10 +125,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             {{if eq .Lang "fr"}}Moyenne générale{{else}}Overall Avg{{end}}
             {{if gt .ClassAvg 0.0}}
             <div class="pos-indicator">
-                {{if ge .OverallAvg .ClassAvg}}
-                ✅ {{if eq .Lang "fr"}}Au-dessus de la classe ({{printf "%.0f" .ClassAvg}}%){{else}}Above class avg ({{printf "%.0f" .ClassAvg}}%){{end}}
-                {{else}}
-                ⚠️ {{if eq .Lang "fr"}}En dessous de la classe ({{printf "%.0f" .ClassAvg}}%){{else}}Below class avg ({{printf "%.0f" .ClassAvg}}%){{end}}
+                {{if ge .OverallAvg .ClassAvg}}✅ {{if eq .Lang "fr"}}Au-dessus (classe: {{printf "%.0f" .ClassAvg}}%){{else}}Above class ({{printf "%.0f" .ClassAvg}}%){{end}}
+                {{else}}⚠️ {{if eq .Lang "fr"}}En dessous (classe: {{printf "%.0f" .ClassAvg}}%){{else}}Below class ({{printf "%.0f" .ClassAvg}}%){{end}}
                 {{end}}
             </div>
             {{end}}
@@ -106,23 +134,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
 </div>
 
-<!-- Quiz Scores -->
+<!-- ═══ Quiz Scores ═══ -->
 <div class="card">
     <div class="card-header">📝 {{if eq .Lang "fr"}}Notes des Quiz{{else}}Quiz Scores{{end}}</div>
     <div class="card-body">
         {{if .QuizDetails}}
         <table class="tbl">
-            <thead>
-                <tr>
-                    <th>{{if eq .Lang "fr"}}Quiz{{else}}Quiz{{end}}</th>
-                    <th style="text-align:center">{{if eq .Lang "fr"}}Note{{else}}Score{{end}}</th>
-                    <th style="text-align:center">%</th>
-                </tr>
-            </thead>
+            <thead><tr>
+                <th>{{if eq .Lang "fr"}}Quiz{{else}}Quiz{{end}}</th>
+                <th style="text-align:center">{{if eq .Lang "fr"}}Note{{else}}Score{{end}}</th>
+                <th style="text-align:center">%</th>
+            </tr></thead>
             <tbody>
                 {{range .QuizDetails}}
                 <tr>
-                    <td>{{.QuizTitle}}</td>
+                    <td>
+                        {{.QuizTitle}}
+                        <span class="date-cell">{{.StartedAt.Format "02 Jan 2006"}}</span>
+                    </td>
                     <td style="text-align:center">{{if .Score}}{{deref .Score}}/{{deref .MaxScore}}{{else}}—{{end}}</td>
                     <td style="text-align:center">
                         {{if .Score}}
@@ -134,28 +163,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             </tbody>
         </table>
         {{else}}
-        <div class="empty">{{if eq .Lang "fr"}}Aucun quiz complété{{else}}No quizzes completed yet{{end}}</div>
+        <div class="empty">
+            <div class="empty-icon">📝</div>
+            {{if eq .Lang "fr"}}Aucun quiz complété pour le moment. Les résultats apparaîtront ici dès le premier quiz.{{else}}No quizzes completed yet. Results will appear here after the first quiz.{{end}}
+        </div>
         {{end}}
     </div>
 </div>
 
-<!-- Assignments -->
+<!-- ═══ Assignments ═══ -->
 <div class="card">
     <div class="card-header">📋 {{if eq .Lang "fr"}}Devoirs{{else}}Assignments{{end}}</div>
     <div class="card-body">
         {{if .AssignDetails}}
         <table class="tbl">
-            <thead>
-                <tr>
-                    <th>{{if eq .Lang "fr"}}Devoir{{else}}Assignment{{end}}</th>
-                    <th style="text-align:center">{{if eq .Lang "fr"}}Note{{else}}Grade{{end}}</th>
-                    <th style="text-align:center">{{if eq .Lang "fr"}}Statut{{else}}Status{{end}}</th>
-                </tr>
-            </thead>
+            <thead><tr>
+                <th>{{if eq .Lang "fr"}}Devoir{{else}}Assignment{{end}}</th>
+                <th style="text-align:center">{{if eq .Lang "fr"}}Note{{else}}Grade{{end}}</th>
+                <th style="text-align:center">{{if eq .Lang "fr"}}Statut{{else}}Status{{end}}</th>
+            </tr></thead>
             <tbody>
                 {{range .AssignDetails}}
                 <tr>
-                    <td>{{.Title}}</td>
+                    <td>
+                        {{.Title}}
+                        <span class="date-cell">{{.SubmittedAt.Format "02 Jan 2006"}}</span>
+                    </td>
                     <td style="text-align:center">
                         {{if .Grade}}
                         <span class="badge {{if ge .Pct 80.0}}badge-green{{else if ge .Pct 60.0}}badge-yellow{{else if ge .Pct 40.0}}badge-orange{{else}}badge-red{{end}}">{{printf "%.1f" (derefFloat .Grade)}}/{{printf "%.0f" .MaxGrade}}</span>
@@ -167,7 +200,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                         {{else if eq .Status "submitted"}}
                         <span class="badge badge-yellow">{{if eq $.Lang "fr"}}Soumis{{else}}Submitted{{end}}</span>
                         {{else}}
-                        <span class="badge badge-gray">{{.Status}}</span>
+                        <span class="badge badge-gray">{{if eq $.Lang "fr"}}En attente{{else}}Pending{{end}}</span>
                         {{end}}
                     </td>
                 </tr>
@@ -175,54 +208,66 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
             </tbody>
         </table>
         {{else}}
-        <div class="empty">{{if eq .Lang "fr"}}Aucun devoir soumis{{else}}No assignments submitted yet{{end}}</div>
+        <div class="empty">
+            <div class="empty-icon">📋</div>
+            {{if eq .Lang "fr"}}Aucun devoir soumis pour le moment. Les notes apparaîtront ici après la première soumission.{{else}}No assignments submitted yet. Grades will appear here after the first submission.{{end}}
+        </div>
         {{end}}
     </div>
 </div>
 
-<!-- Attendance -->
+<!-- ═══ Attendance ═══ -->
 <div class="card">
-    <div class="card-header">📅 {{if eq .Lang "fr"}}Présence{{else}}Attendance{{end}} 
+    <div class="card-header">📅 {{if eq .Lang "fr"}}Présence{{else}}Attendance{{end}}
         {{if gt .TotalSessions 0}}
         <span style="font-weight:400;font-size:.75rem;color:#64748b;margin-left:auto">{{.Attended}}/{{.TotalSessions}}</span>
         {{end}}
     </div>
     <div class="card-body">
         {{if .Attendance}}
-        <div class="dots">
+        <div class="att-grid">
             {{range .Attendance}}
-            <div class="dot {{if .Attended}}dot-green{{else}}dot-red{{end}}" title="{{.SessionDate.Format "Jan 2, 2006"}} — {{if .Attended}}{{if eq $.Lang "fr"}}Présent{{else}}Present{{end}}{{else}}{{if eq $.Lang "fr"}}Absent{{else}}Absent{{end}}{{end}}"></div>
+            <div class="att-item {{if .Attended}}present{{else}}absent{{end}}">
+                <span class="att-icon">{{if .Attended}}✅{{else}}❌{{end}}</span>
+                <span class="att-date">{{.SessionDate.Format "02/01"}}</span>
+            </div>
             {{end}}
         </div>
-        <div style="font-size:.7rem;color:#94a3b8;margin-top:.25rem">
-            {{if eq .Lang "fr"}}Dernières séances · 🟢 = présent · 🔴 = absent{{else}}Recent sessions · 🟢 = present · 🔴 = absent{{end}}
+        <div style="font-size:.65rem;color:#94a3b8;margin-top:.35rem;text-align:center">
+            {{if eq .Lang "fr"}}Dernières séances{{else}}Recent sessions{{end}}
         </div>
         {{else}}
-        <div class="empty">{{if eq .Lang "fr"}}Aucune séance enregistrée{{else}}No sessions recorded yet{{end}}</div>
+        <div class="empty">
+            <div class="empty-icon">📅</div>
+            {{if eq .Lang "fr"}}Aucune séance enregistrée pour le moment.{{else}}No sessions recorded yet.{{end}}
+        </div>
         {{end}}
     </div>
 </div>
 
-<!-- Teacher Remarks -->
+<!-- ═══ Teacher Notes ═══ -->
 <div class="card">
-    <div class="card-header">💬 {{if eq .Lang "fr"}}Remarques de l'enseignant{{else}}Teacher Remarks{{end}}</div>
+    <div class="card-header">💬 {{if eq .Lang "fr"}}Notes de l'enseignant{{else}}Teacher Notes{{end}}</div>
     <div class="card-body">
         {{if .Remarks}}
         {{range .Remarks}}
         <div class="remark">
             {{.Content}}
-            <div class="remark-date">{{.CreatedAt.Format "Jan 2, 2006"}}</div>
+            <div class="remark-date">{{.CreatedAt.Format "02 Jan 2006"}}</div>
         </div>
         {{end}}
         {{else}}
-        <div class="empty">{{if eq .Lang "fr"}}Aucune remarque{{else}}No remarks yet{{end}}</div>
+        <div class="empty">
+            <div class="empty-icon">💬</div>
+            {{if eq .Lang "fr"}}Aucune note de l'enseignant pour le moment.{{else}}No teacher notes yet.{{end}}
+        </div>
         {{end}}
     </div>
 </div>
 
 </div><!-- /container -->
 
-<!-- Footer with viral loop -->
+<!-- Footer -->
 <div class="footer">
     <p>Powered by <a href="{{.FooterLink}}">TeachHub</a></p>
     {{if eq .Lang "fr"}}

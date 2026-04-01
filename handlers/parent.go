@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -117,6 +118,29 @@ func (h *Handler) ParentReport(c *gin.Context) {
 		displayAttendance = displayAttendance[:10]
 	}
 
+	// Compute quiz trend: compare first half vs second half average (chronological)
+	// quizDetails are ordered DESC (newest first), so reverse for trend calc
+	trend := "stable"
+	if len(quizDetails) >= 3 {
+		mid := len(quizDetails) / 2
+		// older half = quizDetails[mid:] (these were taken earlier)
+		// newer half = quizDetails[:mid]
+		olderSum, newerSum := 0.0, 0.0
+		for i := 0; i < mid; i++ {
+			newerSum += quizDetails[i].Pct
+		}
+		for i := mid; i < len(quizDetails); i++ {
+			olderSum += quizDetails[i].Pct
+		}
+		olderAvg := olderSum / float64(len(quizDetails)-mid)
+		newerAvg := newerSum / float64(mid)
+		if newerAvg > olderAvg+5 {
+			trend = "up"
+		} else if newerAvg < olderAvg-5 {
+			trend = "down"
+		}
+	}
+
 	// Language: default to French (Algeria)
 	lang, err := c.Cookie("lang")
 	if err != nil || (lang != "en" && lang != "fr") {
@@ -141,6 +165,8 @@ func (h *Handler) ParentReport(c *gin.Context) {
 		"OverallAvg":    overallAvg,
 		"ClassAvg":      classOverallAvg,
 		"Banner":        banner,
+		"Trend":         trend,
+		"GeneratedAt":   time.Now(),
 		"Lang":          lang,
 		"BaseURL":       h.BaseURL,
 		"FooterLink":    fmt.Sprintf("%s/apply", h.BaseURL),

@@ -32,7 +32,7 @@
         <button onclick="copyParentLink('{{.ParentURL}}')" id="copyBtn" class="inline-flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">
             📋 {{t .Lang "copy_link"}}
         </button>
-        <a href="https://wa.me/?text={{if eq .Lang "fr"}}Bonjour%2C%20voici%20le%20suivi%20de%20{{.Student.Name}}%20dans%20ma%20classe%3A%20{{.ParentURL}}{{else}}Hello%2C%20here%20is%20{{.Student.Name}}%27s%20progress%20report%3A%20{{.ParentURL}}{{end}}" target="_blank"
+        <a href="https://wa.me/?text={{if eq .Lang "fr"}}%F0%9F%93%8A%20Bonjour%20!%20Voici%20le%20rapport%20de%20suivi%20de%20{{urlquery .Student.Name}}%20%3A%20{{.ParentURL}}{{else}}%F0%9F%93%8A%20Hello!%20Here%20is%20{{urlquery .Student.Name}}%27s%20progress%20report%3A%20{{.ParentURL}}{{end}}" target="_blank"
            class="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-green-700 transition">
             📱 {{t .Lang "share_whatsapp"}}
         </a>
