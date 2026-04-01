@@ -1665,6 +1665,8 @@ func (s *Store) GetStudentAttendanceRecord(ctx context.Context, studentID, class
 		FROM live_session ls
 		LEFT JOIN live_attendance la ON la.live_session_id = ls.id AND la.student_id = $1
 		WHERE ls.classroom_id = $2
+		  AND ls.active = false
+		  AND COALESCE(ls.duration_minutes, 0) >= 5
 		ORDER BY ls.created_at DESC`, studentID, classroomID)
 	if err != nil {
 		return nil, 0, 0, err
