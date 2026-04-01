@@ -198,9 +198,9 @@ func main() {
 		},
 		"csrfField": func(token string) template.HTML {
 			return template.HTML(`<input type="hidden" name="_csrf" value="` + template.HTMLEscapeString(token) + `">`)
-		},		"urlquery": func(s string) string {
+		}, "urlquery": func(s string) string {
 			return url.QueryEscape(s)
-		},	}
+		}}
 
 	tmpl := template.New("").Funcs(funcMap)
 	// Go's ParseGlob doesn't support **, so load each directory

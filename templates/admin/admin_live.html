@@ -1146,7 +1146,9 @@ function unpinMessage() {
 function broadcastCommand(action, extra) {
     var msg = { action: action };
     if (extra) Object.assign(msg, extra);
-    room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true });
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(msg)), { reliable: true }).catch(function(e) {
+        console.error('broadcastCommand failed:', action, e);
+    });
 }
 function renderPinnedBar() {
     var existing = document.querySelectorAll('.pinned-bar-wrap'); existing.forEach(function(el) { el.remove(); });
@@ -1341,6 +1343,7 @@ function initWhiteboard() {
     wbCanvas.addEventListener('pointermove', wbPointerMove);
     wbCanvas.addEventListener('pointerup', wbPointerUp);
     wbCanvas.addEventListener('pointerleave', wbPointerUp);
+    wbCanvas.addEventListener('pointercancel', wbPointerUp);
     /* Pinch-to-zoom + prevent default touch */
     wbCanvas.addEventListener('touchstart', wbTouchStart, { passive: false });
     wbCanvas.addEventListener('touchmove', wbTouchMove, { passive: false });
@@ -1452,6 +1455,7 @@ function wbPointerDown(e) {
     }
     wbDrawing = true;
     wbRedoStack = [];
+    wbMoveCount = 0;
     var lineW = wbTool === 'eraser' ? wbLineWidth * 4 : wbLineWidth;
     /* Stylus pressure: scale line width by pressure (0.1 - 1.0 range) */
     var pressure = pos.p;
@@ -1549,7 +1553,11 @@ function wbPointerUp(e) {
     }
     if (!wbDrawing) return;
     wbDrawing = false;
-    if (wbCurrentStroke && wbCurrentStroke.points.length > 1) {
+    if (wbCurrentStroke) {
+        /* Single-point stroke (quick tap): duplicate point so it renders as a dot */
+        if (wbCurrentStroke.points.length === 1) {
+            wbCurrentStroke.points.push(wbCurrentStroke.points[0]);
+        }
         wbStrokes.push(wbCurrentStroke);
         broadcastCommand('wb-stroke', { stroke: wbCurrentStroke });
         wbRedrawAll();
@@ -1674,6 +1682,7 @@ function wbTouchStart(e) {
         /* Cancel any in-progress stroke immediately */
         if (wbDrawing && wbCurrentStroke) {
             wbCurrentStroke = null; wbDrawing = false; wbRedrawAll();
+            broadcastCommand('wb-cancel');
         }
         wbPinching = true;
         wbPinchDist0 = wbTouchDist(e.touches[0], e.touches[1]);

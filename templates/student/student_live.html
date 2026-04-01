@@ -310,6 +310,8 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
                 drawStudentWbLive(msg.point); break;
             case 'wb-stroke':
                 addStudentWbStroke(msg.stroke); break;
+            case 'wb-cancel':
+                sWbLiveStroke = null; sWbRedrawAll(); break;
             case 'wb-undo':
                 undoStudentWb(); break;
             case 'wb-clear':
