@@ -199,6 +199,7 @@ var Translations = map[string]map[string]string{
 	"insert_math":      {"en": "Insert Math", "fr": "Insérer une formule"},
 	"type_formula":     {"en": "Type your formula", "fr": "Tapez votre formule"},
 	"or_click_buttons": {"en": "or click buttons above", "fr": "ou cliquez les boutons ci-dessus"},
+	"tap_symbols":      {"en": "Tap symbols below to build your formula", "fr": "Appuyez sur les symboles pour construire votre formule"},
 	"insert":           {"en": "Insert", "fr": "Insérer"},
 	"basics":           {"en": "Basics", "fr": "Bases"},
 

@@ -280,140 +280,146 @@
 
 {{end}}
 
-<!-- ═══════ Math Editor v3 — mobile-smart, no keyboard conflict ═══════ -->
+<!-- ═══════ Math Helper — pure buttons, no external widget ═══════ -->
 <style>
-.mbtn{padding:10px 6px;border:1px solid #e5e7eb;border-radius:10px;background:white;color:#1f2937;font-size:20px;cursor:pointer;font-family:'Times New Roman',serif;line-height:1;user-select:none;min-width:48px;min-height:48px;text-align:center;touch-action:manipulation;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
-.mbtn:hover,.mbtn:active{background:#eef2ff;border-color:#a5b4fc;color:#4338ca}
-.mbtn .mlbl{font-size:9px;font-family:Inter,sans-serif;color:#9ca3af;font-weight:500;letter-spacing:0}
-.math-prev{padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-top:6px;font-size:15px;min-height:28px}
-.mtab{padding:8px 14px;border:none;background:transparent;color:#6b7280;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;touch-action:manipulation}
+.mbtn{padding:8px 4px;border:1px solid #e5e7eb;border-radius:10px;background:white;color:#1f2937;font-size:18px;cursor:pointer;font-family:'Times New Roman',serif;line-height:1;user-select:none;min-width:44px;min-height:44px;text-align:center;touch-action:manipulation;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px}
+.mbtn:active{background:#eef2ff;border-color:#a5b4fc}
+.mbtn .ml{font-size:8px;font-family:Inter,sans-serif;color:#9ca3af;font-weight:500}
+.mtab{padding:7px 12px;border:none;background:transparent;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;touch-action:manipulation}
 .mtab.act{color:#4f46e5;border-bottom-color:#4f46e5}
 #mathOv{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.4)}
-#mathSh{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:white;border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,0.2);max-height:92vh;display:none;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
+#mathSh{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:white;border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,0.2);max-height:80vh;display:none;flex-direction:column;transform:translateY(100%);transition:transform .25s ease-out}
 #mathSh.open{transform:translateY(0)}
-@media(min-width:640px){#mathSh{left:50%;right:auto;width:540px;margin-left:-270px}}
-.mf-wrap{position:relative}
-.mf-wrap math-field{display:block;width:100%;min-height:56px;font-size:30px;border:2px solid #c7d2fe;border-radius:14px;padding:12px 60px 12px 14px;--hue:243;background:#fafafe}
-.mf-wrap math-field:focus-within{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.15)}
-#mfClear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:none;border-radius:10px;background:#fee2e2;color:#dc2626;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
-#mfClear:active{background:#fca5a5}
+@media(min-width:640px){#mathSh{left:50%;right:auto;width:480px;margin-left:-240px;border-radius:16px;bottom:10vh;max-height:70vh}}
+.math-prev{padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-top:4px;font-size:15px}
 </style>
 
 <div id="mathOv"></div>
 <div id="mathSh">
-  <!-- Drag handle -->
-  <div style="display:flex;justify-content:center;padding:10px 0 2px"><div style="width:36px;height:4px;background:#d1d5db;border-radius:4px"></div></div>
+  <div style="display:flex;justify-content:center;padding:8px 0 0"><div style="width:32px;height:4px;background:#d1d5db;border-radius:4px"></div></div>
 
-  <!-- Header -->
-  <div style="padding:4px 16px 6px;display:flex;justify-content:space-between;align-items:center">
+  <div style="padding:6px 16px 4px;display:flex;justify-content:space-between;align-items:center">
     <div>
-      <div style="font-size:17px;font-weight:700;color:#1f2937">✏️ {{t .Lang "insert_math"}}</div>
-      <div id="mfLabel" style="font-size:12px;color:#6366f1;margin-top:1px"></div>
+      <div style="font-size:16px;font-weight:700;color:#1f2937">✏️ {{t .Lang "insert_math"}}</div>
+      <div id="mLbl" style="font-size:11px;color:#6366f1;margin-top:1px"></div>
     </div>
-    <button type="button" id="mfX" style="width:36px;height:36px;border-radius:50%;border:none;background:#f3f4f6;color:#6b7280;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation">✕</button>
+    <button type="button" onclick="mClose()" style="width:32px;height:32px;border-radius:50%;border:none;background:#f3f4f6;color:#6b7280;font-size:16px;cursor:pointer;touch-action:manipulation">✕</button>
   </div>
 
-  <!-- Formula display + clear button -->
-  <div style="padding:0 12px 6px">
-    <div class="mf-wrap">
-      <math-field id="mfIn" virtual-keyboard-mode="off" read-only style="pointer-events:auto"></math-field>
-      <button type="button" id="mfClear" title="Clear">⌫</button>
+  <!-- Live preview -->
+  <div style="padding:4px 14px 6px">
+    <div id="mPrev" style="min-height:44px;padding:10px 14px;background:#f9fafb;border:2px solid #e5e7eb;border-radius:12px;font-size:22px;text-align:center;color:#374151;word-break:break-all">
+      <span style="color:#d1d5db;font-size:14px">{{t .Lang "tap_symbols"}}</span>
     </div>
+    <div id="mRender" style="min-height:0;padding:0;text-align:center;font-size:18px"></div>
   </div>
 
   <!-- Tabs -->
-  <div style="display:flex;overflow-x:auto;border-bottom:1px solid #e5e7eb;padding:0 10px;gap:0;-webkit-overflow-scrolling:touch">
+  <div style="display:flex;overflow-x:auto;border-bottom:1px solid #e5e7eb;padding:0 8px;-webkit-overflow-scrolling:touch">
     <button class="mtab act" data-tab="common">⭐ Common</button>
     <button class="mtab" data-tab="greek">αβ Greek</button>
-    <button class="mtab" data-tab="compare">≤≥ Compare</button>
-    <button class="mtab" data-tab="advanced">∫∑ Calculus</button>
+    <button class="mtab" data-tab="ops">≤≥ Compare</button>
+    <button class="mtab" data-tab="calc">∫∑ Calculus</button>
   </div>
 
-  <!-- Symbol grids -->
-  <div style="padding:10px 12px;overflow-y:auto;flex:1;min-height:120px;max-height:40vh">
-    <!-- COMMON -->
-    <div class="mp" data-p="common" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
-      <button type="button" class="mbtn" data-cmd="\\frac{#0}{#0}"><span style="font-size:16px"><sup>a</sup>/<sub>b</sub></span><span class="mlbl">fraction</span></button>
-      <button type="button" class="mbtn" data-cmd="#0^{#0}">x<sup>2</sup><span class="mlbl">power</span></button>
-      <button type="button" class="mbtn" data-cmd="#0_{#0}">x<sub>n</sub><span class="mlbl">subscript</span></button>
-      <button type="button" class="mbtn" data-cmd="\\sqrt{#0}">√<span class="mlbl">root</span></button>
-      <button type="button" class="mbtn" data-cmd="\\pi">π<span class="mlbl">pi</span></button>
-      <button type="button" class="mbtn" data-cmd="\\pm">±<span class="mlbl">plus/minus</span></button>
-      <button type="button" class="mbtn" data-cmd="\\times">×<span class="mlbl">times</span></button>
-      <button type="button" class="mbtn" data-cmd="\\div">÷<span class="mlbl">divide</span></button>
-      <button type="button" class="mbtn" data-cmd="\\infty">∞<span class="mlbl">infinity</span></button>
-      <button type="button" class="mbtn" data-cmd="\\neq">≠<span class="mlbl">not equal</span></button>
-      <button type="button" class="mbtn" data-cmd="\\cdot">·<span class="mlbl">dot</span></button>
-      <button type="button" class="mbtn" data-cmd="\\rightarrow">→<span class="mlbl">arrow</span></button>
-      <button type="button" class="mbtn" data-cmd="\\leq">≤<span class="mlbl">less eq</span></button>
-      <button type="button" class="mbtn" data-cmd="\\geq">≥<span class="mlbl">more eq</span></button>
-      <button type="button" class="mbtn" data-cmd="\\approx">≈<span class="mlbl">approx</span></button>
+  <!-- Symbols -->
+  <div style="padding:8px 10px;overflow-y:auto;flex:1;min-height:100px;max-height:35vh">
+    <div class="mp" data-p="common" style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px">
+      <button type="button" class="mbtn" data-v="\\frac{}{}"><sup>a</sup>/<sub>b</sub><span class="ml">fraction</span></button>
+      <button type="button" class="mbtn" data-v="^{}">x²<span class="ml">power</span></button>
+      <button type="button" class="mbtn" data-v="_{}">x<sub>n</sub><span class="ml">subscript</span></button>
+      <button type="button" class="mbtn" data-v="\\sqrt{}">√<span class="ml">root</span></button>
+      <button type="button" class="mbtn" data-v="\\pi">π<span class="ml">pi</span></button>
+      <button type="button" class="mbtn" data-v="\\pm">±</button>
+      <button type="button" class="mbtn" data-v="\\times">×</button>
+      <button type="button" class="mbtn" data-v="\\div">÷</button>
+      <button type="button" class="mbtn" data-v="\\infty">∞</button>
+      <button type="button" class="mbtn" data-v="\\neq">≠</button>
+      <button type="button" class="mbtn" data-v="\\cdot">·</button>
+      <button type="button" class="mbtn" data-v="\\rightarrow">→</button>
+      <button type="button" class="mbtn" data-v="\\leq">≤</button>
+      <button type="button" class="mbtn" data-v="\\geq">≥</button>
+      <button type="button" class="mbtn" data-v="\\approx">≈</button>
     </div>
-    <!-- GREEK -->
-    <div class="mp" data-p="greek" style="display:none;grid-template-columns:repeat(5,1fr);gap:6px">
-      <button type="button" class="mbtn" data-cmd="\\alpha">α<span class="mlbl">alpha</span></button>
-      <button type="button" class="mbtn" data-cmd="\\beta">β<span class="mlbl">beta</span></button>
-      <button type="button" class="mbtn" data-cmd="\\gamma">γ<span class="mlbl">gamma</span></button>
-      <button type="button" class="mbtn" data-cmd="\\delta">δ<span class="mlbl">delta</span></button>
-      <button type="button" class="mbtn" data-cmd="\\epsilon">ε<span class="mlbl">epsilon</span></button>
-      <button type="button" class="mbtn" data-cmd="\\theta">θ<span class="mlbl">theta</span></button>
-      <button type="button" class="mbtn" data-cmd="\\lambda">λ<span class="mlbl">lambda</span></button>
-      <button type="button" class="mbtn" data-cmd="\\mu">μ<span class="mlbl">mu</span></button>
-      <button type="button" class="mbtn" data-cmd="\\sigma">σ<span class="mlbl">sigma</span></button>
-      <button type="button" class="mbtn" data-cmd="\\phi">φ<span class="mlbl">phi</span></button>
-      <button type="button" class="mbtn" data-cmd="\\omega">ω<span class="mlbl">omega</span></button>
-      <button type="button" class="mbtn" data-cmd="\\Delta">Δ<span class="mlbl">Delta</span></button>
-      <button type="button" class="mbtn" data-cmd="\\Sigma">Σ<span class="mlbl">Sigma</span></button>
-      <button type="button" class="mbtn" data-cmd="\\Omega">Ω<span class="mlbl">Omega</span></button>
-      <button type="button" class="mbtn" data-cmd="\\Phi">Φ<span class="mlbl">Phi</span></button>
+    <div class="mp" data-p="greek" style="display:none;grid-template-columns:repeat(5,1fr);gap:5px">
+      <button type="button" class="mbtn" data-v="\\alpha">α</button>
+      <button type="button" class="mbtn" data-v="\\beta">β</button>
+      <button type="button" class="mbtn" data-v="\\gamma">γ</button>
+      <button type="button" class="mbtn" data-v="\\delta">δ</button>
+      <button type="button" class="mbtn" data-v="\\epsilon">ε</button>
+      <button type="button" class="mbtn" data-v="\\theta">θ</button>
+      <button type="button" class="mbtn" data-v="\\lambda">λ</button>
+      <button type="button" class="mbtn" data-v="\\mu">μ</button>
+      <button type="button" class="mbtn" data-v="\\sigma">σ</button>
+      <button type="button" class="mbtn" data-v="\\phi">φ</button>
+      <button type="button" class="mbtn" data-v="\\omega">ω</button>
+      <button type="button" class="mbtn" data-v="\\Delta">Δ</button>
+      <button type="button" class="mbtn" data-v="\\Sigma">Σ</button>
+      <button type="button" class="mbtn" data-v="\\Omega">Ω</button>
+      <button type="button" class="mbtn" data-v="\\Phi">Φ</button>
     </div>
-    <!-- COMPARE -->
-    <div class="mp" data-p="compare" style="display:none;grid-template-columns:repeat(5,1fr);gap:6px">
-      <button type="button" class="mbtn" data-cmd="\\leq">≤<span class="mlbl">less eq</span></button>
-      <button type="button" class="mbtn" data-cmd="\\geq">≥<span class="mlbl">more eq</span></button>
-      <button type="button" class="mbtn" data-cmd="\\neq">≠<span class="mlbl">not eq</span></button>
-      <button type="button" class="mbtn" data-cmd="\\approx">≈<span class="mlbl">approx</span></button>
-      <button type="button" class="mbtn" data-cmd="\\equiv">≡<span class="mlbl">identical</span></button>
-      <button type="button" class="mbtn" data-cmd="\\in">∈<span class="mlbl">belongs</span></button>
-      <button type="button" class="mbtn" data-cmd="\\subset">⊂<span class="mlbl">subset</span></button>
-      <button type="button" class="mbtn" data-cmd="\\cup">∪<span class="mlbl">union</span></button>
-      <button type="button" class="mbtn" data-cmd="\\cap">∩<span class="mlbl">inter</span></button>
-      <button type="button" class="mbtn" data-cmd="\\Leftrightarrow">⇔<span class="mlbl">iff</span></button>
-      <button type="button" class="mbtn" data-cmd="\\forall">∀<span class="mlbl">for all</span></button>
-      <button type="button" class="mbtn" data-cmd="\\exists">∃<span class="mlbl">exists</span></button>
-      <button type="button" class="mbtn" data-cmd="\\emptyset">∅<span class="mlbl">empty</span></button>
-      <button type="button" class="mbtn" data-cmd="\\mathbb{R}">ℝ<span class="mlbl">reals</span></button>
-      <button type="button" class="mbtn" data-cmd="\\mathbb{N}">ℕ<span class="mlbl">naturals</span></button>
+    <div class="mp" data-p="ops" style="display:none;grid-template-columns:repeat(5,1fr);gap:5px">
+      <button type="button" class="mbtn" data-v="\\leq">≤</button>
+      <button type="button" class="mbtn" data-v="\\geq">≥</button>
+      <button type="button" class="mbtn" data-v="\\neq">≠</button>
+      <button type="button" class="mbtn" data-v="\\approx">≈</button>
+      <button type="button" class="mbtn" data-v="\\equiv">≡</button>
+      <button type="button" class="mbtn" data-v="\\in">∈</button>
+      <button type="button" class="mbtn" data-v="\\subset">⊂</button>
+      <button type="button" class="mbtn" data-v="\\cup">∪</button>
+      <button type="button" class="mbtn" data-v="\\cap">∩</button>
+      <button type="button" class="mbtn" data-v="\\Leftrightarrow">⇔</button>
+      <button type="button" class="mbtn" data-v="\\forall">∀</button>
+      <button type="button" class="mbtn" data-v="\\exists">∃</button>
+      <button type="button" class="mbtn" data-v="\\emptyset">∅</button>
+      <button type="button" class="mbtn" data-v="\\mathbb{R}">ℝ</button>
+      <button type="button" class="mbtn" data-v="\\mathbb{N}">ℕ</button>
     </div>
-    <!-- ADVANCED -->
-    <div class="mp" data-p="advanced" style="display:none;grid-template-columns:repeat(4,1fr);gap:6px">
-      <button type="button" class="mbtn" data-cmd="\\int_{#0}^{#0}">∫<span class="mlbl">integral</span></button>
-      <button type="button" class="mbtn" data-cmd="\\sum_{#0}^{#0}">∑<span class="mlbl">sum</span></button>
-      <button type="button" class="mbtn" data-cmd="\\prod_{#0}^{#0}">∏<span class="mlbl">product</span></button>
-      <button type="button" class="mbtn" data-cmd="\\lim_{#0 \\to #0}">lim<span class="mlbl">limit</span></button>
-      <button type="button" class="mbtn" data-cmd="\\vec{#0}">v⃗<span class="mlbl">vector</span></button>
-      <button type="button" class="mbtn" data-cmd="\\overline{#0}">x̄<span class="mlbl">overline</span></button>
-      <button type="button" class="mbtn" data-cmd="\\sqrt[#0]{#0}">ⁿ√<span class="mlbl">nth root</span></button>
-      <button type="button" class="mbtn" data-cmd="\\binom{#0}{#0}"><span style="font-size:14px">(ⁿₖ)</span><span class="mlbl">binomial</span></button>
-      <button type="button" class="mbtn" data-cmd="\\sin">sin</button>
-      <button type="button" class="mbtn" data-cmd="\\cos">cos</button>
-      <button type="button" class="mbtn" data-cmd="\\tan">tan</button>
-      <button type="button" class="mbtn" data-cmd="\\log">log</button>
-      <button type="button" class="mbtn" data-cmd="\\ln">ln</button>
-      <button type="button" class="mbtn" data-cmd="\\exp">exp</button>
-      <button type="button" class="mbtn" data-cmd="\\partial">∂<span class="mlbl">partial</span></button>
-      <button type="button" class="mbtn" data-cmd="\\nabla">∇<span class="mlbl">nabla</span></button>
+    <div class="mp" data-p="calc" style="display:none;grid-template-columns:repeat(4,1fr);gap:5px">
+      <button type="button" class="mbtn" data-v="\\int_{}^{}">∫<span class="ml">integral</span></button>
+      <button type="button" class="mbtn" data-v="\\sum_{}^{}">∑<span class="ml">sum</span></button>
+      <button type="button" class="mbtn" data-v="\\lim_{\\to}">lim<span class="ml">limit</span></button>
+      <button type="button" class="mbtn" data-v="\\vec{}">v⃗<span class="ml">vector</span></button>
+      <button type="button" class="mbtn" data-v="\\overline{}">x̄<span class="ml">overline</span></button>
+      <button type="button" class="mbtn" data-v="\\sqrt[]{}">ⁿ√<span class="ml">nth root</span></button>
+      <button type="button" class="mbtn" data-v="\\sin">sin</button>
+      <button type="button" class="mbtn" data-v="\\cos">cos</button>
+      <button type="button" class="mbtn" data-v="\\tan">tan</button>
+      <button type="button" class="mbtn" data-v="\\log">log</button>
+      <button type="button" class="mbtn" data-v="\\ln">ln</button>
+      <button type="button" class="mbtn" data-v="\\partial">∂<span class="ml">partial</span></button>
     </div>
   </div>
 
-  <!-- Bottom bar: insert -->
-  <div style="padding:8px 12px 16px;display:flex;gap:8px;border-top:1px solid #f3f4f6;background:#fafafa;border-radius:0 0 0 0">
-    <button type="button" id="mfCancel" style="flex:1;padding:14px;border:1px solid #d1d5db;border-radius:12px;background:white;color:#374151;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation">{{t .Lang "cancel"}}</button>
-    <button type="button" id="mfInsert" style="flex:2;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(99,102,241,0.3);touch-action:manipulation">{{t .Lang "insert"}} ✓</button>
+  <!-- Number/letter input row + backspace -->
+  <div style="padding:4px 10px;display:flex;gap:4px;flex-wrap:wrap;justify-content:center">
+    <button type="button" class="mbtn" data-v="0" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">0</button>
+    <button type="button" class="mbtn" data-v="1" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">1</button>
+    <button type="button" class="mbtn" data-v="2" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">2</button>
+    <button type="button" class="mbtn" data-v="3" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">3</button>
+    <button type="button" class="mbtn" data-v="4" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">4</button>
+    <button type="button" class="mbtn" data-v="5" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">5</button>
+    <button type="button" class="mbtn" data-v="6" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">6</button>
+    <button type="button" class="mbtn" data-v="7" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">7</button>
+    <button type="button" class="mbtn" data-v="8" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">8</button>
+    <button type="button" class="mbtn" data-v="9" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">9</button>
+    <button type="button" class="mbtn" data-v="x" style="min-width:36px;font-style:italic">x</button>
+    <button type="button" class="mbtn" data-v="y" style="min-width:36px;font-style:italic">y</button>
+    <button type="button" class="mbtn" data-v="=" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">=</button>
+    <button type="button" class="mbtn" data-v="+" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">+</button>
+    <button type="button" class="mbtn" data-v="-" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">−</button>
+    <button type="button" class="mbtn" data-v="(" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">(</button>
+    <button type="button" class="mbtn" data-v=")" style="min-width:36px;font-family:Inter,sans-serif;font-size:15px">)</button>
+    <button type="button" id="mDel" class="mbtn" style="min-width:52px;background:#fee2e2;border-color:#fca5a5;color:#dc2626;font-size:16px">⌫</button>
+  </div>
+
+  <!-- Insert / Cancel -->
+  <div style="padding:6px 10px 14px;display:flex;gap:8px">
+    <button type="button" onclick="mClose()" style="flex:1;padding:13px;border:1px solid #d1d5db;border-radius:12px;background:white;color:#374151;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation">{{t .Lang "cancel"}}</button>
+    <button type="button" onclick="mInsert()" style="flex:2;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(99,102,241,0.3);touch-action:manipulation">{{t .Lang "insert"}} ✓</button>
   </div>
 </div>
 
-<script defer src="https://cdn.jsdelivr.net/npm/mathlive@0.101.0/dist/mathlive.min.js"></script>
 <script>
 /* === Quiz type toggle === */
 function toggleQTypeFields() {
@@ -427,38 +433,47 @@ function toggleQTypeFields() {
     else inp.placeholder = '{{t .Lang "correct_match"}}';
 }
 
-/* ═══════ Math Sheet ═══════ */
-var _mt = null; /* target input */
+/* ═══════ Math Sheet — pure string builder ═══════ */
+var _mt = null;   /* target input */
+var _buf = '';     /* LaTeX string being built */
 var _labels = {
     'content': '{{t .Lang "question_text"}}',
     'correct_answer': '{{t .Lang "correct_answer"}}',
-    'option_1': 'Option A','option_2': 'Option B','option_3': 'Option C','option_4': 'Option D'
+    'option_1': 'A','option_2': 'B','option_3': 'C','option_4': 'D'
 };
 
+function mRefresh() {
+    var prev = document.getElementById('mPrev');
+    var rend = document.getElementById('mRender');
+    if (!_buf) {
+        prev.innerHTML = '<span style="color:#d1d5db;font-size:14px">{{t .Lang "tap_symbols"}}</span>';
+        rend.innerHTML = '';
+        rend.style.padding = '0';
+        return;
+    }
+    /* Show raw LaTeX */
+    prev.textContent = _buf;
+    /* Show rendered preview */
+    rend.style.padding = '6px 0 2px';
+    try {
+        rend.innerHTML = katex.renderToString(_buf, { throwOnError: false, displayMode: false });
+    } catch(e) {
+        rend.innerHTML = '<span style="color:#ef4444;font-size:12px">⚠</span>';
+    }
+}
+
 function mOpen(inp) {
-    /* STEP 1 — kill the phone keyboard immediately */
     inp.blur();
     if (document.activeElement) document.activeElement.blur();
-    window.scrollTo(0, document.documentElement.scrollTop); /* prevent iOS scroll jump */
     _mt = inp;
-
-    /* STEP 2 — label what we're editing */
-    document.getElementById('mfLabel').textContent = '→ ' + (_labels[inp.name] || inp.name);
-
-    /* STEP 3 — make sure MathLive virtual keyboard is off */
-    var mf = document.getElementById('mfIn');
-    mf.removeAttribute('read-only');
-    mf.setAttribute('virtual-keyboard-mode', 'off');
-    try { mf.setValue(''); } catch(e) { mf.value = ''; }
-
-    /* STEP 4 — show overlay + slide sheet up */
+    _buf = '';
+    document.getElementById('mLbl').textContent = '→ ' + (_labels[inp.name] || inp.name);
+    mRefresh();
     document.getElementById('mathOv').style.display = 'block';
     var sh = document.getElementById('mathSh');
     sh.style.display = 'flex';
-    void sh.offsetHeight; /* force reflow */
+    void sh.offsetHeight;
     sh.classList.add('open');
-
-    /* STEP 5 — lock body scroll on mobile */
     document.body.style.overflow = 'hidden';
 }
 
@@ -466,95 +481,61 @@ function mClose() {
     document.getElementById('mathSh').classList.remove('open');
     document.getElementById('mathOv').style.display = 'none';
     document.body.style.overflow = '';
-    setTimeout(function() { document.getElementById('mathSh').style.display = 'none'; }, 300);
+    setTimeout(function(){ document.getElementById('mathSh').style.display = 'none'; }, 250);
     _mt = null;
 }
 
 function mInsert() {
-    if (!_mt) return;
-    var mf = document.getElementById('mfIn');
-    var latex = '';
-    try { latex = mf.getValue('latex-expanded'); } catch(e) { latex = mf.value || ''; }
-    latex = latex.trim();
-    if (!latex) { mClose(); return; }
+    if (!_mt || !_buf.trim()) { mClose(); return; }
     var v = _mt.value, pos = (_mt.selectionStart != null) ? _mt.selectionStart : v.length;
     var bef = v.substring(0, pos), aft = v.substring(pos);
-    _mt.value = bef + (bef.length && !bef.endsWith(' ') ? ' ' : '') + '$' + latex + '$' + (aft.length && !aft.startsWith(' ') ? ' ' : '') + aft;
+    _mt.value = bef + (bef.length && !bef.endsWith(' ') ? ' ' : '') + '$' + _buf.trim() + '$' + (aft.length && !aft.startsWith(' ') ? ' ' : '') + aft;
     _mt.dispatchEvent(new Event('input', {bubbles:true}));
     mClose();
-    /* don't refocus the field — avoids keyboard popping up again */
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var mf = document.getElementById('mfIn');
-
-    /* Prevent MathLive from ever showing its own keyboard */
-    if (mf.setOptions) {
-        try { mf.setOptions({ virtualKeyboardMode: 'off', virtualKeyboards: '' }); } catch(e) {}
-    }
-
     /* ── Tab switching ── */
     document.querySelectorAll('.mtab').forEach(function(tab) {
         tab.addEventListener('click', function(e) {
             e.preventDefault();
-            document.querySelectorAll('.mtab').forEach(function(t) { t.classList.remove('act'); });
+            document.querySelectorAll('.mtab').forEach(function(t){ t.classList.remove('act'); });
             tab.classList.add('act');
-            document.querySelectorAll('.mp').forEach(function(p) { p.style.display = 'none'; });
+            document.querySelectorAll('.mp').forEach(function(p){ p.style.display = 'none'; });
             var p = document.querySelector('.mp[data-p="'+tab.dataset.tab+'"]');
             if (p) p.style.display = 'grid';
         });
     });
 
-    /* ── Symbol buttons → insert into math-field display ── */
-    document.querySelectorAll('.mbtn').forEach(function(btn) {
+    /* ── All buttons (symbols + numbers) ── */
+    document.querySelectorAll('.mbtn[data-v]').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
-            var cmd = btn.dataset.cmd;
-            if (!cmd) return;
-            try {
-                mf.executeCommand(['insert', cmd]);
-            } catch(e2) {
-                try { mf.setValue((mf.getValue('latex')||'') + cmd); } catch(e3) {}
-            }
-            /* Do NOT focus the math-field — that would trigger virtual keyboard */
+            _buf += btn.dataset.v;
+            mRefresh();
         });
     });
 
-    /* ── Clear / backspace button ── */
-    document.getElementById('mfClear').addEventListener('click', function(e) {
+    /* ── Backspace ── */
+    document.getElementById('mDel').addEventListener('click', function(e) {
         e.preventDefault();
-        try {
-            var latex = mf.getValue('latex') || '';
-            if (latex.length > 0) {
-                mf.executeCommand('deleteBackward');
-            } else {
-                mf.setValue('');
-            }
-        } catch(ex) { mf.value = ''; }
+        if (!_buf) return;
+        /* Try to remove a whole command like \alpha */
+        var m = _buf.match(/(\\[a-zA-Z]+\{?\}?|\\[^a-zA-Z]|.)$/);
+        if (m) _buf = _buf.slice(0, -m[0].length);
+        else _buf = _buf.slice(0, -1);
+        mRefresh();
     });
 
-    /* ── Sheet buttons ── */
-    document.getElementById('mfX').addEventListener('click', mClose);
-    document.getElementById('mfCancel').addEventListener('click', mClose);
-    document.getElementById('mfInsert').addEventListener('click', mInsert);
+    /* ── Overlay close ── */
     document.getElementById('mathOv').addEventListener('click', mClose);
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && document.getElementById('mathSh').classList.contains('open')) mClose();
     });
 
-    /* ── Intercept math-field focus to suppress OS keyboard ── */
-    mf.addEventListener('focus', function(e) {
-        /* On mobile, focusing math-field opens OS keyboard. Prevent it. */
-        if ('ontouchstart' in window) {
-            mf.blur();
-        }
-    });
-
-    /* ── Auto-add 𝑓x buttons + previews to text inputs ── */
+    /* ── Auto-add 𝑓x buttons + previews ── */
     document.querySelectorAll('input[name="content"], input[name^="option_"], input[name="correct_answer"]').forEach(function(input) {
         if (input.type !== 'text') return;
-
         var wrap = document.createElement('div');
         wrap.style.cssText = 'position:relative';
         input.parentNode.insertBefore(wrap, input);
@@ -562,13 +543,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.innerHTML = '<span style="font-size:14px;font-weight:700;font-family:serif;letter-spacing:-1px">𝑓x</span>';
+        btn.innerHTML = '<span style="font-size:13px;font-weight:700;font-family:serif">𝑓x</span>';
         btn.title = '{{t .Lang "insert_math"}}';
-        btn.style.cssText = 'position:absolute;right:4px;top:50%;transform:translateY(-50%);height:34px;padding:0 10px;border-radius:8px;border:1px solid #c7d2fe;background:#eef2ff;color:#4f46e5;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;transition:all .15s;touch-action:manipulation';
-        btn.addEventListener('click', function(e) { e.preventDefault(); openMathSheet(input); });
-        /* openMathSheet is aliased to mOpen below */
+        btn.style.cssText = 'position:absolute;right:4px;top:50%;transform:translateY(-50%);height:32px;padding:0 8px;border-radius:7px;border:1px solid #c7d2fe;background:#eef2ff;color:#4f46e5;cursor:pointer;display:flex;align-items:center;z-index:1;touch-action:manipulation';
+        btn.addEventListener('click', function(e) { e.preventDefault(); mOpen(input); });
         wrap.appendChild(btn);
-        input.style.paddingRight = '52px';
+        input.style.paddingRight = '48px';
 
         var prev = document.createElement('div');
         prev.className = 'math-prev';
@@ -585,12 +565,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else { prev.style.display = 'none'; prev.innerHTML = ''; }
         }
         input.addEventListener('input', upd);
-        setTimeout(upd, 800);
+        setTimeout(upd, 600);
     });
 });
-
-/* alias for the button onclick */
-var openMathSheet = mOpen;
 </script>
 
 {{template "admin_foot" .}}
