@@ -197,11 +197,11 @@ var Translations = map[string]map[string]string{
 
 	// Math editor
 	"insert_math":      {"en": "Insert Math", "fr": "Insérer une formule"},
-	"type_formula":     {"en": "Type your formula", "fr": "Tapez votre formule"},
-	"or_click_buttons": {"en": "or click buttons above", "fr": "ou cliquez les boutons ci-dessus"},
-	"tap_symbols":      {"en": "Tap symbols below to build your formula", "fr": "Appuyez sur les symboles pour construire votre formule"},
+	"pick_formula":     {"en": "Pick a formula or symbol to start", "fr": "Choisissez une formule ou un symbole"},
+	"formulas":         {"en": "Formulas", "fr": "Formules"},
+	"symbols_tab":      {"en": "Symbols", "fr": "Symboles"},
+	"add_to_formula":   {"en": "Add to formula", "fr": "Ajouter à la formule"},
 	"insert":           {"en": "Insert", "fr": "Insérer"},
-	"basics":           {"en": "Basics", "fr": "Bases"},
 
 	// Student attempts
 	"student_attempts": {"en": "Student Attempts", "fr": "Tentatives des étudiants"},
