@@ -896,6 +896,13 @@ room.on(LK.RoomEvent.ActiveSpeakersChanged, function(speakers) {
     });
 });
 
+/* ─── Canvas recovery on tab foreground ─────────── */
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && wbActive) {
+        resizeWbCanvas();
+    }
+});
+
 /* ─── Reconnection Handling ─────────────────────── */
 room.on(LK.RoomEvent.Reconnecting, function() {
     document.getElementById('reconnectBanner').classList.remove('hidden');
@@ -2104,6 +2111,7 @@ function expandLive() {
         liveMini = false;
         miniTransitioning = false;
         fr.src = 'about:blank';
+        if (wbActive) resizeWbCanvas();
     }
     el.addEventListener('transitionend', cleanup, { once: true });
     /* safety fallback */

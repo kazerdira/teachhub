@@ -1060,6 +1060,13 @@ room.on(LK.RoomEvent.ActiveSpeakersChanged, function(speakers) {
     });
 });
 
+/* ─── Canvas recovery on tab foreground ─────────── */
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && sWbCanvas) {
+        resizeStudentWb();
+    }
+});
+
 /* ─── Reconnection Handling ─────────────────────── */
 room.on(LK.RoomEvent.Reconnecting, function() {
     document.getElementById('reconnectBanner').classList.remove('hidden');
