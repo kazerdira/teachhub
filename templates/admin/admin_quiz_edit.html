@@ -81,7 +81,7 @@
         <div class="space-y-1 pl-4 border-l-2 border-gray-100">
             {{range $opt := .Options}}
             <div class="flex items-center gap-2 text-sm {{if eq $opt $q.CorrectAnswer}}text-emerald-700 font-medium bg-emerald-50 rounded px-2 py-1{{else}}text-gray-600 px-2 py-1{{end}}">
-                {{if eq $opt $q.CorrectAnswer}}✓{{else}}○{{end}} {{$opt}}
+                {{if eq $opt $q.CorrectAnswer}}✓{{else}}○{{end}} <span class="qc-display">{{safeContent $opt}}</span>
             </div>
             {{end}}
         </div>
@@ -131,19 +131,28 @@
                 </div>
                 {{if eq .QuestionType "mcq"}}
                 <div>
-                    <label class="text-xs font-semibold text-gray-600 uppercase mb-2 block">{{t $.Lang "options"}}</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <label class="text-xs font-semibold text-gray-600 uppercase mb-2 block">{{t $.Lang "options"}} <span style="color:#10b981;font-weight:400;font-size:10px;text-transform:none">— click ✓ to mark correct</span></label>
+                    <div class="space-y-3" id="editOptWrap{{.ID}}">
                         {{range $oi, $opt := .Options}}
-                        <input type="text" name="option_{{add $oi 1}}" value="{{$opt}}" class="input w-full">
+                        <div style="display:flex;align-items:flex-start;gap:8px">
+                            <input type="radio" name="correct_opt_edit_{{$q.ID}}" value="{{add $oi 1}}" {{if eq $opt $q.CorrectAnswer}}checked{{end}} style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
+                            <div style="flex:1" class="ql-opt-wrap">
+                                <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">{{letter $oi}}</div>
+                                <div id="qlEditOpt{{$q.ID}}_{{add $oi 1}}"></div>
+                                <input type="hidden" name="option_{{add $oi 1}}" id="qlEditOptVal{{$q.ID}}_{{add $oi 1}}" value="{{$opt}}">
+                            </div>
+                        </div>
                         {{end}}
-                        {{if lt (len .Options) 4}}<input type="text" name="option_{{add (len .Options) 1}}" class="input w-full" placeholder="+">{{end}}
                     </div>
                 </div>
+                <input type="hidden" name="correct_answer" id="editCorrectVal{{.ID}}" value="{{.CorrectAnswer}}">
                 {{end}}
+                {{if ne .QuestionType "mcq"}}
                 <div>
                     <label class="text-xs font-semibold text-gray-600 uppercase mb-1 block"><span class="text-emerald-500">✓</span> {{t $.Lang "correct_answer"}}</label>
                     <input type="text" name="correct_answer" value="{{.CorrectAnswer}}" class="input w-full border-emerald-300">
                 </div>
+                {{end}}
                 <div class="flex gap-2">
                     <button class="btn-primary px-4 py-1.5 text-sm">{{t $.Lang "save_settings"}}</button>
                     <button type="button" onclick="document.getElementById('editQ{{.ID}}').classList.add('hidden')" class="px-4 py-1.5 text-sm text-gray-600 hover:text-gray-800">{{t $.Lang "cancel"}}</button>
@@ -196,16 +205,44 @@
         </div>
 
         <div id="mcqFields">
-            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2 block">{{t .Lang "options"}}</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input type="text" name="option_1" class="input w-full" placeholder="{{t .Lang "option_a"}}">
-                <input type="text" name="option_2" class="input w-full" placeholder="{{t .Lang "option_b"}}">
-                <input type="text" name="option_3" class="input w-full" placeholder="{{t .Lang "option_c"}}">
-                <input type="text" name="option_4" class="input w-full" placeholder="{{t .Lang "option_d"}}">
+            <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2 block">{{t .Lang "options"}} <span style="color:#10b981;font-weight:400;font-size:10px;text-transform:none">— click ✓ to mark correct</span></label>
+            <div class="space-y-3" id="addOptWrap">
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                    <input type="radio" name="correct_opt_add" value="1" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
+                    <div style="flex:1" class="ql-opt-wrap">
+                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">A</div>
+                        <div id="qlOpt1"></div>
+                        <input type="hidden" name="option_1" id="qlOptVal1">
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                    <input type="radio" name="correct_opt_add" value="2" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
+                    <div style="flex:1" class="ql-opt-wrap">
+                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">B</div>
+                        <div id="qlOpt2"></div>
+                        <input type="hidden" name="option_2" id="qlOptVal2">
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                    <input type="radio" name="correct_opt_add" value="3" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
+                    <div style="flex:1" class="ql-opt-wrap">
+                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">C</div>
+                        <div id="qlOpt3"></div>
+                        <input type="hidden" name="option_3" id="qlOptVal3">
+                    </div>
+                </div>
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                    <input type="radio" name="correct_opt_add" value="4" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
+                    <div style="flex:1" class="ql-opt-wrap">
+                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">D</div>
+                        <div id="qlOpt4"></div>
+                        <input type="hidden" name="option_4" id="qlOptVal4">
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div id="correctAnswerField">
+        <div id="correctAnswerField" style="display:none">
             <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block"><span class="text-emerald-500">✓</span> {{t .Lang "correct_answer"}}</label>
             <input type="text" name="correct_answer" id="correctAnswerInput" class="input w-full border-emerald-300" placeholder="{{t .Lang "correct_match"}}">
         </div>
@@ -362,6 +399,11 @@
 .ql-snow button.ql-formula svg{display:none}
 /* Rich content display */
 .qc-display p{margin:0}.qc-display .ql-formula{display:inline-block}
+/* Compact option Quill editors */
+.ql-opt-wrap .ql-toolbar.ql-snow{padding:3px 6px}
+.ql-opt-wrap .ql-editor{min-height:36px;padding:6px 10px;font-size:.8125rem}
+.ql-opt-wrap .ql-snow button{height:22px;width:22px}
+.ql-opt-wrap .ql-snow .ql-formats{margin-right:6px!important}
 </style>
 
 <!-- Overlay + Sheet -->
@@ -464,7 +506,8 @@
 function toggleQTypeFields(){
     var t=document.getElementById('newQType').value;
     document.getElementById('mcqFields').style.display=(t==='mcq')?'block':'none';
-    document.getElementById('correctAnswerField').style.display=(['mcq','true_false','fill_blank'].includes(t))?'block':'none';
+    /* For MCQ, correct answer is picked via radio; for others, show text input */
+    document.getElementById('correctAnswerField').style.display=(['true_false','fill_blank'].includes(t))?'block':'none';
     document.getElementById('sampleAnswerField').style.display=(t==='open_ended')?'block':'none';
     var inp=document.getElementById('correctAnswerInput');
     if(t==='true_false') inp.placeholder='{{t .Lang "correct_tf"}}';
@@ -477,11 +520,15 @@ function toggleQTypeFields(){
 /* ═══════════════════════════════════ */
 var _meTarget=null,_meCursor=0,_meFormula='',_meATpl=null,_meMode='input';
 var _editQs={}; /* Track initialized Quill edit instances */
-var qlAdd=null; /* Quill instance for add-question form */
+var _editOpts={}; /* Track initialized Quill option instances: {qId: [q1,q2,q3,q4]} */
+var qlAdd=null; /* Quill instance for add-question content */
+var qlAddOpts=[null,null,null,null]; /* Quill instances for add-form options */
 
 /* ── Quill toolbar config (shared) ── */
 var _qlToolbar=[['bold','italic','underline'],[{'color':[]}],['formula']];
+var _qlToolbarOpt=[['bold','italic','underline'],[{'color':[]}],['formula']];
 function _qlCfg(q){return{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(q||this.quill);}}}},placeholder:'{{t .Lang "question_text_ph"}}'};}
+function _qlOptCfg(q,ph){return{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbarOpt,handlers:{'formula':function(){meOpen(q||this.quill);}}}},placeholder:ph||''};}
 
 /* ── Template definitions (16 types) ── */
 var _tpl={
@@ -528,7 +575,7 @@ function meOpen(target){
     _meFormula='';_meATpl=null;
     document.getElementById('tplBox').style.display='none';
     document.querySelectorAll('.mp-fc').forEach(function(c){c.classList.remove('sel');});
-    var lbl=_meMode==='quill'?'{{t .Lang "question_text"}}':({'correct_answer':'{{t .Lang "correct_answer"}}','option_1':'A','option_2':'B','option_3':'C','option_4':'D'}[target.name]||target.name);
+    var lbl=_meMode==='quill'?(target._meLabel||'{{t .Lang "question_text"}}'):({'correct_answer':'{{t .Lang "correct_answer"}}','option_1':'A','option_2':'B','option_3':'C','option_4':'D'}[target.name]||target.name);
     document.getElementById('mpLbl').textContent='→ '+lbl;
     mpPrev();
     document.getElementById('mpOv').style.display='block';
@@ -590,29 +637,85 @@ function toggleEdit(qId){
     var wasHidden=el.classList.contains('hidden');
     el.classList.toggle('hidden');
     if(wasHidden&&!_editQs[qId]&&typeof Quill!=='undefined'){
+        /* Init content Quill */
         var container=document.getElementById('qlEdit'+qId);
         if(!container)return;
         var q=new Quill(container,{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(q);}}}},placeholder:'{{t .Lang "question_text_ph"}}'});
         var content=document.getElementById('qlEditVal'+qId).value;
         if(content)q.clipboard.dangerouslyPasteHTML(content);
+        _editQs[qId]=q;
+
+        /* Init option Quills (MCQ only) */
+        var optQs=[];
+        for(var oi=1;oi<=6;oi++){
+            var oc=document.getElementById('qlEditOpt'+qId+'_'+oi);
+            if(!oc)break;
+            var oq=new Quill(oc,_qlOptCfg(null,''));
+            (function(oq2,idx){oq2._meLabel='Option '+String.fromCharCode(65+idx);oq2.getModule('toolbar').addHandler('formula',function(){meOpen(oq2);});})(oq,oi-1);
+            var oval=document.getElementById('qlEditOptVal'+qId+'_'+oi).value;
+            if(oval)oq.clipboard.dangerouslyPasteHTML(oval);
+            optQs.push(oq);
+        }
+        _editOpts[qId]=optQs;
+
+        /* Form submit: populate all hidden fields */
         el.querySelector('form').addEventListener('submit',function(){
             document.getElementById('qlEditVal'+qId).value=q.root.innerHTML;
+            for(var j=0;j<optQs.length;j++){
+                document.getElementById('qlEditOptVal'+qId+'_'+(j+1)).value=optQs[j].root.innerHTML;
+            }
+            /* Set correct_answer from selected radio */
+            var rad=el.querySelector('input[name="correct_opt_edit_'+qId+'"]:checked');
+            var caField=document.getElementById('editCorrectVal'+qId);
+            if(rad&&caField&&optQs.length){
+                var idx=parseInt(rad.value)-1;
+                if(idx>=0&&idx<optQs.length) caField.value=optQs[idx].root.innerHTML;
+            }
         });
-        _editQs[qId]=q;
     }
 }
 
 /* ═══ Wire on load ═══ */
 document.addEventListener('DOMContentLoaded',function(){
-    /* ── Initialize Quill for add-question form ── */
+    /* ── Initialize Quill for add-question content ── */
     if(typeof Quill!=='undefined'&&document.getElementById('qlAdd')){
         qlAdd=new Quill('#qlAdd',{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(qlAdd);}}}},placeholder:'{{t .Lang "question_text_ph"}}'});
+
+        /* ── Initialize Quill for add-form MCQ options ── */
+        var optLabels=['A','B','C','D'];
+        for(var oi=1;oi<=4;oi++){
+            var oc=document.getElementById('qlOpt'+oi);
+            if(!oc)continue;
+            var oq=new Quill(oc,_qlOptCfg(null,optLabels[oi-1]+'…'));
+            (function(oq2,lbl){oq2._meLabel='Option '+lbl;oq2.getModule('toolbar').addHandler('formula',function(){meOpen(oq2);});})(oq,optLabels[oi-1]);
+            qlAddOpts[oi-1]=oq;
+        }
+
+        /* ── Add form submit handler ── */
         var addForm=document.getElementById('addQForm');
         if(addForm){
             addForm.addEventListener('submit',function(e){
                 var html=qlAdd.root.innerHTML;
                 if(!qlAdd.getText().trim()){e.preventDefault();qlAdd.focus();return;}
                 document.getElementById('qlAddVal').value=html;
+
+                /* Populate option hidden inputs */
+                var qType=document.getElementById('newQType').value;
+                if(qType==='mcq'){
+                    for(var j=0;j<4;j++){
+                        if(qlAddOpts[j]){
+                            document.getElementById('qlOptVal'+(j+1)).value=qlAddOpts[j].root.innerHTML;
+                        }
+                    }
+                    /* Set correct_answer from radio */
+                    var rad=document.querySelector('input[name="correct_opt_add"]:checked');
+                    if(rad){
+                        var idx=parseInt(rad.value)-1;
+                        if(idx>=0&&idx<4&&qlAddOpts[idx]){
+                            document.getElementById('correctAnswerInput').value=qlAddOpts[idx].root.innerHTML;
+                        }
+                    }
+                }
             });
         }
     }
@@ -639,42 +742,6 @@ document.addEventListener('DOMContentLoaded',function(){
         document.querySelectorAll('[data-k]').forEach(function(e){kR(e,e.dataset.k);});
     }
     renderIcons();
-
-    /* ── Auto-add 𝑓x buttons + inline previews to option/answer inputs ── */
-    document.querySelectorAll('input[name^="option_"],input[name="correct_answer"]').forEach(function(input){
-        if(input.type!=='text')return;
-        var wrap=document.createElement('div');
-        wrap.style.cssText='position:relative';
-        input.parentNode.insertBefore(wrap,input);
-        wrap.appendChild(input);
-
-        var btn=document.createElement('button');
-        btn.type='button';
-        btn.innerHTML='<b style="font-size:14px;font-family:Georgia,serif;pointer-events:none">𝑓</b><small style="font-size:9px;pointer-events:none;opacity:.6;font-family:Inter,sans-serif">x</small>';
-        btn.title='{{t .Lang "insert_math"}}';
-        btn.style.cssText='position:absolute;right:4px;top:50%;transform:translateY(-50%);height:30px;padding:0 8px;border-radius:8px;border:1px solid #e2e8f0;background:#fafbfc;color:#6366f1;cursor:pointer;display:flex;align-items:center;gap:1px;z-index:1;touch-action:manipulation;transition:all .12s';
-        btn.onmouseenter=function(){this.style.background='#eef2ff';this.style.borderColor='#c7d2fe';};
-        btn.onmouseleave=function(){this.style.background='#fafbfc';this.style.borderColor='#e2e8f0';};
-        btn.addEventListener('click',function(e){e.preventDefault();meOpen(input);});
-        wrap.appendChild(btn);
-        input.style.paddingRight='44px';
-
-        var prev=document.createElement('div');
-        prev.className='mp-iprev';
-        wrap.after(prev);
-
-        function upd(){
-            if(input.value.indexOf('$')!==-1){
-                prev.style.display='block';
-                prev.textContent=input.value;
-                if(typeof renderMathInElement==='function'){
-                    renderMathInElement(prev,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
-                }
-            } else {prev.style.display='none';prev.innerHTML='';}
-        }
-        input.addEventListener('input',upd);
-        setTimeout(upd,800);
-    });
 });
 </script>
 

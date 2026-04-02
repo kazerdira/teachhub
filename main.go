@@ -211,6 +211,12 @@ func main() {
 			}
 			return template.HTML(template.HTMLEscapeString(s))
 		},
+		"letter": func(i int) string {
+			if i >= 0 && i < 26 {
+				return string(rune('A' + i))
+			}
+			return fmt.Sprintf("%d", i+1)
+		},
 	}
 
 	tmpl := template.New("").Funcs(funcMap)
