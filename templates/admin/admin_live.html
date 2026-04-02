@@ -928,32 +928,26 @@ function wbExportCanvas() {
     /* Dark background matching the whiteboard canvas */
     ctx.fillStyle = '#111827';
     ctx.fillRect(0, 0, cw, ch);
-    /* Apply current zoom/pan transform */
-    ctx.save();
-    ctx.setTransform(wbScale * scale, 0, 0, wbScale * scale, wbPanX * scale, wbPanY * scale);
+    /* Export at default view (ignore zoom/pan so nothing is cropped) */
     /* Draw background image if any */
     if (wbBgImageObj && wbImgRect) {
         ctx.drawImage(wbBgImageObj, wbImgRect.x * cw, wbImgRect.y * ch, wbImgRect.w * cw, wbImgRect.h * ch);
     }
-    ctx.restore();
-    /* Draw strokes on offscreen then composite */
+    /* Draw strokes – full canvas, no zoom/pan */
     var hasEraser = wbStrokes.some(function(s) { return s.color === 'eraser'; });
     if (hasEraser) {
         var off = document.createElement('canvas');
         off.width = cw * scale; off.height = ch * scale;
         var offCtx = off.getContext('2d');
-        offCtx.setTransform(wbScale * scale, 0, 0, wbScale * scale, wbPanX * scale, wbPanY * scale);
+        offCtx.scale(scale, scale);
         for (var i = 0; i < wbStrokes.length; i++) {
             drawStrokeOnExport(offCtx, wbStrokes[i], cw, ch);
         }
         ctx.drawImage(off, 0, 0);
     } else {
-        ctx.save();
-        ctx.setTransform(wbScale * scale, 0, 0, wbScale * scale, wbPanX * scale, wbPanY * scale);
         for (var i = 0; i < wbStrokes.length; i++) {
             drawStrokeOnExport(ctx, wbStrokes[i], cw, ch);
         }
-        ctx.restore();
     }
     return exp;
 }

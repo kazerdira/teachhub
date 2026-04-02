@@ -132,16 +132,10 @@
                 {{if eq .QuestionType "mcq"}}
                 <div>
                     <label class="text-xs font-semibold text-gray-600 uppercase mb-2 block">{{t $.Lang "options"}} <span style="color:#10b981;font-weight:400;font-size:10px;text-transform:none">— click ✓ to mark correct</span></label>
-                    <div class="space-y-3" id="editOptWrap{{.ID}}">
+                    <div class="shr-tb" id="editOptBar{{$q.ID}}"><button type="button" data-fmt="bold" title="Bold"><b>B</b></button><button type="button" data-fmt="italic" title="Italic"><i>I</i></button><button type="button" data-fmt="underline" title="Underline"><u>U</u></button><span class="shr-tb-sep"></span><input type="color" data-fmt="color" value="#000000" title="Color"><span class="shr-tb-sep"></span><button type="button" data-fmt="formula" title="Formula" style="gap:1px"><b style="font-family:Georgia,serif;font-size:14px;pointer-events:none">𝑓</b><small style="font-size:9px;opacity:.6;pointer-events:none">x</small></button></div>
+                    <div id="editOptWrap{{.ID}}">
                         {{range $oi, $opt := .Options}}
-                        <div style="display:flex;align-items:flex-start;gap:8px">
-                            <input type="radio" name="correct_opt_edit_{{$q.ID}}" value="{{add $oi 1}}" {{if eq $opt $q.CorrectAnswer}}checked{{end}} style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
-                            <div style="flex:1" class="ql-opt-wrap">
-                                <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">{{letter $oi}}</div>
-                                <div id="qlEditOpt{{$q.ID}}_{{add $oi 1}}"></div>
-                                <input type="hidden" name="option_{{add $oi 1}}" id="qlEditOptVal{{$q.ID}}_{{add $oi 1}}" value="{{$opt}}">
-                            </div>
-                        </div>
+                        <div class="opt-row"><input type="radio" name="correct_opt_edit_{{$q.ID}}" value="{{add $oi 1}}" {{if eq $opt $q.CorrectAnswer}}checked{{end}} class="opt-radio" title="✓ Correct"><span class="opt-lbl">{{letter $oi}}</span><div class="opt-ed" id="qlEditOpt{{$q.ID}}_{{add $oi 1}}"></div><input type="hidden" name="option_{{add $oi 1}}" id="qlEditOptVal{{$q.ID}}_{{add $oi 1}}" value="{{$opt}}"></div>
                         {{end}}
                     </div>
                 </div>
@@ -206,39 +200,20 @@
 
         <div id="mcqFields">
             <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2 block">{{t .Lang "options"}} <span style="color:#10b981;font-weight:400;font-size:10px;text-transform:none">— click ✓ to mark correct</span></label>
-            <div class="space-y-3" id="addOptWrap">
-                <div style="display:flex;align-items:flex-start;gap:8px">
-                    <input type="radio" name="correct_opt_add" value="1" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
-                    <div style="flex:1" class="ql-opt-wrap">
-                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">A</div>
-                        <div id="qlOpt1"></div>
-                        <input type="hidden" name="option_1" id="qlOptVal1">
-                    </div>
-                </div>
-                <div style="display:flex;align-items:flex-start;gap:8px">
-                    <input type="radio" name="correct_opt_add" value="2" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
-                    <div style="flex:1" class="ql-opt-wrap">
-                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">B</div>
-                        <div id="qlOpt2"></div>
-                        <input type="hidden" name="option_2" id="qlOptVal2">
-                    </div>
-                </div>
-                <div style="display:flex;align-items:flex-start;gap:8px">
-                    <input type="radio" name="correct_opt_add" value="3" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
-                    <div style="flex:1" class="ql-opt-wrap">
-                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">C</div>
-                        <div id="qlOpt3"></div>
-                        <input type="hidden" name="option_3" id="qlOptVal3">
-                    </div>
-                </div>
-                <div style="display:flex;align-items:flex-start;gap:8px">
-                    <input type="radio" name="correct_opt_add" value="4" style="margin-top:38px;width:18px;height:18px;accent-color:#10b981;cursor:pointer" title="Mark as correct">
-                    <div style="flex:1" class="ql-opt-wrap">
-                        <div style="font-size:11px;font-weight:600;color:#9ca3af;margin-bottom:2px">D</div>
-                        <div id="qlOpt4"></div>
-                        <input type="hidden" name="option_4" id="qlOptVal4">
-                    </div>
-                </div>
+            <div class="shr-tb" id="addOptBar">
+                <button type="button" data-fmt="bold" title="Bold"><b>B</b></button>
+                <button type="button" data-fmt="italic" title="Italic"><i>I</i></button>
+                <button type="button" data-fmt="underline" title="Underline"><u>U</u></button>
+                <span class="shr-tb-sep"></span>
+                <input type="color" data-fmt="color" value="#000000" title="Color">
+                <span class="shr-tb-sep"></span>
+                <button type="button" data-fmt="formula" title="Formula" style="gap:1px"><b style="font-family:Georgia,serif;font-size:14px;pointer-events:none">𝑓</b><small style="font-size:9px;opacity:.6;pointer-events:none">x</small></button>
+            </div>
+            <div id="addOptWrap">
+                <div class="opt-row"><input type="radio" name="correct_opt_add" value="1" class="opt-radio" title="✓ Correct"><span class="opt-lbl">A</span><div class="opt-ed" id="qlOpt1"></div><input type="hidden" name="option_1" id="qlOptVal1"></div>
+                <div class="opt-row"><input type="radio" name="correct_opt_add" value="2" class="opt-radio" title="✓ Correct"><span class="opt-lbl">B</span><div class="opt-ed" id="qlOpt2"></div><input type="hidden" name="option_2" id="qlOptVal2"></div>
+                <div class="opt-row"><input type="radio" name="correct_opt_add" value="3" class="opt-radio" title="✓ Correct"><span class="opt-lbl">C</span><div class="opt-ed" id="qlOpt3"></div><input type="hidden" name="option_3" id="qlOptVal3"></div>
+                <div class="opt-row"><input type="radio" name="correct_opt_add" value="4" class="opt-radio" title="✓ Correct"><span class="opt-lbl">D</span><div class="opt-ed" id="qlOpt4"></div><input type="hidden" name="option_4" id="qlOptVal4"></div>
             </div>
         </div>
 
@@ -400,11 +375,21 @@
 .ql-snow .ql-editor .ql-formula::after{content:none}
 /* Rich content display */
 .qc-display p{margin:0}.qc-display .ql-formula{display:inline-block}
-/* Compact option Quill editors */
-.ql-opt-wrap .ql-toolbar.ql-snow{padding:3px 6px}
-.ql-opt-wrap .ql-editor{min-height:36px;padding:6px 10px;font-size:.8125rem}
-.ql-opt-wrap .ql-snow button{height:22px;width:22px}
-.ql-opt-wrap .ql-snow .ql-formats{margin-right:6px!important}
+/* Shared option toolbar */
+.shr-tb{display:flex;align-items:center;gap:4px;padding:5px 10px;background:#f9fafb;border:1px solid #d1d5db;border-radius:8px;margin-bottom:8px}
+.shr-tb button{width:28px;height:28px;border:1px solid transparent;border-radius:6px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#374151;transition:all .12s}
+.shr-tb button:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}
+.shr-tb button.active{background:#eef2ff;border-color:#6366f1;color:#4f46e5}
+.shr-tb-sep{width:1px;height:20px;background:#d1d5db;margin:0 2px}
+.shr-tb input[type=color]{width:28px;height:28px;border:1px solid #d1d5db;border-radius:6px;padding:2px;cursor:pointer;background:#fff}
+/* Compact option rows */
+.opt-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.opt-radio{width:18px;height:18px;accent-color:#10b981;cursor:pointer;flex-shrink:0}
+.opt-lbl{font-size:12px;font-weight:700;color:#9ca3af;width:14px;text-align:center;flex-shrink:0}
+.opt-ed{flex:1}
+.opt-ed .ql-container.ql-snow{border-radius:8px;border-color:#d1d5db}
+.opt-ed .ql-editor{min-height:32px;padding:6px 10px;font-size:.8125rem}
+.opt-ed .ql-editor:focus{box-shadow:0 0 0 2px rgba(99,102,241,.15)}
 </style>
 
 <!-- Overlay + Sheet -->
@@ -525,11 +510,45 @@ var _editOpts={}; /* Track initialized Quill option instances: {qId: [q1,q2,q3,q
 var qlAdd=null; /* Quill instance for add-question content */
 var qlAddOpts=[null,null,null,null]; /* Quill instances for add-form options */
 
-/* ── Quill toolbar config (shared) ── */
+/* ── Quill toolbar config (for content editors only) ── */
 var _qlToolbar=[['bold','italic','underline'],[{'color':[]}],['formula']];
-var _qlToolbarOpt=[['bold','italic','underline'],[{'color':[]}],['formula']];
-function _qlCfg(q){return{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(q||this.quill);}}}},placeholder:'{{t .Lang "question_text_ph"}}'};}
-function _qlOptCfg(q,ph){return{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbarOpt,handlers:{'formula':function(){meOpen(q||this.quill);}}}},placeholder:ph||''};}
+
+/* ── Wire a shared custom toolbar to an array of Quill option editors ── */
+function wireSharedToolbar(barId,quills){
+    var bar=document.getElementById(barId);
+    if(!bar||!quills.length)return;
+    var active=quills[0];
+    quills.forEach(function(q,i){
+        q.on('selection-change',function(range){
+            if(range){active=q;_syncBar(bar,q);}
+        });
+        /* highlight focused row */
+        q.root.addEventListener('focus',function(){active=q;_syncBar(bar,q);
+            document.querySelectorAll('#'+barId+' ~ * .opt-ed').forEach(function(e){e.style.outline='';});
+            q.root.parentNode.style.outline='2px solid rgba(99,102,241,.3)';q.root.parentNode.style.outlineOffset='-1px';
+        });
+        q.root.addEventListener('blur',function(){q.root.parentNode.style.outline='';});
+    });
+    bar.querySelectorAll('button[data-fmt]').forEach(function(btn){
+        btn.addEventListener('mousedown',function(e){e.preventDefault();});
+        btn.addEventListener('click',function(e){
+            e.preventDefault();if(!active)return;
+            var f=btn.dataset.fmt;
+            if(f==='formula'){active._meLabel='Option '+String.fromCharCode(65+quills.indexOf(active));meOpen(active);return;}
+            var cur=active.getFormat();active.format(f,!cur[f]);_syncBar(bar,active);
+        });
+    });
+    var ci=bar.querySelector('input[data-fmt="color"]');
+    if(ci){ci.addEventListener('input',function(){if(active)active.format('color',this.value);});}
+    return{get:function(){return active;}};
+}
+function _syncBar(bar,q){
+    var fmt=q.getFormat();
+    bar.querySelectorAll('button[data-fmt]').forEach(function(b){
+        var f=b.dataset.fmt;if(f!=='formula')b.classList.toggle('active',!!fmt[f]);
+    });
+    var ci=bar.querySelector('input[data-fmt="color"]');if(ci)ci.value=fmt.color||'#000000';
+}
 
 /* ── Template definitions (16 types) ── */
 var _tpl={
@@ -646,17 +665,17 @@ function toggleEdit(qId){
         if(content)q.clipboard.dangerouslyPasteHTML(content);
         _editQs[qId]=q;
 
-        /* Init option Quills (MCQ only) */
+        /* Init option Quills (MCQ only) — no per-editor toolbar */
         var optQs=[];
         for(var oi=1;oi<=6;oi++){
             var oc=document.getElementById('qlEditOpt'+qId+'_'+oi);
             if(!oc)break;
-            var oq=new Quill(oc,_qlOptCfg(null,''));
-            (function(oq2,idx){oq2._meLabel='Option '+String.fromCharCode(65+idx);oq2.getModule('toolbar').addHandler('formula',function(){meOpen(oq2);});})(oq,oi-1);
+            var oq=new Quill(oc,{theme:'snow',modules:{toolbar:false,formula:true},placeholder:String.fromCharCode(65+oi-1)+'…'});
             var oval=document.getElementById('qlEditOptVal'+qId+'_'+oi).value;
             if(oval)oq.clipboard.dangerouslyPasteHTML(oval);
             optQs.push(oq);
         }
+        if(optQs.length)wireSharedToolbar('editOptBar'+qId,optQs);
         _editOpts[qId]=optQs;
 
         /* Form submit: populate all hidden fields */
@@ -682,15 +701,16 @@ document.addEventListener('DOMContentLoaded',function(){
     if(typeof Quill!=='undefined'&&document.getElementById('qlAdd')){
         qlAdd=new Quill('#qlAdd',{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(qlAdd);}}}},placeholder:'{{t .Lang "question_text_ph"}}'});
 
-        /* ── Initialize Quill for add-form MCQ options ── */
+        /* ── Initialize Quill for add-form MCQ options (no per-editor toolbar) ── */
         var optLabels=['A','B','C','D'];
         for(var oi=1;oi<=4;oi++){
             var oc=document.getElementById('qlOpt'+oi);
             if(!oc)continue;
-            var oq=new Quill(oc,_qlOptCfg(null,optLabels[oi-1]+'…'));
-            (function(oq2,lbl){oq2._meLabel='Option '+lbl;oq2.getModule('toolbar').addHandler('formula',function(){meOpen(oq2);});})(oq,optLabels[oi-1]);
+            var oq=new Quill(oc,{theme:'snow',modules:{toolbar:false,formula:true},placeholder:optLabels[oi-1]+'…'});
             qlAddOpts[oi-1]=oq;
         }
+        var _addOptsFiltered=qlAddOpts.filter(Boolean);
+        if(_addOptsFiltered.length)wireSharedToolbar('addOptBar',_addOptsFiltered);
 
         /* ── Add form submit handler ── */
         var addForm=document.getElementById('addQForm');
