@@ -268,3 +268,196 @@ How we know this worked:
 - All alert messages must be available in both French and English (use the existing `t()` translation system). Arabic translations can be added later.
 - The alert dismissal check is simple: `WHERE dismissed_at > NOW() - INTERVAL '7 days' AND alert_type = $1 AND student_id = $2 AND classroom_id = $3`.
 - For the live session absence alert (Alert 3), compute absent students by comparing `classroom_student` roster against `live_attendance` for the current active session. Only show this alert if the session has been active for 10+ minutes (compare `live_session.created_at` to `NOW()`).
+
+---
+---
+
+# TEACHHUB — School Multi-Tenant Plan
+
+**Status:** 📋 Planned — waiting for first school confirmation
+**Date:** April 2026
+
+---
+
+## 1. The Idea
+
+Turn the existing platform admin (owner) dashboard into a **white-label product for schools**. A school director gets their own version of the owner panel — scoped to their school only. They manage their own teachers, see aggregated stats, and operate independently.
+
+---
+
+## 2. Hierarchy
+
+```
+Super Admin (you)
+  ├── School A (their own owner dashboard)
+  │     ├── Teacher 1 → classrooms, students, quizzes, live...
+  │     ├── Teacher 2 → classrooms, students, quizzes, live...
+  │     └── Teacher 3 → ...
+  ├── School B (their own owner dashboard)
+  │     ├── Teacher 1 → ...
+  │     └── Teacher 2 → ...
+  └── Indie Teachers (no school — managed directly by super admin, current model)
+```
+
+**Super Admin** = you. Sees everything, creates schools, sets plans.
+**School Owner** = school director. Sees only their teachers. Self-serves.
+**Teacher** = same as today. Doesn't know or care if they're under a school.
+**Student** = same as today. Joins classrooms via code.
+
+---
+
+## 3. Database Changes
+
+### 3.1 New table: `school`
+
+```sql
+CREATE TABLE school (
+    id              SERIAL PRIMARY KEY,
+    name            TEXT NOT NULL,
+    slug            TEXT UNIQUE NOT NULL,        -- for optional subdomain/URL
+    logo_url        TEXT DEFAULT '',
+    owner_name      TEXT NOT NULL,               -- director's name
+    owner_email     TEXT DEFAULT '',
+    owner_phone     TEXT DEFAULT '',
+    plan            TEXT DEFAULT 'free',          -- free, basic, premium, custom
+    max_teachers    INT DEFAULT 10,
+    active          BOOLEAN DEFAULT true,
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    notes           TEXT DEFAULT ''               -- super admin notes
+);
+```
+
+### 3.2 Modify `admin` table
+
+```sql
+ALTER TABLE admin
+    ADD COLUMN school_id INT REFERENCES school(id) ON DELETE SET NULL,
+    ADD COLUMN is_school_owner BOOLEAN DEFAULT false;
+```
+
+- `school_id = NULL` → indie teacher (managed by super admin, current behavior)
+- `school_id = 5, is_school_owner = false` → regular teacher under school 5
+- `school_id = 5, is_school_owner = true` → school 5's owner/director
+
+---
+
+## 4. What the School Owner Dashboard Shows
+
+Essentially the **current platform admin dashboard**, scoped to `WHERE school_id = X`:
+
+### 4.1 Overview / Home
+- Total teachers in their school
+- Total students across all their teachers
+- Total classrooms (active/archived)
+- Live sessions happening right now
+- Recent activity feed
+
+### 4.2 Teacher Management
+- List all teachers (name, email, status, # classrooms, # students, last active)
+- **Create teacher** — same form as current platform admin, but auto-sets `school_id`
+- **Disable/enable teacher** — toggle access
+- **Reset password** — same as current
+- No ability to delete a teacher's data (only disable)
+
+### 4.3 School Stats
+- Aggregated quiz averages across all classrooms
+- Total live session hours this month
+- Most active teachers
+- Student enrollment trend
+
+### 4.4 Settings
+- School name, logo
+- Owner contact info
+- (Future: custom branding, subdomain)
+
+### 4.5 What School Owner CANNOT Do
+- ❌ See other schools
+- ❌ Access super admin settings
+- ❌ Read quiz questions or chat messages (teacher's IP)
+- ❌ Impersonate a teacher's session
+- ❌ Exceed their `max_teachers` limit
+
+---
+
+## 5. What Changes for Super Admin (You)
+
+Your current platform admin panel gets a new section:
+
+### 5.1 Schools Tab
+- List all schools (name, owner, # teachers, plan, status)
+- **Create school** → generates owner account + login credentials
+- **Edit school** → change plan, max_teachers, active status
+- **View school** → see their teachers, stats (read-only drill-down)
+
+### 5.2 Teachers Tab (Enhanced)
+- Current teacher list now shows a "School" column
+- Filter by school or "indie" (no school)
+- When creating a teacher, optional dropdown to assign to a school
+
+---
+
+## 6. Routes
+
+```
+# School owner dashboard
+/school/login                       → login page (separate from teacher login)
+/school/dashboard                   → overview stats
+/school/teachers                    → list + create teachers
+/school/teachers/:id                → teacher detail
+/school/stats                       → aggregated reports
+/school/settings                    → school profile
+
+# Super admin additions
+/ctrl-p-8x3kf/schools              → list all schools
+/ctrl-p-8x3kf/schools/create       → create school form
+/ctrl-p-8x3kf/schools/:id          → school detail + edit
+```
+
+---
+
+## 7. Authentication
+
+School owners are stored in the **same `admin` table** with `is_school_owner = true`. They use a separate login page (`/school/login`) with a separate session cookie (`teachhub-school`), so there's no confusion with teacher logins.
+
+Alternatively (simpler): school owner logs in at `/admin/login` like any teacher, but if `is_school_owner = true`, they see an extra "My School" tab in their sidebar. This means they can also teach their own classes if they want.
+
+**Recommended: the simpler approach.** One login, extra tab if you're an owner.
+
+---
+
+## 8. Payment Model (Future)
+
+| Plan | Price | Includes |
+|------|-------|----------|
+| Free | €0 | Up to 3 teachers, basic features, "Powered by TeachHub" branding |
+| Basic | €49/month | Up to 10 teachers, all features, remove branding |
+| Premium | €99/month | Up to 30 teachers, priority support, custom logo |
+| Custom | Contact | Unlimited teachers, SLA, dedicated setup |
+
+For Algeria: free tier only, no payment needed.
+For France: Stripe Checkout, monthly billing, school owner manages their subscription.
+
+---
+
+## 9. Implementation Order
+
+**When we get the first school confirmation:**
+
+1. **Database** — create `school` table, add columns to `admin` (30 min)
+2. **Super admin: school CRUD** — create/edit/list schools (2-3 hours)
+3. **School owner tab** — "My School" in teacher sidebar with teacher list + stats (3-4 hours)
+4. **Scoped queries** — all school-owner queries filter by `school_id` (1-2 hours)
+5. **School owner: create teacher** — form that auto-sets school_id (1 hour)
+6. **Test & deploy** (1 hour)
+
+**Total estimate: ~1-2 days of focused work.**
+
+Phase 2 (later): Stripe billing, custom branding, subdomain routing.
+
+---
+
+## 10. Key Principle
+
+> The teacher experience does NOT change. A teacher under a school uses TeachHub exactly the same way as an indie teacher. They don't see the school layer. They just teach.
+
+The school layer is purely an **admin/management overlay** on top of the existing system.
