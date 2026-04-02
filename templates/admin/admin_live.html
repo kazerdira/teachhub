@@ -918,40 +918,74 @@ document.addEventListener('visibilitychange', function() {
 
 /* ─── Save Whiteboard as Image ──────────────────── */
 function wbExportCanvas() {
-    /* Render at 2x for high quality */
-    var scale = 2;
+    var pixScale = 2; /* render at 2× for crisp output */
     var cw = wbCanvas.width, ch = wbCanvas.height;
+
+    /* ── Compute bounding box of ALL content in normalized coords ── */
+    var minX = 0, maxX = 1, minY = 0, maxY = 1;
+    for (var i = 0; i < wbStrokes.length; i++) {
+        var pts = wbStrokes[i].points;
+        var pad = (wbStrokes[i].width || 4) / cw * 0.6; /* stroke half-width as margin */
+        for (var j = 0; j < pts.length; j++) {
+            if (pts[j].x - pad < minX) minX = pts[j].x - pad;
+            if (pts[j].x + pad > maxX) maxX = pts[j].x + pad;
+            if (pts[j].y - pad < minY) minY = pts[j].y - pad;
+            if (pts[j].y + pad > maxY) maxY = pts[j].y + pad;
+        }
+    }
+    if (wbBgImageObj && wbImgRect) {
+        if (wbImgRect.x < minX) minX = wbImgRect.x;
+        if (wbImgRect.x + wbImgRect.w > maxX) maxX = wbImgRect.x + wbImgRect.w;
+        if (wbImgRect.y < minY) minY = wbImgRect.y;
+        if (wbImgRect.y + wbImgRect.h > maxY) maxY = wbImgRect.y + wbImgRect.h;
+    }
+    /* Add a small padding around the edges */
+    var PAD = 0.02;
+    minX -= PAD; minY -= PAD; maxX += PAD; maxY += PAD;
+
+    /* ── Compute export canvas size from bounding box ── */
+    var bw = (maxX - minX) * cw;   /* bounding width in pixels */
+    var bh = (maxY - minY) * ch;   /* bounding height in pixels */
     var exp = document.createElement('canvas');
-    exp.width = cw * scale; exp.height = ch * scale;
+    exp.width = Math.ceil(bw * pixScale);
+    exp.height = Math.ceil(bh * pixScale);
     var ctx = exp.getContext('2d');
-    ctx.scale(scale, scale);
-    /* Dark background matching the whiteboard canvas */
+    ctx.scale(pixScale, pixScale);
+
+    /* Dark background */
     ctx.fillStyle = '#111827';
-    ctx.fillRect(0, 0, cw, ch);
-    /* Export at default view (ignore zoom/pan so nothing is cropped) */
+    ctx.fillRect(0, 0, bw, bh);
+
+    /* Shift origin so minX,minY maps to 0,0 */
+    var offX = -minX * cw;
+    var offY = -minY * ch;
+
     /* Draw background image if any */
     if (wbBgImageObj && wbImgRect) {
-        ctx.drawImage(wbBgImageObj, wbImgRect.x * cw, wbImgRect.y * ch, wbImgRect.w * cw, wbImgRect.h * ch);
+        ctx.drawImage(wbBgImageObj,
+            wbImgRect.x * cw + offX, wbImgRect.y * ch + offY,
+            wbImgRect.w * cw, wbImgRect.h * ch);
     }
-    /* Draw strokes – full canvas, no zoom/pan */
+
+    /* Draw strokes */
     var hasEraser = wbStrokes.some(function(s) { return s.color === 'eraser'; });
     if (hasEraser) {
         var off = document.createElement('canvas');
-        off.width = cw * scale; off.height = ch * scale;
+        off.width = exp.width; off.height = exp.height;
         var offCtx = off.getContext('2d');
-        offCtx.scale(scale, scale);
+        offCtx.scale(pixScale, pixScale);
         for (var i = 0; i < wbStrokes.length; i++) {
-            drawStrokeOnExport(offCtx, wbStrokes[i], cw, ch);
+            drawStrokeOnExport(offCtx, wbStrokes[i], cw, ch, offX, offY);
         }
         ctx.drawImage(off, 0, 0);
     } else {
         for (var i = 0; i < wbStrokes.length; i++) {
-            drawStrokeOnExport(ctx, wbStrokes[i], cw, ch);
+            drawStrokeOnExport(ctx, wbStrokes[i], cw, ch, offX, offY);
         }
     }
     return exp;
 }
-function drawStrokeOnExport(ctx, stroke, cw, ch) {
+function drawStrokeOnExport(ctx, stroke, cw, ch, offX, offY) {
     if (!ctx || stroke.points.length < 2) return;
     ctx.save();
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -966,16 +1000,16 @@ function drawStrokeOnExport(ctx, stroke, cw, ch) {
     var pts = stroke.points;
     ctx.lineWidth = stroke.width;
     ctx.beginPath();
-    ctx.moveTo(pts[0].x * cw, pts[0].y * ch);
+    ctx.moveTo(pts[0].x * cw + offX, pts[0].y * ch + offY);
     if (pts.length === 2) {
-        ctx.lineTo(pts[1].x * cw, pts[1].y * ch);
+        ctx.lineTo(pts[1].x * cw + offX, pts[1].y * ch + offY);
     } else {
         for (var j = 1; j < pts.length - 1; j++) {
-            var cx = (pts[j].x * cw + pts[j+1].x * cw) / 2;
-            var cy = (pts[j].y * ch + pts[j+1].y * ch) / 2;
-            ctx.quadraticCurveTo(pts[j].x * cw, pts[j].y * ch, cx, cy);
+            var mx = (pts[j].x * cw + pts[j+1].x * cw) / 2 + offX;
+            var my = (pts[j].y * ch + pts[j+1].y * ch) / 2 + offY;
+            ctx.quadraticCurveTo(pts[j].x * cw + offX, pts[j].y * ch + offY, mx, my);
         }
-        ctx.lineTo(pts[pts.length-1].x * cw, pts[pts.length-1].y * ch);
+        ctx.lineTo(pts[pts.length-1].x * cw + offX, pts[pts.length-1].y * ch + offY);
     }
     ctx.stroke();
     ctx.restore();
