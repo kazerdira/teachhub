@@ -172,7 +172,7 @@
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.5 1.71L14.08 6.13l3.79 3.79 4.42-4.42a1 1 0 000-1.41l-2.38-2.38a1 1 0 00-1.41 0zM3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></svg>
         </button>
         <button onclick="setWbTool('eraser')" id="wbToolEraser" class="wb-tool-btn px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="{{t .Lang "wb_eraser"}}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16c-.8-.8-.8-2 0-2.8l10-10c.8-.8 2-.8 2.8 0l5.2 5.2c.8.8.8 2 0 2.8L13 19"/><path d="M7 20l-4-4"/></svg>
         </button>
         <button onclick="setWbTool('select')" id="wbToolSelect" class="wb-tool-btn px-2 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 transition" title="{{t .Lang "wb_select"}}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
@@ -1016,10 +1016,11 @@ async function wbSaveResource() {
         var exp = wbExportCanvas();
         var blob = await new Promise(function(resolve) { exp.toBlob(resolve, 'image/png'); });
         var form = new FormData();
+        form.append('_csrf', '{{.CSRFToken}}');
         form.append('title', name);
         form.append('description', 'Whiteboard capture');
         form.append('file', blob, name + '.png');
-        var res = await fetch('/admin/classroom/{{.Classroom.ID}}/resource', { method: 'POST', body: form });
+        var res = await fetch('/admin/classroom/{{.Classroom.ID}}/resource', { method: 'POST', body: form, redirect: 'follow' });
         if (res.ok || res.redirected) {
             showToast('Saved to resources ✓', 'success');
         } else {
@@ -1471,7 +1472,7 @@ var wbStrokeCanvas, wbStrokeCtx; // offscreen canvas for strokes (eraser-safe)
 
 function initWhiteboard() {
     wbCanvas = document.getElementById('wbCanvas');
-    wbCtx = wbCanvas.getContext('2d');
+    wbCtx = wbCanvas.getContext('2d', { willReadFrequently: true });
     wbStrokeCanvas = document.createElement('canvas');
     wbStrokeCtx = wbStrokeCanvas.getContext('2d');
     resizeWbCanvas();
@@ -1501,15 +1502,10 @@ function resizeWbCanvas() {
     var parent = wbCanvas.parentElement;
     var w = parent.clientWidth;
     var h = parent.clientHeight;
-    /* Save current drawing */
-    var imageData = null;
-    if (wbCanvas.width > 0 && wbCanvas.height > 0) {
-        imageData = wbCtx.getImageData(0, 0, wbCanvas.width, wbCanvas.height);
-    }
+    if (w === 0 || h === 0) return; /* parent hidden — skip resize */
     wbCanvas.width = w;
     wbCanvas.height = h;
     if (wbStrokeCanvas) { wbStrokeCanvas.width = w; wbStrokeCanvas.height = h; }
-    /* Redraw everything */
     wbRedrawAll();
 }
 
