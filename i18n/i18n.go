@@ -195,6 +195,13 @@ var Translations = map[string]map[string]string{
 	"ai_types":         {"en": "Types (comma-separated)", "fr": "Types (séparés par des virgules)"},
 	"ai_generate_btn":  {"en": "✨ Generate", "fr": "✨ Générer"},
 
+	// Math editor
+	"insert_math":      {"en": "Insert Math", "fr": "Insérer une formule"},
+	"type_formula":     {"en": "Type your formula", "fr": "Tapez votre formule"},
+	"or_click_buttons": {"en": "or click buttons above", "fr": "ou cliquez les boutons ci-dessus"},
+	"insert":           {"en": "Insert", "fr": "Insérer"},
+	"basics":           {"en": "Basics", "fr": "Bases"},
+
 	// Student attempts
 	"student_attempts": {"en": "Student Attempts", "fr": "Tentatives des étudiants"},
 	"reviewed":         {"en": "Reviewed", "fr": "Corrigé"},
