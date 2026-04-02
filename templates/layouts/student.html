@@ -146,7 +146,8 @@
 </script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');</script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});document.querySelectorAll('.ql-formula[data-value]').forEach(function(el){katex.render(el.getAttribute('data-value'),el,{throwOnError:false});});"></script>
+<style>.qc-display p{margin:0}.qc-display .ql-formula{display:inline-block}</style>
 </body>
 </html>
 {{end}}

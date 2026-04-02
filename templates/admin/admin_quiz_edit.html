@@ -67,9 +67,9 @@
             Q{{add $i 1}} · {{.QuestionType}} · {{.Points}}pt
         </div>
         <div class="flex items-start justify-between gap-4 mb-3">
-            <h3 class="font-medium text-gray-900 pr-20">{{.Content}}</h3>
+            <div class="font-medium text-gray-900 pr-20 qc-display">{{safeContent .Content}}</div>
             <div class="flex items-center gap-1">
-                <button onclick="document.getElementById('editQ{{.ID}}').classList.toggle('hidden')" class="text-amber-500 hover:bg-amber-50 p-1.5 rounded-lg transition" title="Edit">✎</button>
+                <button onclick="toggleEdit({{.ID}})" class="text-amber-500 hover:bg-amber-50 p-1.5 rounded-lg transition" title="Edit">✎</button>
                 <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/quiz/{{$.Quiz.ID}}/question/{{.ID}}/delete" onsubmit="return confirm('{{t $.Lang "delete_question"}}')">
 {{csrfField $.CSRFToken}}
                     <button class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition" title="Delete">✕</button>
@@ -110,7 +110,8 @@
 {{csrfField $.CSRFToken}}
                 <div>
                     <label class="text-xs font-semibold text-gray-600 uppercase mb-1 block">{{t $.Lang "question_text"}}</label>
-                    <input type="text" name="content" value="{{.Content}}" required class="input w-full">
+                    <div class="ql-edit" id="qlEdit{{.ID}}" style="min-height:80px"></div>
+                    <input type="hidden" name="content" id="qlEditVal{{.ID}}" value="{{.Content}}">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
@@ -165,11 +166,12 @@
         {{t .Lang "add_question"}}
     </h3>
 
-    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/quiz/{{.Quiz.ID}}/question" class="space-y-4">
+    <form id="addQForm" method="POST" action="/admin/classroom/{{.Classroom.ID}}/quiz/{{.Quiz.ID}}/question" class="space-y-4">
 {{csrfField $.CSRFToken}}
         <div>
             <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 block">{{t .Lang "question_text"}}</label>
-            <input type="text" name="content" required class="input w-full" placeholder="{{t .Lang "question_text_ph"}}">
+            <div id="qlAdd" style="min-height:100px"></div>
+            <input type="hidden" name="content" id="qlAddVal">
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -348,6 +350,18 @@
 .mp-insert:active{transform:scale(.97)}
 /* Inline preview below inputs */
 .mp-iprev{padding:4px 10px;background:#f0fdf4;border:1px solid #d1fae5;border-radius:8px;margin-top:3px;font-size:13px;min-height:18px;display:none;line-height:1.5;word-break:break-word}
+/* Quill editor */
+.ql-toolbar.ql-snow{border-radius:.5rem .5rem 0 0;border-color:#d1d5db;background:#f9fafb;padding:6px 8px}
+.ql-container.ql-snow{border-radius:0 0 .5rem .5rem;border-color:#d1d5db;font-family:Inter,system-ui,sans-serif;font-size:.875rem}
+.ql-editor{min-height:80px;padding:10px 14px}
+.ql-editor:focus{box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.ql-snow .ql-tooltip{z-index:10001}
+.ql-snow .ql-picker.ql-color .ql-picker-label,.ql-snow .ql-picker.ql-color .ql-picker-item{width:22px;height:22px}
+.ql-snow .ql-formats{margin-right:10px!important}
+.ql-snow .ql-formula::after{content:'𝑓x';font-family:Georgia,serif;font-size:13px;font-weight:700}
+.ql-snow button.ql-formula svg{display:none}
+/* Rich content display */
+.qc-display p{margin:0}.qc-display .ql-formula{display:inline-block}
 </style>
 
 <!-- Overlay + Sheet -->
@@ -444,6 +458,7 @@
   </div>
 </div>
 
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
 /* === Quiz type toggle === */
 function toggleQTypeFields(){
@@ -458,9 +473,15 @@ function toggleQTypeFields(){
 }
 
 /* ═══════════════════════════════════ */
-/*  MATH PICKER                        */
+/*  MATH PICKER + QUILL INTEGRATION   */
 /* ═══════════════════════════════════ */
-var _meTarget=null,_meCursor=0,_meFormula='',_meATpl=null;
+var _meTarget=null,_meCursor=0,_meFormula='',_meATpl=null,_meMode='input';
+var _editQs={}; /* Track initialized Quill edit instances */
+var qlAdd=null; /* Quill instance for add-question form */
+
+/* ── Quill toolbar config (shared) ── */
+var _qlToolbar=[['bold','italic','underline'],[{'color':[]}],['formula']];
+function _qlCfg(q){return{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(q||this.quill);}}}},placeholder:'{{t .Lang "question_text_ph"}}'};}
 
 /* ── Template definitions (16 types) ── */
 var _tpl={
@@ -492,17 +513,23 @@ function mpPrev(){
     el.classList.add('has');kR(el,_meFormula);
 }
 
-/* ── Open / Close ── */
-function meOpen(inp){
-    _meTarget=inp;
-    _meCursor=inp.selectionStart!=null?inp.selectionStart:inp.value.length;
-    inp.blur();
+/* ── Open: accepts Quill instance OR input element ── */
+function meOpen(target){
+    if(target&&target.root){
+        _meTarget=target;_meMode='quill';
+        var rng=target.getSelection();
+        _meCursor=rng?rng.index:target.getLength()-1;
+    } else {
+        _meTarget=target;_meMode='input';
+        _meCursor=target.selectionStart!=null?target.selectionStart:target.value.length;
+        target.blur();
+    }
     setTimeout(function(){if(document.activeElement)document.activeElement.blur();},50);
     _meFormula='';_meATpl=null;
     document.getElementById('tplBox').style.display='none';
     document.querySelectorAll('.mp-fc').forEach(function(c){c.classList.remove('sel');});
-    var labels={'content':'{{t .Lang "question_text"}}','correct_answer':'{{t .Lang "correct_answer"}}','option_1':'A','option_2':'B','option_3':'C','option_4':'D'};
-    document.getElementById('mpLbl').textContent='→ '+(labels[inp.name]||inp.name);
+    var lbl=_meMode==='quill'?'{{t .Lang "question_text"}}':({'correct_answer':'{{t .Lang "correct_answer"}}','option_1':'A','option_2':'B','option_3':'C','option_4':'D'}[target.name]||target.name);
+    document.getElementById('mpLbl').textContent='→ '+lbl;
     mpPrev();
     document.getElementById('mpOv').style.display='block';
     var s=document.getElementById('mpSh');s.style.display='flex';void s.offsetHeight;s.classList.add('open');
@@ -515,15 +542,22 @@ function meClose(){
     _meTarget=null;
 }
 
-/* ── Insert into target input ── */
+/* ── Insert: Quill formula blot OR $formula$ in text input ── */
 function meInsert(){
     if(!_meTarget||!_meFormula.trim()){meClose();return;}
-    var v=_meTarget.value,p=_meCursor,b=v.substring(0,p),a=v.substring(p);
-    var s1=(b.length&&!b.endsWith(' ')&&!b.endsWith('$'))?' ':'';
-    var s2=(a.length&&!a.startsWith(' ')&&!a.startsWith('$'))?' ':'';
-    _meTarget.value=b+s1+'$'+_meFormula.trim()+'$'+s2+a;
-    _meTarget.dispatchEvent(new Event('input',{bubbles:true}));
-    meClose();_meTarget.focus();
+    if(_meMode==='quill'){
+        var q=_meTarget,rng=q.getSelection(true),idx=rng?rng.index:q.getLength()-1;
+        q.insertEmbed(idx,'formula',_meFormula.trim(),'user');
+        q.setSelection(idx+1,'user');
+    } else {
+        var v=_meTarget.value,p=_meCursor,b=v.substring(0,p),a=v.substring(p);
+        var s1=(b.length&&!b.endsWith(' ')&&!b.endsWith('$'))?' ':'';
+        var s2=(a.length&&!a.startsWith(' ')&&!a.startsWith('$'))?' ':'';
+        _meTarget.value=b+s1+'$'+_meFormula.trim()+'$'+s2+a;
+        _meTarget.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+    meClose();
+    if(_meMode==='input'&&_meTarget)_meTarget.focus();
 }
 
 /* ── Select a template card ── */
@@ -537,27 +571,57 @@ function meSel(key){
     t.f.forEach(function(f){document.getElementById('tf_'+f.id).addEventListener('input',tpLive);});
     setTimeout(function(){document.getElementById('tf_'+t.f[0].id).focus();},120);tpLive();
 }
-
-/* ── Live template preview ── */
 function tpLive(){
     if(!_meATpl)return;var t=_tpl[_meATpl],v={};
     t.f.forEach(function(f){var e=document.getElementById('tf_'+f.id);v[f.id]=e?e.value||f.p:'';});
     kR(document.getElementById('tplP'),t.b(v));
 }
-
-/* ── Add template to formula ── */
 function tpAdd(){
     if(!_meATpl)return;var t=_tpl[_meATpl],v={};
     t.f.forEach(function(f){var e=document.getElementById('tf_'+f.id);v[f.id]=e?e.value||f.p:'';});
     if(_meFormula)_meFormula+=' ';_meFormula+=t.b(v);mpPrev();
     t.f.forEach(function(f){var e=document.getElementById('tf_'+f.id);if(e)e.value='';});tpLive();
 }
-
-/* ── Add a symbol ── */
 function meAddS(l){_meFormula+=l;mpPrev();}
+
+/* ── Toggle edit form + lazy Quill init ── */
+function toggleEdit(qId){
+    var el=document.getElementById('editQ'+qId);
+    var wasHidden=el.classList.contains('hidden');
+    el.classList.toggle('hidden');
+    if(wasHidden&&!_editQs[qId]&&typeof Quill!=='undefined'){
+        var container=document.getElementById('qlEdit'+qId);
+        if(!container)return;
+        var q=new Quill(container,{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(q);}}}},placeholder:'{{t .Lang "question_text_ph"}}'});
+        var content=document.getElementById('qlEditVal'+qId).value;
+        if(content)q.clipboard.dangerouslyPasteHTML(content);
+        el.querySelector('form').addEventListener('submit',function(){
+            document.getElementById('qlEditVal'+qId).value=q.root.innerHTML;
+        });
+        _editQs[qId]=q;
+    }
+}
 
 /* ═══ Wire on load ═══ */
 document.addEventListener('DOMContentLoaded',function(){
+    /* ── Initialize Quill for add-question form ── */
+    if(typeof Quill!=='undefined'&&document.getElementById('qlAdd')){
+        qlAdd=new Quill('#qlAdd',{theme:'snow',modules:{formula:true,toolbar:{container:_qlToolbar,handlers:{'formula':function(){meOpen(qlAdd);}}}},placeholder:'{{t .Lang "question_text_ph"}}'});
+        var addForm=document.getElementById('addQForm');
+        if(addForm){
+            addForm.addEventListener('submit',function(e){
+                var html=qlAdd.root.innerHTML;
+                if(!qlAdd.getText().trim()){e.preventDefault();qlAdd.focus();return;}
+                document.getElementById('qlAddVal').value=html;
+            });
+        }
+    }
+
+    /* ── Re-render formula blots in displayed content ── */
+    document.querySelectorAll('.qc-display .ql-formula[data-value]').forEach(function(el){
+        if(typeof katex!=='undefined')katex.render(el.getAttribute('data-value'),el,{throwOnError:false});
+    });
+
     /* Formula card clicks */
     document.querySelectorAll('.mp-fc').forEach(function(c){c.addEventListener('click',function(e){e.preventDefault();meSel(c.dataset.tpl);});});
     document.getElementById('tplAdd').addEventListener('click',function(e){e.preventDefault();tpAdd();});
@@ -576,8 +640,8 @@ document.addEventListener('DOMContentLoaded',function(){
     }
     renderIcons();
 
-    /* ── Auto-add 𝑓x buttons + inline previews to text inputs ── */
-    document.querySelectorAll('input[name="content"],input[name^="option_"],input[name="correct_answer"]').forEach(function(input){
+    /* ── Auto-add 𝑓x buttons + inline previews to option/answer inputs ── */
+    document.querySelectorAll('input[name^="option_"],input[name="correct_answer"]').forEach(function(input){
         if(input.type!=='text')return;
         var wrap=document.createElement('div');
         wrap.style.cssText='position:relative';

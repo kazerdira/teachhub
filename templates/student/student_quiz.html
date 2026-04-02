@@ -54,7 +54,7 @@
             <div class="border-t border-gray-100 p-4 space-y-3 bg-gray-50/50">
                 {{range $.Questions}}
                 <div class="bg-white rounded-lg p-3 border border-gray-100">
-                    <p class="text-sm font-medium text-gray-800 mb-1">{{.Content}}</p>
+                    <div class="text-sm font-medium text-gray-800 mb-1 qc-display">{{safeContent .Content}}</div>
                     <p class="text-xs text-gray-500 mb-1">{{t $.Lang "type"}}: {{.QuestionType}} · {{.Points}} pts</p>
                     {{if eq .QuestionType "file_upload"}}
                         {{$fa := fileMapGet $a.FileAnswers (printf "%d" .ID)}}
@@ -94,7 +94,7 @@
     {{range $i, $q := .Questions}}
     <div class="card p-6">
         <div class="flex items-start justify-between mb-4">
-            <h3 class="font-semibold text-gray-800 text-lg"><span class="text-indigo-500 mr-2">{{add $i 1}}.</span> {{.Content}}</h3>
+            <div class="font-semibold text-gray-800 text-lg"><span class="text-indigo-500 mr-2">{{add $i 1}}.</span> <span class="qc-display">{{safeContent .Content}}</span></div>
             <span class="badge bg-gray-100 text-gray-500 text-xs ml-2 flex-shrink-0">{{.Points}} pts</span>
         </div>
 
