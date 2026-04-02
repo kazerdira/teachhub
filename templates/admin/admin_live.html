@@ -925,8 +925,8 @@ function wbExportCanvas() {
     exp.width = cw * scale; exp.height = ch * scale;
     var ctx = exp.getContext('2d');
     ctx.scale(scale, scale);
-    /* White background */
-    ctx.fillStyle = '#ffffff';
+    /* Dark background matching the whiteboard canvas */
+    ctx.fillStyle = '#111827';
     ctx.fillRect(0, 0, cw, ch);
     /* Apply current zoom/pan transform */
     ctx.save();
