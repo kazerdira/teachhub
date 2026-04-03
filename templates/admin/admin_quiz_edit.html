@@ -297,73 +297,42 @@
 {{end}}
 
 <!-- ═══════════════════════════════════════════ -->
-<!--  MATH PICKER — Clean Bottom Sheet         -->
+<!--  MATHLIVE FORMULA EDITOR                   -->
 <!-- ═══════════════════════════════════════════ -->
 <style>
 /* Overlay */
-.mp-ov{display:none;position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.4);backdrop-filter:blur(2px);-webkit-tap-highlight-color:transparent}
-/* Sheet */
-.mp-sh{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -8px 36px rgba(0,0,0,.12);max-height:88vh;display:none;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
-.mp-sh.open{transform:translateY(0)}
-@media(min-width:640px){.mp-sh{left:50%;right:auto;width:460px;margin-left:-230px;border-radius:18px;bottom:5vh;max-height:80vh;box-shadow:0 20px 60px rgba(0,0,0,.16)}}
-.mp-handle{display:flex;justify-content:center;padding:10px 0 2px}
-.mp-hbar{width:36px;height:4px;background:#e2e8f0;border-radius:4px}
-/* Header */
-.mp-head{display:flex;align-items:center;justify-content:space-between;padding:2px 16px 4px}
-.mp-title{font-size:15px;font-weight:700;color:#1e293b}
-.mp-sub{font-size:11px;color:#818cf8;font-weight:600;margin-top:1px}
-.mp-x{width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;color:#94a3b8;font-size:14px;cursor:pointer;transition:all .12s;touch-action:manipulation}
+.mp-ov{display:none;position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.45);backdrop-filter:blur(2px);-webkit-tap-highlight-color:transparent}
+/* MathLive Modal */
+.mp-modal{position:fixed;top:8vh;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:92%;max-width:540px;display:none;flex-direction:column;overflow:hidden}
+.mp-modal.open{display:flex;animation:mpIn .22s ease}
+@keyframes mpIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%)}}
+@media(max-width:480px){.mp-modal{top:3vh;width:96%;max-width:none;border-radius:14px}}
+/* Modal header */
+.mp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 6px}
+.mp-hi{flex:1;min-width:0}
+.mp-title{font-size:15px;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:6px}
+.mp-sub{font-size:11px;color:#818cf8;font-weight:600;margin-top:2px}
+.mp-x{width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;color:#94a3b8;font-size:14px;cursor:pointer;transition:all .12s;flex-shrink:0}
 .mp-x:hover{background:#e2e8f0;color:#475569}
-/* Preview */
-.mp-pv-area{padding:4px 14px 6px}
-.mp-pv{min-height:48px;padding:12px;background:#f8fafc;border:2px solid #e5e7eb;border-radius:14px;font-size:24px;text-align:center;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.mp-pv.has{background:#ecfdf5;border-color:#86efac}
-.mp-pv-ph{color:#c8d1dc;font-size:13px;font-weight:500}
-/* Scrollable body */
-.mp-body{overflow-y:auto;flex:1;padding:6px 14px 14px;max-height:46vh;-webkit-overflow-scrolling:touch}
-.mp-sec{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
-/* Formula cards — 3 columns, big touch targets */
-.mp-fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.mp-fc{padding:14px 6px 10px;border:2px solid #f1f5f9;border-radius:14px;background:#fafbfc;cursor:pointer;text-align:center;transition:all .15s;touch-action:manipulation}
-.mp-fc:hover{border-color:#ddd6fe;background:#faf5ff}
-.mp-fc:active{transform:scale(.96)}
-.mp-fc.sel{border-color:#a78bfa;background:#f5f3ff;box-shadow:0 0 0 3px rgba(167,139,250,.12)}
-.mp-fk{min-height:30px;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.mp-fk .katex{font-size:19px !important}
-.mp-fl{font-size:10px;font-weight:600;color:#a1a1aa;margin-top:5px;pointer-events:none}
-/* More expander */
-.mp-more{margin:6px 0 0}
-.mp-more-t{font-size:12px;font-weight:600;color:#818cf8;cursor:pointer;padding:4px 0;list-style:none;touch-action:manipulation}
-.mp-more-t::-webkit-details-marker{display:none}
-.mp-more-g{margin-top:8px}
-/* Template form */
-.mp-tpl{display:none;margin:12px 0 4px;padding:14px;background:#faf5ff;border:2px dashed #ddd6fe;border-radius:14px;animation:mpTpIn .2s}
-@keyframes mpTpIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.mp-tpl .tfl{font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
-.mp-tpl input{width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:10px;font-size:16px;background:#fff;margin-bottom:8px;outline:none;transition:border-color .15s;-webkit-appearance:none;font-family:Inter,system-ui,sans-serif}
-.mp-tpl input:focus{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(167,139,250,.12)}
-.mp-tpl-p{text-align:center;padding:6px;min-height:28px;margin-bottom:4px}
-.mp-tpl-p .katex{font-size:20px !important}
-.mp-tpl-btn{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;touch-action:manipulation}
-.mp-tpl-btn:hover{box-shadow:0 4px 12px rgba(16,185,129,.25)}
-.mp-tpl-btn:active{transform:scale(.97)}
-/* Symbol section headings + pill buttons */
-.mp-sl{font-size:10px;font-weight:700;color:#a1a1aa;text-transform:uppercase;letter-spacing:.04em;margin:14px 0 5px;padding-left:2px}
-.mp-sl:first-of-type{margin-top:0}
-.mp-sr{display:flex;flex-wrap:wrap;gap:6px}
-.mp-s{height:38px;min-width:38px;padding:0 6px;border:1.5px solid #f1f5f9;border-radius:10px;background:#fafbfc;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;touch-action:manipulation}
-.mp-s:hover{background:#faf5ff;border-color:#ddd6fe}
-.mp-s:active{background:#f5f3ff;border-color:#c4b5fd;transform:scale(.9)}
-.mp-s .katex{font-size:15px !important}
+/* MathLive field area */
+.mp-mf{padding:10px 20px 8px}
+.mp-mf math-field{display:block;width:100%;min-height:56px;font-size:24px;padding:14px 16px;border:2px solid #e2e8f0;border-radius:14px;background:#f8fafc;--caret-color:#6366f1;--selection-background-color:rgba(99,102,241,.15);--keyboard-zindex:10001;--_hue:239}
+.mp-mf math-field:focus-within{border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.12);background:#fff}
+/* Quick-insert buttons */
+.mp-qi{padding:4px 20px 10px;display:flex;flex-wrap:wrap;gap:4px}
+.mp-qb{height:32px;min-width:32px;padding:0 7px;border:1.5px solid #f1f5f9;border-radius:8px;background:#fafbfc;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .12s;touch-action:manipulation;color:#475569;font-family:KaTeX_Main,Georgia,serif}
+.mp-qb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}
+.mp-qb:active{transform:scale(.9)}
+/* Hint */
+.mp-hint{padding:0 20px 8px;font-size:11px;color:#94a3b8;line-height:1.4}
+.mp-hint kbd{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:10px;font-family:inherit;border:1px solid #e2e8f0}
 /* Bottom actions */
-.mp-foot{padding:8px 14px 18px;display:flex;gap:8px;border-top:1px solid #f5f5f5}
-.mp-cancel{flex:1;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;color:#475569;font-size:14px;font-weight:600;cursor:pointer;transition:all .12s;touch-action:manipulation}
+.mp-foot{padding:10px 20px 16px;display:flex;gap:8px;border-top:1px solid #f1f5f9}
+.mp-cancel{flex:1;padding:11px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;color:#475569;font-size:14px;font-weight:600;cursor:pointer;transition:all .12s;touch-action:manipulation}
 .mp-cancel:hover{background:#f8fafc}
-.mp-insert{flex:2;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.2);transition:all .15s;touch-action:manipulation}
+.mp-insert{flex:2;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.2);transition:all .15s;touch-action:manipulation}
 .mp-insert:hover{box-shadow:0 6px 20px rgba(99,102,241,.3);transform:translateY(-1px)}
 .mp-insert:active{transform:scale(.97)}
-/* Inline preview below inputs */
-.mp-iprev{padding:4px 10px;background:#f0fdf4;border:1px solid #d1fae5;border-radius:8px;margin-top:3px;font-size:13px;min-height:18px;display:none;line-height:1.5;word-break:break-word}
 /* Quill editor */
 .ql-toolbar.ql-snow{border-radius:.5rem .5rem 0 0;border-color:#d1d5db;background:#f9fafb;padding:6px 8px}
 .ql-container.ql-snow{border-radius:0 0 .5rem .5rem;border-color:#d1d5db;font-family:Inter,system-ui,sans-serif;font-size:.875rem}
@@ -399,100 +368,49 @@
 .opt-ed .ql-editor:focus{box-shadow:0 0 0 2px rgba(99,102,241,.15)}
 </style>
 
-<!-- Overlay + Sheet -->
+<!-- MathLive Formula Modal -->
 <div id="mpOv" class="mp-ov"></div>
-<div id="mpSh" class="mp-sh">
-  <div class="mp-handle"><div class="mp-hbar"></div></div>
+<div id="mpSh" class="mp-modal">
   <div class="mp-head">
-    <div><div class="mp-title">✏️ {{t .Lang "insert_math"}}</div><div class="mp-sub" id="mpLbl"></div></div>
+    <div class="mp-hi">
+      <div class="mp-title">✏️ {{t .Lang "insert_math"}}</div>
+      <div class="mp-sub" id="mpLbl"></div>
+    </div>
     <button type="button" onclick="meClose()" class="mp-x">✕</button>
   </div>
-  <div class="mp-pv-area"><div id="mpPrev" class="mp-pv"><span class="mp-pv-ph">{{t .Lang "pick_formula"}}</span></div></div>
-
-  <div class="mp-body">
-    <!-- ── Formulas ── -->
-    <div class="mp-sec">{{t .Lang "formulas"}}</div>
-    <div class="mp-fgrid">
-      <div class="mp-fc" data-tpl="frac"><div class="mp-fk" data-k="\frac{a}{b}"></div><div class="mp-fl">Fraction</div></div>
-      <div class="mp-fc" data-tpl="pow"><div class="mp-fk" data-k="x^{2}"></div><div class="mp-fl">Power</div></div>
-      <div class="mp-fc" data-tpl="sqrt"><div class="mp-fk" data-k="\sqrt{x}"></div><div class="mp-fl">Root</div></div>
-      <div class="mp-fc" data-tpl="sub"><div class="mp-fk" data-k="x_{n}"></div><div class="mp-fl">Index</div></div>
-      <div class="mp-fc" data-tpl="sum"><div class="mp-fk" data-k="\sum_{1}^{n}"></div><div class="mp-fl">Sum</div></div>
-      <div class="mp-fc" data-tpl="int"><div class="mp-fk" data-k="\int_{a}^{b}"></div><div class="mp-fl">Integral</div></div>
-    </div>
-    <details class="mp-more"><summary class="mp-more-t">{{t .Lang "formulas"}} ▾</summary>
-      <div class="mp-fgrid mp-more-g">
-        <div class="mp-fc" data-tpl="lim"><div class="mp-fk" data-k="\lim_{x\to 0}"></div><div class="mp-fl">Limit</div></div>
-        <div class="mp-fc" data-tpl="log"><div class="mp-fk" data-k="\log_{b}{x}"></div><div class="mp-fl">Log</div></div>
-        <div class="mp-fc" data-tpl="nroot"><div class="mp-fk" data-k="\sqrt[3]{x}"></div><div class="mp-fl">Nth Root</div></div>
-        <div class="mp-fc" data-tpl="abs"><div class="mp-fk" data-k="\left|x\right|"></div><div class="mp-fl">Absolute</div></div>
-        <div class="mp-fc" data-tpl="vec"><div class="mp-fk" data-k="\vec{F}"></div><div class="mp-fl">Vector</div></div>
-        <div class="mp-fc" data-tpl="overl"><div class="mp-fk" data-k="\overline{AB}"></div><div class="mp-fl">Overline</div></div>
-        <div class="mp-fc" data-tpl="binom"><div class="mp-fk" data-k="\binom{n}{k}"></div><div class="mp-fl">Binomial</div></div>
-        <div class="mp-fc" data-tpl="prod"><div class="mp-fk" data-k="\prod_{1}^{n}"></div><div class="mp-fl">Product</div></div>
-        <div class="mp-fc" data-tpl="deriv"><div class="mp-fk" data-k="\frac{dy}{dx}"></div><div class="mp-fl">Derivative</div></div>
-        <div class="mp-fc" data-tpl="pderiv"><div class="mp-fk" data-k="\frac{\partial f}{\partial x}"></div><div class="mp-fl">Partial</div></div>
-      </div>
-    </details>
-
-    <!-- Template fill-in -->
-    <div id="tplBox" class="mp-tpl">
-      <div id="tplF"></div>
-      <div id="tplP" class="mp-tpl-p"></div>
-      <button type="button" id="tplAdd" class="mp-tpl-btn">+ {{t .Lang "add_to_formula"}}</button>
-    </div>
-
-    <!-- ── Symbols ── -->
-    <div class="mp-sec" style="margin-top:18px">{{t .Lang "symbols_tab"}}</div>
-    <div class="mp-sl">Greek</div>
-    <div class="mp-sr">
-      <button type="button" class="mp-s" data-sym="\alpha" data-k="\alpha"></button>
-      <button type="button" class="mp-s" data-sym="\beta" data-k="\beta"></button>
-      <button type="button" class="mp-s" data-sym="\gamma" data-k="\gamma"></button>
-      <button type="button" class="mp-s" data-sym="\delta" data-k="\delta"></button>
-      <button type="button" class="mp-s" data-sym="\theta" data-k="\theta"></button>
-      <button type="button" class="mp-s" data-sym="\lambda" data-k="\lambda"></button>
-      <button type="button" class="mp-s" data-sym="\pi" data-k="\pi"></button>
-      <button type="button" class="mp-s" data-sym="\sigma" data-k="\sigma"></button>
-      <button type="button" class="mp-s" data-sym="\phi" data-k="\phi"></button>
-      <button type="button" class="mp-s" data-sym="\omega" data-k="\omega"></button>
-      <button type="button" class="mp-s" data-sym="\Delta" data-k="\Delta"></button>
-      <button type="button" class="mp-s" data-sym="\Sigma" data-k="\Sigma"></button>
-      <button type="button" class="mp-s" data-sym="\Omega" data-k="\Omega"></button>
-    </div>
-    <div class="mp-sl">Math</div>
-    <div class="mp-sr">
-      <button type="button" class="mp-s" data-sym="\times" data-k="\times"></button>
-      <button type="button" class="mp-s" data-sym="\div" data-k="\div"></button>
-      <button type="button" class="mp-s" data-sym="\pm" data-k="\pm"></button>
-      <button type="button" class="mp-s" data-sym="\infty" data-k="\infty"></button>
-      <button type="button" class="mp-s" data-sym="\leq" data-k="\leq"></button>
-      <button type="button" class="mp-s" data-sym="\geq" data-k="\geq"></button>
-      <button type="button" class="mp-s" data-sym="\neq" data-k="\neq"></button>
-      <button type="button" class="mp-s" data-sym="\approx" data-k="\approx"></button>
-      <button type="button" class="mp-s" data-sym="\rightarrow" data-k="\rightarrow"></button>
-      <button type="button" class="mp-s" data-sym="\Rightarrow" data-k="\Rightarrow"></button>
-    </div>
-    <div class="mp-sl">Sets</div>
-    <div class="mp-sr">
-      <button type="button" class="mp-s" data-sym="\in" data-k="\in"></button>
-      <button type="button" class="mp-s" data-sym="\cup" data-k="\cup"></button>
-      <button type="button" class="mp-s" data-sym="\cap" data-k="\cap"></button>
-      <button type="button" class="mp-s" data-sym="\emptyset" data-k="\emptyset"></button>
-      <button type="button" class="mp-s" data-sym="\subset" data-k="\subset"></button>
-      <button type="button" class="mp-s" data-sym="\forall" data-k="\forall"></button>
-      <button type="button" class="mp-s" data-sym="\exists" data-k="\exists"></button>
-      <button type="button" class="mp-s" data-sym="\mathbb{R}" data-k="\mathbb{R}"></button>
-      <button type="button" class="mp-s" data-sym="\mathbb{N}" data-k="\mathbb{N}"></button>
-    </div>
+  <div class="mp-mf">
+    <math-field id="mf" virtual-keyboard-mode="onfocus" smart-fence smart-superscript></math-field>
   </div>
-
+  <div class="mp-qi">
+    <button type="button" class="mp-qb" data-ml="\frac{#?}{#?}" title="Fraction">a/b</button>
+    <button type="button" class="mp-qb" data-ml="#@^{#?}" title="Power">x²</button>
+    <button type="button" class="mp-qb" data-ml="\sqrt{#0}" title="Square root">√x</button>
+    <button type="button" class="mp-qb" data-ml="\sqrt[#?]{#0}" title="Nth root">ⁿ√</button>
+    <button type="button" class="mp-qb" data-ml="#@_{#?}" title="Subscript">xₙ</button>
+    <button type="button" class="mp-qb" data-ml="\sum_{#?}^{#?}" title="Sum">∑</button>
+    <button type="button" class="mp-qb" data-ml="\int_{#?}^{#?}" title="Integral">∫</button>
+    <button type="button" class="mp-qb" data-ml="\lim_{x\to #?}" title="Limit">lim</button>
+    <button type="button" class="mp-qb" data-ml="\pi" title="Pi">π</button>
+    <button type="button" class="mp-qb" data-ml="\alpha" title="Alpha">α</button>
+    <button type="button" class="mp-qb" data-ml="\beta" title="Beta">β</button>
+    <button type="button" class="mp-qb" data-ml="\theta" title="Theta">θ</button>
+    <button type="button" class="mp-qb" data-ml="\infty" title="Infinity">∞</button>
+    <button type="button" class="mp-qb" data-ml="\leq" title="≤">≤</button>
+    <button type="button" class="mp-qb" data-ml="\geq" title="≥">≥</button>
+    <button type="button" class="mp-qb" data-ml="\neq" title="≠">≠</button>
+    <button type="button" class="mp-qb" data-ml="\pm" title="±">±</button>
+    <button type="button" class="mp-qb" data-ml="\times" title="×">×</button>
+    <button type="button" class="mp-qb" data-ml="\div" title="÷">÷</button>
+    <button type="button" class="mp-qb" data-ml="\rightarrow" title="→">→</button>
+  </div>
+  <div class="mp-hint">Type math naturally · <kbd>/</kbd> fraction · <kbd>^</kbd> power · <kbd>_</kbd> subscript · Use the virtual keyboard for more</div>
   <div class="mp-foot">
     <button type="button" onclick="meClose()" class="mp-cancel">{{t .Lang "cancel"}}</button>
     <button type="button" onclick="meInsert()" class="mp-insert">{{t .Lang "insert"}} ✓</button>
   </div>
 </div>
 
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
 /* === Quiz type toggle === */
@@ -511,7 +429,7 @@ function toggleQTypeFields(){
 /* ═══════════════════════════════════ */
 /*  MATH PICKER + QUILL INTEGRATION   */
 /* ═══════════════════════════════════ */
-var _meTarget=null,_meCursor=0,_meFormula='',_meATpl=null,_meMode='input';
+var _meTarget=null,_meCursor=0,_meMode='input';
 var _editQs={}; /* Track initialized Quill edit instances */
 var _editOpts={}; /* Track initialized Quill option instances: {qId: [q1,q2,q3,q4]} */
 var qlAdd=null; /* Quill instance for add-question content */
@@ -596,106 +514,63 @@ function _syncBar(bar,q){
     var ci=bar.querySelector('input[data-fmt="color"]');if(ci)ci.value=fmt.color||'#000000';
 }
 
-/* ── Template definitions (16 types) ── */
-var _tpl={
-  frac:{f:[{id:'n',l:'Top (numerator)',p:'3'},{id:'d',l:'Bottom (denominator)',p:'4'}],b:function(v){return'\\frac{'+v.n+'}{'+v.d+'}';}},
-  pow:{f:[{id:'b',l:'Base',p:'x'},{id:'e',l:'Exponent',p:'2'}],b:function(v){return'{'+v.b+'}^{'+v.e+'}';}},
-  sqrt:{f:[{id:'v',l:'Value',p:'x+1'}],b:function(v){return'\\sqrt{'+v.v+'}';}},
-  sub:{f:[{id:'b',l:'Base',p:'x'},{id:'s',l:'Index',p:'n'}],b:function(v){return'{'+v.b+'}_{'+v.s+'}';}},
-  sum:{f:[{id:'a',l:'From',p:'i=1'},{id:'z',l:'To',p:'n'},{id:'e',l:'Expression',p:'i^2'}],b:function(v){return'\\sum_{'+v.a+'}^{'+v.z+'} '+v.e;}},
-  int:{f:[{id:'a',l:'From',p:'0'},{id:'z',l:'To',p:'\\infty'},{id:'e',l:'Expression',p:'f(x)\\,dx'}],b:function(v){return'\\int_{'+v.a+'}^{'+v.z+'} '+v.e;}},
-  lim:{f:[{id:'a',l:'Approaches',p:'x \\to 0'},{id:'e',l:'Expression',p:'\\frac{\\sin x}{x}'}],b:function(v){return'\\lim_{'+v.a+'} '+v.e;}},
-  log:{f:[{id:'b',l:'Base (empty = default)',p:'2'},{id:'v',l:'Value',p:'x'}],b:function(v){return v.b?'\\log_{'+v.b+'}{'+v.v+'}':'\\log{'+v.v+'}';}},
-  nroot:{f:[{id:'n',l:'Root degree',p:'3'},{id:'v',l:'Value',p:'27'}],b:function(v){return'\\sqrt['+v.n+']{'+v.v+'}';}},
-  abs:{f:[{id:'v',l:'Expression',p:'x-3'}],b:function(v){return'\\left|'+v.v+'\\right|';}},
-  vec:{f:[{id:'v',l:'Letter',p:'F'}],b:function(v){return'\\vec{'+v.v+'}';}},
-  overl:{f:[{id:'v',l:'Expression',p:'AB'}],b:function(v){return'\\overline{'+v.v+'}';}},
-  binom:{f:[{id:'n',l:'Top',p:'n'},{id:'k',l:'Bottom',p:'k'}],b:function(v){return'\\binom{'+v.n+'}{'+v.k+'}';}},
-  prod:{f:[{id:'a',l:'From',p:'i=1'},{id:'z',l:'To',p:'n'},{id:'e',l:'Expression',p:'a_i'}],b:function(v){return'\\prod_{'+v.a+'}^{'+v.z+'} '+v.e;}},
-  deriv:{f:[{id:'n',l:'Top variable',p:'y'},{id:'d',l:'Bottom variable',p:'x'}],b:function(v){return'\\frac{d'+v.n+'}{d'+v.d+'}';}},
-  pderiv:{f:[{id:'f',l:'Function',p:'f'},{id:'v',l:'Variable',p:'x'}],b:function(v){return'\\frac{\\partial '+v.f+'}{\\partial '+v.v+'}';}}
-};
-
-/* ── KaTeX render helper ── */
-function kR(el,l){if(typeof katex!=='undefined'){try{el.innerHTML=katex.renderToString(l,{throwOnError:false});}catch(e){el.textContent=l;}}else el.textContent=l;}
-
-/* ── Preview ── */
-function mpPrev(){
-    var el=document.getElementById('mpPrev');
-    if(!_meFormula){el.innerHTML='<span class="mp-pv-ph">{{t .Lang "pick_formula"}}</span>';el.classList.remove('has');return;}
-    el.classList.add('has');kR(el,_meFormula);
-}
-
-/* ── Open: accepts Quill instance OR input element ── */
+/* ═══ MathLive-powered formula editor ═══ */
 function meOpen(target){
+    var mf=document.getElementById('mf');
+    /* Fallback if MathLive hasn't loaded yet */
+    if(!mf||typeof mf.getValue!=='function'){
+        var latex=prompt('Enter LaTeX formula (e.g. \\frac{a}{b}):');
+        if(latex&&latex.trim()&&target&&target.root){
+            var q=target,rng=q.getSelection(true),idx=rng?rng.index:q.getLength()-1;
+            q.insertEmbed(idx,'formula',latex.trim(),'user');q.setSelection(idx+1,'user');
+        }
+        return;
+    }
     if(target&&target.root){
         _meTarget=target;_meMode='quill';
         var rng=target.getSelection();
         _meCursor=rng?rng.index:target.getLength()-1;
-    } else {
+    }else{
         _meTarget=target;_meMode='input';
         _meCursor=target.selectionStart!=null?target.selectionStart:target.value.length;
-        target.blur();
     }
-    setTimeout(function(){if(document.activeElement)document.activeElement.blur();},50);
-    _meFormula='';_meATpl=null;
-    document.getElementById('tplBox').style.display='none';
-    document.querySelectorAll('.mp-fc').forEach(function(c){c.classList.remove('sel');});
-    var lbl=_meMode==='quill'?(target._meLabel||'{{t .Lang "question_text"}}'):({'correct_answer':'{{t .Lang "correct_answer"}}','option_1':'A','option_2':'B','option_3':'C','option_4':'D'}[target.name]||target.name);
+    mf.value='';
+    var lbl=_meMode==='quill'?(target._meLabel||'{{t .Lang "question_text"}}'):({'correct_answer':'{{t .Lang "correct_answer"}}'}[target.name]||target.name);
     document.getElementById('mpLbl').textContent='→ '+lbl;
-    mpPrev();
     document.getElementById('mpOv').style.display='block';
-    var s=document.getElementById('mpSh');s.style.display='flex';void s.offsetHeight;s.classList.add('open');
+    document.getElementById('mpSh').classList.add('open');
     document.body.style.overflow='hidden';
+    setTimeout(function(){mf.focus();},180);
 }
 function meClose(){
-    document.getElementById('mpSh').classList.remove('open');document.getElementById('mpOv').style.display='none';
+    var sh=document.getElementById('mpSh');
+    sh.classList.remove('open');
+    document.getElementById('mpOv').style.display='none';
     document.body.style.overflow='';
-    setTimeout(function(){document.getElementById('mpSh').style.display='none';},300);
+    var mf=document.getElementById('mf');
+    if(mf&&typeof mf.blur==='function')mf.blur();
     _meTarget=null;
 }
-
-/* ── Insert: Quill formula blot OR $formula$ in text input ── */
 function meInsert(){
-    if(!_meTarget||!_meFormula.trim()){meClose();return;}
+    var mf=document.getElementById('mf');
+    if(!mf||!_meTarget){meClose();return;}
+    var latex=(typeof mf.getValue==='function')?mf.getValue('latex'):mf.value;
+    if(!latex||!latex.trim()){meClose();return;}
+    latex=latex.trim();
     if(_meMode==='quill'){
         var q=_meTarget,rng=q.getSelection(true),idx=rng?rng.index:q.getLength()-1;
-        q.insertEmbed(idx,'formula',_meFormula.trim(),'user');
+        q.insertEmbed(idx,'formula',latex,'user');
         q.setSelection(idx+1,'user');
-    } else {
+    }else{
         var v=_meTarget.value,p=_meCursor,b=v.substring(0,p),a=v.substring(p);
         var s1=(b.length&&!b.endsWith(' ')&&!b.endsWith('$'))?' ':'';
         var s2=(a.length&&!a.startsWith(' ')&&!a.startsWith('$'))?' ':'';
-        _meTarget.value=b+s1+'$'+_meFormula.trim()+'$'+s2+a;
+        _meTarget.value=b+s1+'$'+latex+'$'+s2+a;
         _meTarget.dispatchEvent(new Event('input',{bubbles:true}));
     }
     meClose();
     if(_meMode==='input'&&_meTarget)_meTarget.focus();
 }
-
-/* ── Select a template card ── */
-function meSel(key){
-    _meATpl=key;var t=_tpl[key];
-    document.querySelectorAll('.mp-fc').forEach(function(c){c.classList.toggle('sel',c.dataset.tpl===key);});
-    var box=document.getElementById('tplBox'),h='';
-    t.f.forEach(function(f){h+='<div class="tfl">'+f.l+'</div><input id="tf_'+f.id+'" placeholder="'+f.p+'" autocomplete="off" autocorrect="off" spellcheck="false">';});
-    document.getElementById('tplF').innerHTML=h;document.getElementById('tplP').innerHTML='';
-    box.style.display='block';box.scrollIntoView({behavior:'smooth',block:'nearest'});
-    t.f.forEach(function(f){document.getElementById('tf_'+f.id).addEventListener('input',tpLive);});
-    setTimeout(function(){document.getElementById('tf_'+t.f[0].id).focus();},120);tpLive();
-}
-function tpLive(){
-    if(!_meATpl)return;var t=_tpl[_meATpl],v={};
-    t.f.forEach(function(f){var e=document.getElementById('tf_'+f.id);v[f.id]=e?e.value||f.p:'';});
-    kR(document.getElementById('tplP'),t.b(v));
-}
-function tpAdd(){
-    if(!_meATpl)return;var t=_tpl[_meATpl],v={};
-    t.f.forEach(function(f){var e=document.getElementById('tf_'+f.id);v[f.id]=e?e.value||f.p:'';});
-    if(_meFormula)_meFormula+=' ';_meFormula+=t.b(v);mpPrev();
-    t.f.forEach(function(f){var e=document.getElementById('tf_'+f.id);if(e)e.value='';});tpLive();
-}
-function meAddS(l){_meFormula+=l;mpPrev();}
 
 /* ── Toggle edit form + lazy Quill init ── */
 function toggleEdit(qId){
@@ -796,23 +671,21 @@ document.addEventListener('DOMContentLoaded',function(){
         if(typeof katex!=='undefined')katex.render(el.getAttribute('data-value'),el,{throwOnError:false});
     });
 
-    /* Formula card clicks */
-    document.querySelectorAll('.mp-fc').forEach(function(c){c.addEventListener('click',function(e){e.preventDefault();meSel(c.dataset.tpl);});});
-    document.getElementById('tplAdd').addEventListener('click',function(e){e.preventDefault();tpAdd();});
+    /* Quick-insert buttons → insert into MathLive field */
+    document.querySelectorAll('.mp-qb').forEach(function(btn){
+        btn.addEventListener('click',function(e){
+            e.preventDefault();
+            var mf=document.getElementById('mf');
+            if(mf&&typeof mf.executeCommand==='function'){
+                mf.executeCommand(['insert',btn.dataset.ml]);
+                mf.focus();
+            }
+        });
+    });
 
-    /* Symbol clicks */
-    document.querySelectorAll('.mp-s').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();meAddS(b.dataset.sym);});});
-
-    /* Overlay/escape close */
+    /* Overlay / escape close */
     document.getElementById('mpOv').addEventListener('click',meClose);
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('mpSh').classList.contains('open'))meClose();});
-
-    /* Render all KaTeX icons */
-    function renderIcons(){
-        if(typeof katex==='undefined'){setTimeout(renderIcons,200);return;}
-        document.querySelectorAll('[data-k]').forEach(function(e){kR(e,e.dataset.k);});
-    }
-    renderIcons();
 });
 </script>
 
