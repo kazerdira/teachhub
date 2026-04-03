@@ -76,7 +76,7 @@
                 {{if eq .ResponseType "file"}}📎{{else if eq .ResponseType "text"}}📝{{else}}📎📝{{end}}
             </span>
         </div>
-        {{if .Description}}<p class="text-sm text-gray-500 mb-4 line-clamp-2">{{.Description}}</p>{{end}}
+        {{if .Description}}<div class="text-sm text-gray-500 mb-4 line-clamp-2 qc-display">{{safeContent .Description}}</div>{{end}}
         <div class="mt-auto flex items-center justify-between border-t border-gray-100 pt-3">
             {{if .Deadline}}
             <p class="text-xs font-medium text-red-500 flex items-center gap-1">⏰ {{t $.Lang "due"}} {{.Deadline.Format "Jan 2, 3:04 PM"}}</p>
