@@ -47,13 +47,29 @@
         {{if or (eq .Assignment.ResponseType "text") (eq .Assignment.ResponseType "both")}}
         <div>
             <div class="flex justify-between items-end mb-1">
-                <div class="flex items-center gap-2">
-                    <label class="text-sm font-medium text-gray-700">{{t .Lang "your_answer"}}</label>
-                    <button type="button" class="fx-btn" onclick="meOpen(document.getElementById('textContent'))">𝑓x</button>
-                </div>
+                <label class="text-sm font-medium text-gray-700">{{t .Lang "your_answer"}}</label>
                 {{if gt .Assignment.MaxChars 0}}
                 <span class="text-xs text-gray-400" id="charCount">0 / {{.Assignment.MaxChars}} chars</span>
                 {{end}}
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">
+                <button type="button" class="_sb" onclick="_iA('π')">π</button>
+                <button type="button" class="_sb" onclick="_iA('α')">α</button>
+                <button type="button" class="_sb" onclick="_iA('β')">β</button>
+                <button type="button" class="_sb" onclick="_iA('θ')">θ</button>
+                <button type="button" class="_sb" onclick="_iA('Δ')">Δ</button>
+                <button type="button" class="_sb" onclick="_iA('×')">×</button>
+                <button type="button" class="_sb" onclick="_iA('÷')">÷</button>
+                <button type="button" class="_sb" onclick="_iA('±')">±</button>
+                <button type="button" class="_sb" onclick="_iA('√')">√</button>
+                <button type="button" class="_sb" onclick="_iA('²')">²</button>
+                <button type="button" class="_sb" onclick="_iA('³')">³</button>
+                <button type="button" class="_sb" onclick="_iA('∞')">∞</button>
+                <button type="button" class="_sb" onclick="_iA('≤')">≤</button>
+                <button type="button" class="_sb" onclick="_iA('≥')">≥</button>
+                <button type="button" class="_sb" onclick="_iA('≠')">≠</button>
+                <button type="button" class="_sb" onclick="_iA('≈')">≈</button>
+                <button type="button" class="_sb" style="font-family:Georgia,serif;font-weight:700;color:#6366f1;border-color:#c7d2fe;background:#eef2ff;width:auto;padding:0 8px" onclick="meOpen(document.getElementById('textContent'))">𝑓x</button>
             </div>
             <textarea name="text_content" id="textContent" rows="5" class="input w-full"
                 {{if gt .Assignment.MaxChars 0}}maxlength="{{.Assignment.MaxChars}}" onkeyup="document.getElementById('charCount').innerText = this.value.length + ' / {{.Assignment.MaxChars}} chars'"{{end}}
@@ -115,5 +131,18 @@
     {{end}}
 </div>
 {{end}}
+
+<style>._sb{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;color:#374151}._sb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}</style>
+<script>
+function _iA(s){
+    var el=document.getElementById('textContent');
+    if(!el)return;
+    var st=el.selectionStart||0,en=el.selectionEnd||0;
+    el.value=el.value.substring(0,st)+s+el.value.substring(en);
+    el.selectionStart=el.selectionEnd=st+s.length;
+    el.focus();
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+}
+</script>
 
 {{template "student_foot" .}}
