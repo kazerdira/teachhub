@@ -5,7 +5,7 @@
 </div>
 
 <h1 class="text-2xl font-bold text-gray-900 mb-1">{{.Assignment.Title}}</h1>
-{{if .Assignment.Description}}<p class="text-gray-600 mb-3">{{.Assignment.Description}}</p>{{end}}
+{{if .Assignment.Description}}<div class="text-gray-600 mb-3 qc-display">{{safeContent .Assignment.Description}}</div>{{end}}
 <div class="flex flex-wrap gap-2 mb-6">
     {{if .Assignment.Deadline}}<span class="badge bg-red-50 text-red-600">⏰ {{t .Lang "due"}} {{.Assignment.Deadline.Format "Jan 2, 2006 3:04 PM"}}</span>{{end}}
     <span class="badge bg-gray-100 text-gray-700">{{t .Lang "type"}}: {{.Assignment.ResponseType}}</span>
@@ -39,7 +39,7 @@
             {{if .TextContent}}
             <div class="mb-3">
                 <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">{{t $.Lang "text_response"}}</span>
-                <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap border border-gray-100 font-mono max-h-64 overflow-y-auto">{{.TextContent}}</div>
+                <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-800 border border-gray-100 max-h-64 overflow-y-auto qc-display">{{safeContent .TextContent}}</div>
             </div>
             {{end}}
 

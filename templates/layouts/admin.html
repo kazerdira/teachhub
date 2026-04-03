@@ -23,6 +23,16 @@
         .input { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; transition: all 0.15s; outline: none; }
         .input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
         .badge { font-size: 0.75rem; font-weight: 500; padding: 0.125rem 0.5rem; border-radius: 9999px; }
+        .ql-toolbar.ql-snow{border-radius:.5rem .5rem 0 0;border-color:#d1d5db;background:#f9fafb;padding:6px 8px}
+        .ql-container.ql-snow{border-radius:0 0 .5rem .5rem;border-color:#d1d5db;font-family:Inter,system-ui,sans-serif;font-size:.875rem}
+        .ql-editor{min-height:80px;padding:10px 14px}
+        .ql-editor:focus{box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+        .ql-snow .ql-tooltip{z-index:10001}
+        .ql-snow .ql-picker.ql-color .ql-picker-label,.ql-snow .ql-picker.ql-color .ql-picker-item{width:22px;height:22px}
+        .ql-snow .ql-formats{margin-right:10px!important}
+        .ql-snow .ql-toolbar button.ql-formula::after{content:'𝑓x';font-family:Georgia,serif;font-size:13px;font-weight:700}
+        .ql-snow .ql-toolbar button.ql-formula svg{display:none}
+        .ql-snow .ql-editor .ql-formula::after{content:none}
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans">
@@ -255,7 +265,8 @@ function meOpen(el){
         return;
     }
     _meTarget=el;
-    _meCursor=el.selectionStart!=null?el.selectionStart:(el.value||'').length;
+    if(el.root){var rng=el.getSelection();_meCursor=rng?rng.index:el.getLength()-1;}
+    else{_meCursor=el.selectionStart!=null?el.selectionStart:(el.value||'').length;}
     mf.value='';_kbVisible=false;
     var btn=document.getElementById('mpKbToggle');if(btn)btn.classList.remove('active');
     var lbl=document.getElementById('mpLbl');if(lbl)lbl.textContent='';
@@ -276,6 +287,7 @@ function meClose(){
 }
 function _meInsertText(el,latex){
     if(!el)return;
+    if(el.root){var rng=el.getSelection(true),idx=rng?rng.index:el.getLength()-1;el.insertEmbed(idx,'formula',latex,'user');el.setSelection(idx+1,'user');return;}
     if(el.getAttribute&&el.getAttribute('contenteditable')==='true'){
         _meInsertChip(el,latex);return;
     }
@@ -313,6 +325,8 @@ function _meSyncEd(editor){
     else if(n.nodeName==='BR')r+='\n';
     else n.childNodes.forEach(walk);})(editor);ta.value=r;
 }
+function _qlFixColor(q){var tb=q.getModule('toolbar');if(!tb)return;var pk=tb.container.querySelector('.ql-picker.ql-color');if(!pk)return;var ci=document.createElement('input');ci.type='color';ci.value='#000000';ci.title='Text color';ci.style.cssText='width:28px;height:28px;border:1px solid #d1d5db;border-radius:6px;padding:2px;cursor:pointer;background:#fff;vertical-align:middle;';ci.addEventListener('input',function(){q.format('color',ci.value);});q.on('selection-change',function(r){if(r){var f=q.getFormat(r);ci.value=f.color||'#000000';}});pk.parentNode.replaceChild(ci,pk);}
+function _qlFixDel(q){q.root.addEventListener('keydown',function(e){if(e.key!=='Backspace'&&e.key!=='Delete')return;var rng=q.getSelection();if(!rng||rng.length>0)return;if(e.key==='Backspace'&&rng.index>0){var d=q.getContents(rng.index-1,1);if(d.ops&&d.ops.length&&d.ops[0].insert&&d.ops[0].insert.formula!==undefined){e.preventDefault();q.deleteText(rng.index-1,1,'user');}}else if(e.key==='Delete'){var d=q.getContents(rng.index,1);if(d.ops&&d.ops.length&&d.ops[0].insert&&d.ops[0].insert.formula!==undefined){e.preventDefault();q.deleteText(rng.index,1,'user');}}});}
 function meInsert(){
     var mf=document.getElementById('mf');
     if(!mf||!_meTarget){meClose();return;}
