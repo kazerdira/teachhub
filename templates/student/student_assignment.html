@@ -17,6 +17,21 @@
     <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded font-medium">{{t .Lang "max_grade"}}: {{.Assignment.MaxGrade}}</span>
 </div>
 
+{{if .Assignment.FileName}}
+<div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center justify-between flex-wrap gap-2">
+    <div class="flex items-center gap-2">
+        <span style="font-size:1.5rem">📄</span>
+        <div>
+            <p class="text-sm font-semibold text-gray-800">{{.Assignment.FileName}}</p>
+            <p class="text-xs text-gray-500">{{t .Lang "teacher_attachment"}}</p>
+        </div>
+    </div>
+    <a href="/classroom/{{.Classroom.ID}}/assignment/{{.Assignment.ID}}/file"
+       class="inline-flex items-center gap-1 px-4 py-2 text-sm font-semibold rounded-lg"
+       style="background:#4f46e5;color:#fff;text-decoration:none">⬇ {{t .Lang "download"}}</a>
+</div>
+{{end}}
+
 {{if .Error}}
 <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center justify-between">
     <p class="text-sm">{{.Error}}</p>

@@ -344,7 +344,33 @@ func (h *Handler) CreateAssignment(c *gin.Context) {
 		}
 	}
 
-	h.Store.CreateAssignment(c.Request.Context(), classID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade)
+	// Handle optional assignment file attachment
+	var filePath, fileName string
+	file, header, err := c.Request.FormFile("assignment_file")
+	if err == nil {
+		defer file.Close()
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		if isBlockedExtension(ext) {
+			c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments&error=blocked_type", classID))
+			return
+		}
+		if header.Size > MaxTeacherFileSize {
+			c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments&error=too_large", classID))
+			return
+		}
+		fileName = header.Filename
+		fname := fmt.Sprintf("assign_%d_%d%s", classID, time.Now().UnixMilli(), ext)
+		filePath = filepath.Join("assignments", fname)
+		fullPath := filepath.Join(h.UploadDir, filePath)
+		os.MkdirAll(filepath.Dir(fullPath), 0755)
+		dst, err := os.Create(fullPath)
+		if err == nil {
+			defer dst.Close()
+			io.Copy(dst, file)
+		}
+	}
+
+	h.Store.CreateAssignment(c.Request.Context(), classID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade, filePath, fileName)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments", classID))
 }
 
@@ -384,8 +410,66 @@ func (h *Handler) EditAssignment(c *gin.Context) {
 		}
 	}
 
-	h.Store.UpdateAssignment(c.Request.Context(), aID, classID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade)
+	// Get existing assignment to preserve file if no new one uploaded
+	existing, _ := h.Store.GetAssignment(c.Request.Context(), aID)
+	filePath := ""
+	fileName := ""
+	if existing != nil {
+		filePath = existing.FilePath
+		fileName = existing.FileName
+	}
+
+	// Check if user wants to remove existing file
+	if c.PostForm("remove_file") == "1" {
+		if filePath != "" {
+			os.Remove(filepath.Join(h.UploadDir, filePath))
+		}
+		filePath = ""
+		fileName = ""
+	}
+
+	// Handle new file upload (replaces existing)
+	file, header, err := c.Request.FormFile("assignment_file")
+	if err == nil {
+		defer file.Close()
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		if isBlockedExtension(ext) {
+			c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments&error=blocked_type", classID))
+			return
+		}
+		if header.Size > MaxTeacherFileSize {
+			c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments&error=too_large", classID))
+			return
+		}
+		// Remove old file if replacing
+		if filePath != "" {
+			os.Remove(filepath.Join(h.UploadDir, filePath))
+		}
+		fileName = header.Filename
+		fname := fmt.Sprintf("assign_%d_%d%s", classID, time.Now().UnixMilli(), ext)
+		filePath = filepath.Join("assignments", fname)
+		fullPath := filepath.Join(h.UploadDir, filePath)
+		os.MkdirAll(filepath.Dir(fullPath), 0755)
+		dst, err := os.Create(fullPath)
+		if err == nil {
+			defer dst.Close()
+			io.Copy(dst, file)
+		}
+	}
+
+	h.Store.UpdateAssignment(c.Request.Context(), aID, classID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade, filePath, fileName)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments", classID))
+}
+
+func (h *Handler) DownloadAssignmentFile(c *gin.Context) {
+	assignID, _ := strconv.Atoi(c.Param("assignId"))
+	assign, err := h.Store.GetAssignment(c.Request.Context(), assignID)
+	if err != nil || assign.FilePath == "" {
+		c.String(404, "Not found")
+		return
+	}
+	fullPath := filepath.Join(h.UploadDir, assign.FilePath)
+	c.FileAttachment(fullPath, assign.FileName)
 }
 
 func (h *Handler) ViewSubmissions(c *gin.Context) {

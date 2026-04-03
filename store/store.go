@@ -141,6 +141,8 @@ type Assignment struct {
 	MaxChars        int
 	MaxFileSize     int64 // bytes, default 10MB
 	MaxGrade        float64
+	FilePath        string
+	FileName        string
 	CreatedAt       time.Time
 	SubmissionCount int
 	GradedCount     int
@@ -632,7 +634,8 @@ func (s *Store) DeleteResource(ctx context.Context, id, classroomID int) error {
 func (s *Store) ListAssignments(ctx context.Context, classroomID int) ([]Assignment, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT a.id, a.classroom_id, a.title, a.description, a.deadline,
-			a.response_type, a.max_chars, a.max_file_size, a.max_grade, a.created_at,
+			a.response_type, a.max_chars, a.max_file_size, a.max_grade,
+			COALESCE(a.file_path,''), COALESCE(a.file_name,''), a.created_at,
 			(SELECT COUNT(*) FROM submission WHERE assignment_id=a.id) AS sub_count,
 			(SELECT COUNT(*) FROM submission WHERE assignment_id=a.id AND grade IS NOT NULL) AS graded_count
 		FROM assignment a WHERE a.classroom_id=$1 ORDER BY a.created_at DESC`, classroomID)
@@ -644,7 +647,8 @@ func (s *Store) ListAssignments(ctx context.Context, classroomID int) ([]Assignm
 	for rows.Next() {
 		var a Assignment
 		if err := rows.Scan(&a.ID, &a.ClassroomID, &a.Title, &a.Description, &a.Deadline,
-			&a.ResponseType, &a.MaxChars, &a.MaxFileSize, &a.MaxGrade, &a.CreatedAt, &a.SubmissionCount, &a.GradedCount); err != nil {
+			&a.ResponseType, &a.MaxChars, &a.MaxFileSize, &a.MaxGrade,
+			&a.FilePath, &a.FileName, &a.CreatedAt, &a.SubmissionCount, &a.GradedCount); err != nil {
 			return nil, err
 		}
 		list = append(list, a)
@@ -654,12 +658,12 @@ func (s *Store) ListAssignments(ctx context.Context, classroomID int) ([]Assignm
 
 func (s *Store) GetAssignment(ctx context.Context, id int) (*Assignment, error) {
 	a := &Assignment{}
-	err := s.DB.QueryRow(ctx, `SELECT id, classroom_id, title, description, deadline, response_type, max_chars, max_file_size, max_grade, created_at FROM assignment WHERE id=$1`, id).
-		Scan(&a.ID, &a.ClassroomID, &a.Title, &a.Description, &a.Deadline, &a.ResponseType, &a.MaxChars, &a.MaxFileSize, &a.MaxGrade, &a.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, classroom_id, title, description, deadline, response_type, max_chars, max_file_size, max_grade, COALESCE(file_path,''), COALESCE(file_name,''), created_at FROM assignment WHERE id=$1`, id).
+		Scan(&a.ID, &a.ClassroomID, &a.Title, &a.Description, &a.Deadline, &a.ResponseType, &a.MaxChars, &a.MaxFileSize, &a.MaxGrade, &a.FilePath, &a.FileName, &a.CreatedAt)
 	return a, err
 }
 
-func (s *Store) CreateAssignment(ctx context.Context, classroomID int, title, desc string, deadline *time.Time, responseType string, maxChars int, maxFileSize int64, maxGrade float64) (int, error) {
+func (s *Store) CreateAssignment(ctx context.Context, classroomID int, title, desc string, deadline *time.Time, responseType string, maxChars int, maxFileSize int64, maxGrade float64, filePath, fileName string) (int, error) {
 	if responseType == "" {
 		responseType = "file"
 	}
@@ -671,8 +675,8 @@ func (s *Store) CreateAssignment(ctx context.Context, classroomID int, title, de
 	}
 	var id int
 	err := s.DB.QueryRow(ctx,
-		`INSERT INTO assignment (classroom_id, title, description, deadline, response_type, max_chars, max_file_size, max_grade) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
-		classroomID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade).Scan(&id)
+		`INSERT INTO assignment (classroom_id, title, description, deadline, response_type, max_chars, max_file_size, max_grade, file_path, file_name) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+		classroomID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade, filePath, fileName).Scan(&id)
 	return id, err
 }
 
@@ -681,11 +685,11 @@ func (s *Store) DeleteAssignment(ctx context.Context, id, classroomID int) error
 	return err
 }
 
-func (s *Store) UpdateAssignment(ctx context.Context, id, classroomID int, title, desc string, deadline *time.Time, responseType string, maxChars int, maxFileSize int64, maxGrade float64) error {
+func (s *Store) UpdateAssignment(ctx context.Context, id, classroomID int, title, desc string, deadline *time.Time, responseType string, maxChars int, maxFileSize int64, maxGrade float64, filePath, fileName string) error {
 	_, err := s.DB.Exec(ctx,
-		`UPDATE assignment SET title=$3, description=$4, deadline=$5, response_type=$6, max_chars=$7, max_file_size=$8, max_grade=$9
+		`UPDATE assignment SET title=$3, description=$4, deadline=$5, response_type=$6, max_chars=$7, max_file_size=$8, max_grade=$9, file_path=$10, file_name=$11
 		 WHERE id=$1 AND classroom_id=$2`,
-		id, classroomID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade)
+		id, classroomID, title, desc, deadline, responseType, maxChars, maxFileSize, maxGrade, filePath, fileName)
 	return err
 }
 

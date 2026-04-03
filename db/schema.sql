@@ -150,6 +150,18 @@ CREATE TABLE IF NOT EXISTS assignment (
     created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Assignment file attachment (teacher uploads a file with the assignment)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='assignment' AND column_name='file_path') THEN
+        ALTER TABLE assignment ADD COLUMN file_path TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='assignment' AND column_name='file_name') THEN
+        ALTER TABLE assignment ADD COLUMN file_name TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+
 -- ─── Submissions ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS submission (
     id            SERIAL PRIMARY KEY,

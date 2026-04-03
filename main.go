@@ -335,6 +335,7 @@ func main() {
 		studentAuth.POST("/:id/live/leave", h.StudentLiveLeave)
 		studentAuth.GET("/:id/assignment/:assignId", h.StudentAssignment)
 		studentAuth.POST("/:id/assignment/:assignId/submit", h.StudentSubmit)
+		studentAuth.GET("/:id/assignment/:assignId/file", h.DownloadAssignmentFile)
 		studentAuth.GET("/:id/quiz/:quizId", h.StudentQuiz)
 		studentAuth.POST("/:id/quiz/:quizId/submit", h.StudentSubmitQuiz)
 	}
@@ -377,6 +378,7 @@ func main() {
 		admin.POST("/classroom/:id/assignment/:assignId/edit", h.EditAssignment)
 		admin.POST("/classroom/:id/assignment/:assignId/delete", h.DeleteAssignment)
 		admin.GET("/classroom/:id/assignment/:assignId/submissions", h.ViewSubmissions)
+		admin.GET("/classroom/:id/assignment/:assignId/file", h.DownloadAssignmentFile)
 		admin.POST("/classroom/:id/assignment/:assignId/submission/:subId/review", h.ReviewSubmission)
 		admin.GET("/submission/:subId/download", h.DownloadSubmission)
 

@@ -142,11 +142,16 @@
 {{if eq .Tab "assignments"}}
 <div class="card p-5 mb-6">
     <h3 class="font-semibold text-gray-800 mb-4">{{t .Lang "assign_create"}}</h3>
-    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/assignment" class="space-y-4">
+    <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/assignment" enctype="multipart/form-data" class="space-y-4">
 {{csrfField $.CSRFToken}}
         <input type="text" name="title" placeholder="{{t .Lang "assign_title_ph"}}" required class="input w-full">
         <div id="qlDescCreate" style="min-height:100px"></div>
         <input type="hidden" name="description" id="qlDescCreateVal">
+        <div>
+            <label class="text-xs font-medium text-gray-500 mb-1 block">📎 {{t .Lang "attach_file"}} ({{t .Lang "optional"}})</label>
+            <input type="file" name="assignment_file" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+            <p class="text-xs text-gray-400 mt-1">PDF, Word, images… max 50 MB</p>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
                 <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "assign_response_type"}}</label>
@@ -220,6 +225,7 @@ document.addEventListener('DOMContentLoaded',function(){
                     <span class="badge {{if eq .ResponseType "file"}}bg-blue-50 text-blue-600{{else if eq .ResponseType "text"}}bg-emerald-50 text-emerald-600{{else}}bg-purple-50 text-purple-600{{end}}">
                         {{if eq .ResponseType "file"}}📎 file{{else if eq .ResponseType "text"}}📝 text{{else}}📎📝 both{{end}}
                     </span>
+                    {{if .FileName}}<span class="badge bg-amber-50 text-amber-700">📄 {{.FileName}}</span>{{end}}
                 </div>
                 {{if .Description}}<div class="text-xs text-gray-500 mt-1 qc-display">{{safeContent .Description}}</div>{{end}}
                 <p class="text-xs text-gray-400 mt-1">
@@ -240,11 +246,22 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
         <!-- Inline edit form -->
         <div id="editAssign{{.ID}}" class="hidden mt-4 pt-4 border-t border-gray-100">
-            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/edit" class="space-y-3">
+            <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/edit" enctype="multipart/form-data" class="space-y-3">
 {{csrfField $.CSRFToken}}
                 <input type="text" name="title" value="{{.Title}}" required class="input w-full">
                 <div id="qlDescEdit{{.ID}}" style="min-height:80px"></div>
                 <input type="hidden" name="description" id="qlDescEditVal{{.ID}}" value="{{.Description}}">
+                {{if .FileName}}
+                <div class="flex items-center gap-2 text-sm bg-amber-50 p-2 rounded border border-amber-200">
+                    <span>📄 {{.FileName}}</span>
+                    <a href="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/file" class="text-indigo-600 hover:underline text-xs">{{t $.Lang "download"}}</a>
+                    <label class="flex items-center gap-1 text-red-500 text-xs cursor-pointer"><input type="checkbox" name="remove_file" value="1"> {{t $.Lang "remove"}}</label>
+                </div>
+                {{end}}
+                <div>
+                    <label class="text-xs font-medium text-gray-500 mb-1 block">📎 {{t $.Lang "attach_file"}} {{if .FileName}}({{t $.Lang "replace"}}){{else}}({{t $.Lang "optional"}}){{end}}</label>
+                    <input type="file" name="assignment_file" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-medium text-gray-500 mb-1 block">{{t $.Lang "assign_response_type"}}</label>

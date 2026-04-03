@@ -10,6 +10,7 @@
     {{if .Assignment.Deadline}}<span class="badge bg-red-50 text-red-600">⏰ {{t .Lang "due"}} {{.Assignment.Deadline.Format "Jan 2, 2006 3:04 PM"}}</span>{{end}}
     <span class="badge bg-gray-100 text-gray-700">{{t .Lang "type"}}: {{.Assignment.ResponseType}}</span>
     <span class="badge bg-indigo-50 text-indigo-700">{{t .Lang "max_grade"}}: {{.Assignment.MaxGrade}}</span>
+    {{if .Assignment.FileName}}<a href="/admin/classroom/{{.Classroom.ID}}/assignment/{{.Assignment.ID}}/file" class="badge bg-amber-50 text-amber-700 hover:bg-amber-100" style="text-decoration:none">📄 {{.Assignment.FileName}} ⬇</a>{{end}}
 </div>
 
 <h2 class="font-semibold text-gray-800 mb-3">{{t .Lang "submissions_heading"}} ({{.Total}})</h2>
