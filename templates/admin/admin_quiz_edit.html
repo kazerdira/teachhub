@@ -323,6 +323,15 @@
 .mp-qb{height:32px;min-width:32px;padding:0 7px;border:1.5px solid #f1f5f9;border-radius:8px;background:#fafbfc;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .12s;touch-action:manipulation;color:#475569;font-family:KaTeX_Main,Georgia,serif}
 .mp-qb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}
 .mp-qb:active{transform:scale(.9)}
+/* Force MathLive virtual keyboard above our overlay */
+.ML__keyboard{z-index:10002!important}
+/* Keyboard toggle */
+.mp-kb-row{padding:2px 20px 6px;display:flex;align-items:center;gap:8px}
+.mp-kb-toggle{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;touch-action:manipulation}
+.mp-kb-toggle:hover{border-color:#c7d2fe;background:#eef2ff;color:#4f46e5}
+.mp-kb-toggle.active{border-color:#818cf8;background:#eef2ff;color:#4f46e5;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.mp-kb-toggle svg{width:16px;height:16px}
+.mp-kb-hint{font-size:11px;color:#94a3b8}
 /* Hint */
 .mp-hint{padding:0 20px 8px;font-size:11px;color:#94a3b8;line-height:1.4}
 .mp-hint kbd{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:10px;font-family:inherit;border:1px solid #e2e8f0}
@@ -379,7 +388,14 @@
     <button type="button" onclick="meClose()" class="mp-x">✕</button>
   </div>
   <div class="mp-mf">
-    <math-field id="mf" virtual-keyboard-mode="onfocus" smart-fence smart-superscript></math-field>
+    <math-field id="mf" virtual-keyboard-mode="manual" smart-fence smart-superscript></math-field>
+  </div>
+  <div class="mp-kb-row">
+    <button type="button" id="mpKbToggle" class="mp-kb-toggle" onclick="mfToggleKbd()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="2" stroke-width="1.8"/><path d="M6 8h1m3 0h1m3 0h1m-12 4h1m3 0h1m3 0h1m-9 4h8" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Math Keyboard
+    </button>
+    <span class="mp-kb-hint">or type with your keyboard</span>
   </div>
   <div class="mp-qi">
     <button type="button" class="mp-qb" data-ml="\frac{#?}{#?}" title="Fraction">a/b</button>
@@ -515,6 +531,15 @@ function _syncBar(bar,q){
 }
 
 /* ═══ MathLive-powered formula editor ═══ */
+var _kbVisible=false;
+function mfToggleKbd(){
+    var vk=window.mathVirtualKeyboard;
+    if(!vk)return;
+    _kbVisible=!_kbVisible;
+    if(_kbVisible){vk.show();}else{vk.hide();}
+    var btn=document.getElementById('mpKbToggle');
+    if(btn)btn.classList.toggle('active',_kbVisible);
+}
 function meOpen(target){
     var mf=document.getElementById('mf');
     /* Fallback if MathLive hasn't loaded yet */
@@ -535,6 +560,9 @@ function meOpen(target){
         _meCursor=target.selectionStart!=null?target.selectionStart:target.value.length;
     }
     mf.value='';
+    _kbVisible=false;
+    var btn=document.getElementById('mpKbToggle');
+    if(btn)btn.classList.remove('active');
     var lbl=_meMode==='quill'?(target._meLabel||'{{t .Lang "question_text"}}'):({'correct_answer':'{{t .Lang "correct_answer"}}'}[target.name]||target.name);
     document.getElementById('mpLbl').textContent='→ '+lbl;
     document.getElementById('mpOv').style.display='block';
@@ -547,6 +575,12 @@ function meClose(){
     sh.classList.remove('open');
     document.getElementById('mpOv').style.display='none';
     document.body.style.overflow='';
+    /* Hide MathLive virtual keyboard */
+    var vk=window.mathVirtualKeyboard;
+    if(vk){try{vk.hide();}catch(e){}}
+    _kbVisible=false;
+    var btn=document.getElementById('mpKbToggle');
+    if(btn)btn.classList.remove('active');
     var mf=document.getElementById('mf');
     if(mf&&typeof mf.blur==='function')mf.blur();
     _meTarget=null;
