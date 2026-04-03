@@ -166,9 +166,10 @@
                 <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≠')">≠</button>
                 <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'∞')">∞</button>
                 <span class="ae-sep"></span>
-                <button type="button" class="ae-b ae-fx" onclick="meOpen(this.closest('.ae-wrap').querySelector('textarea'))">𝑓x</button>
+                <button type="button" class="ae-b ae-fx" onclick="meOpen(this.closest('.ae-wrap').querySelector('.me-ed'))">𝑓x</button>
             </div>
-            <textarea name="description" placeholder="{{t .Lang "assign_instructions"}}" rows="3" class="ae-ta"></textarea>
+            <div class="me-ed" contenteditable="true" data-for="descCreate" data-ph="{{t .Lang "assign_instructions"}}" oninput="_meSyncEd(this)"></div>
+            <textarea name="description" id="descCreate" style="display:none"></textarea>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -212,7 +213,7 @@
 .ae-fx{font-family:Georgia,serif;font-weight:700;color:#6366f1;font-size:13px;width:auto;padding:0 8px;background:#eef2ff;border-color:#c7d2fe}
 .ae-fx:hover{background:#e0e7ff;border-color:#818cf8}
 .ae-sep{width:1px;height:20px;background:#e2e8f0;margin:0 4px;flex-shrink:0}
-.ae-ta{display:block;width:100%;border:none;outline:none;resize:vertical;padding:10px 12px;font-size:.875rem;font-family:inherit;color:#1f2937;min-height:64px;background:#fff}
+.ae-ta,.me-ed{display:block;width:100%;border:none;outline:none;resize:vertical;padding:10px 12px;font-size:.875rem;font-family:inherit;color:#1f2937;min-height:64px;background:#fff}
 .ae-ta::placeholder{color:#9ca3af}
 </style>
 <script>
@@ -222,27 +223,47 @@ function toggleAssignmentFields() {
     document.getElementById('maxCharsField').style.display = (rt === 'file') ? 'none' : 'block';
 }
 function _aeIns(btn,s){
-    var ta=btn.closest('.ae-wrap').querySelector('textarea');
-    if(!ta)return;
-    var st=ta.selectionStart||0,en=ta.selectionEnd||0;
-    ta.value=ta.value.substring(0,st)+s+ta.value.substring(en);
-    ta.selectionStart=ta.selectionEnd=st+s.length;
-    ta.focus();
+    var ed=btn.closest('.ae-wrap').querySelector('.me-ed');
+    if(!ed)return;ed.focus();
+    var sel=window.getSelection(),range;
+    if(sel.rangeCount&&ed.contains(sel.anchorNode)){range=sel.getRangeAt(0);}
+    else{range=document.createRange();range.selectNodeContents(ed);range.collapse(false);}
+    range.deleteContents();range.insertNode(document.createTextNode(s));
+    range.collapse(false);sel.removeAllRanges();sel.addRange(range);
+    _meSyncEd(ed);
 }
 function _aeWrap(btn,mark){
-    var ta=btn.closest('.ae-wrap').querySelector('textarea');
-    if(!ta)return;
-    var st=ta.selectionStart||0,en=ta.selectionEnd||0,v=ta.value;
-    var sel=v.substring(st,en);
-    if(sel.length){
-        ta.value=v.substring(0,st)+mark+sel+mark+v.substring(en);
-        ta.selectionStart=st;ta.selectionEnd=st+mark.length+sel.length+mark.length;
-    } else {
-        ta.value=v.substring(0,st)+mark+mark+v.substring(en);
-        ta.selectionStart=ta.selectionEnd=st+mark.length;
-    }
-    ta.focus();
+    var ed=btn.closest('.ae-wrap').querySelector('.me-ed');
+    if(!ed)return;ed.focus();
+    var sel=window.getSelection();
+    if(!sel.rangeCount)return;
+    var range=sel.getRangeAt(0),txt=range.toString();
+    range.deleteContents();
+    range.insertNode(document.createTextNode(mark+txt+mark));
+    range.collapse(false);sel.removeAllRanges();sel.addRange(range);
+    _meSyncEd(ed);
 }
+/* Hydrate edit editors: parse $..$ from hidden textarea into rendered chips */
+document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('.me-ed[data-for]').forEach(function(ed){
+        var ta=document.getElementById(ed.getAttribute('data-for'));
+        if(!ta||!ta.value)return;
+        var v=ta.value,parts=v.split(/(\$[^$]+\$)/g);
+        ed.innerHTML='';
+        parts.forEach(function(p){
+            if(p.startsWith('$')&&p.endsWith('$')&&p.length>2){
+                var latex=p.slice(1,-1);
+                var chip=document.createElement('span');
+                chip.className='mch';chip.contentEditable='false';chip.setAttribute('data-latex',latex);
+                if(typeof katex!=='undefined')katex.render(latex,chip,{throwOnError:false});
+                else chip.textContent=p;
+                ed.appendChild(chip);
+            } else if(p){
+                ed.appendChild(document.createTextNode(p));
+            }
+        });
+    });
+});
 </script>
 
 {{if .Assignments}}
@@ -300,9 +321,10 @@ function _aeWrap(btn,mark){
                         <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≠')">≠</button>
                         <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'∞')">∞</button>
                         <span class="ae-sep"></span>
-                        <button type="button" class="ae-b ae-fx" onclick="meOpen(this.closest('.ae-wrap').querySelector('textarea'))">𝑓x</button>
+                        <button type="button" class="ae-b ae-fx" onclick="meOpen(this.closest('.ae-wrap').querySelector('.me-ed'))">𝑓x</button>
                     </div>
-                    <textarea name="description" rows="3" class="ae-ta" placeholder="{{t $.Lang "assign_instructions"}}">{{.Description}}</textarea>
+                    <div class="me-ed" contenteditable="true" data-for="descEdit{{.ID}}" data-ph="{{t $.Lang "assign_instructions"}}" oninput="_meSyncEd(this)"></div>
+                    <textarea name="description" id="descEdit{{.ID}}" style="display:none">{{.Description}}</textarea>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>

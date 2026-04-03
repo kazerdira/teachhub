@@ -52,28 +52,30 @@
                 <span class="text-xs text-gray-400" id="charCount">0 / {{.Assignment.MaxChars}} chars</span>
                 {{end}}
             </div>
-            <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">
-                <button type="button" class="_sb" onclick="_iA('π')">π</button>
-                <button type="button" class="_sb" onclick="_iA('α')">α</button>
-                <button type="button" class="_sb" onclick="_iA('β')">β</button>
-                <button type="button" class="_sb" onclick="_iA('θ')">θ</button>
-                <button type="button" class="_sb" onclick="_iA('Δ')">Δ</button>
-                <button type="button" class="_sb" onclick="_iA('×')">×</button>
-                <button type="button" class="_sb" onclick="_iA('÷')">÷</button>
-                <button type="button" class="_sb" onclick="_iA('±')">±</button>
-                <button type="button" class="_sb" onclick="_iA('√')">√</button>
-                <button type="button" class="_sb" onclick="_iA('²')">²</button>
-                <button type="button" class="_sb" onclick="_iA('³')">³</button>
-                <button type="button" class="_sb" onclick="_iA('∞')">∞</button>
-                <button type="button" class="_sb" onclick="_iA('≤')">≤</button>
-                <button type="button" class="_sb" onclick="_iA('≥')">≥</button>
-                <button type="button" class="_sb" onclick="_iA('≠')">≠</button>
-                <button type="button" class="_sb" onclick="_iA('≈')">≈</button>
-                <button type="button" class="_sb" style="font-family:Georgia,serif;font-weight:700;color:#6366f1;border-color:#c7d2fe;background:#eef2ff;width:auto;padding:0 8px" onclick="meOpen(document.getElementById('textContent'))">𝑓x</button>
+            <div class="ae-wrap" style="border:1.5px solid #d1d5db;border-radius:10px;overflow:hidden;transition:border-color .15s,box-shadow .15s;background:#fff">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px 8px;background:#f8fafc;border-bottom:1px solid #e5e7eb">
+                    <button type="button" class="_sb" onclick="_iA('π')">π</button>
+                    <button type="button" class="_sb" onclick="_iA('α')">α</button>
+                    <button type="button" class="_sb" onclick="_iA('β')">β</button>
+                    <button type="button" class="_sb" onclick="_iA('θ')">θ</button>
+                    <button type="button" class="_sb" onclick="_iA('Δ')">Δ</button>
+                    <button type="button" class="_sb" onclick="_iA('×')">×</button>
+                    <button type="button" class="_sb" onclick="_iA('÷')">÷</button>
+                    <button type="button" class="_sb" onclick="_iA('±')">±</button>
+                    <button type="button" class="_sb" onclick="_iA('√')">√</button>
+                    <button type="button" class="_sb" onclick="_iA('²')">²</button>
+                    <button type="button" class="_sb" onclick="_iA('³')">³</button>
+                    <button type="button" class="_sb" onclick="_iA('∞')">∞</button>
+                    <button type="button" class="_sb" onclick="_iA('≤')">≤</button>
+                    <button type="button" class="_sb" onclick="_iA('≥')">≥</button>
+                    <button type="button" class="_sb" onclick="_iA('≠')">≠</button>
+                    <button type="button" class="_sb" onclick="_iA('≈')">≈</button>
+                    <button type="button" class="_sb" style="font-family:Georgia,serif;font-weight:700;color:#6366f1;border-color:#c7d2fe;background:#eef2ff;width:auto;padding:0 8px" onclick="meOpen(document.getElementById('textEditor'))">𝑓x</button>
+                </div>
+                <div class="me-ed" id="textEditor" contenteditable="true" data-for="textContent" data-ph="{{t .Lang "type_answer_ph"}}" oninput="_meSyncEd(this){{if gt .Assignment.MaxChars 0}};document.getElementById('charCount').innerText=document.getElementById('textContent').value.length+' / {{.Assignment.MaxChars}} chars'{{end}}"></div>
             </div>
-            <textarea name="text_content" id="textContent" rows="5" class="input w-full"
-                {{if gt .Assignment.MaxChars 0}}maxlength="{{.Assignment.MaxChars}}" onkeyup="document.getElementById('charCount').innerText = this.value.length + ' / {{.Assignment.MaxChars}} chars'"{{end}}
-                placeholder="{{t .Lang "type_answer_ph"}}"></textarea>
+            <textarea name="text_content" id="textContent" style="display:none"
+                {{if gt .Assignment.MaxChars 0}}maxlength="{{.Assignment.MaxChars}}"{{end}}></textarea>
         </div>
         {{end}}
 
@@ -132,16 +134,18 @@
 </div>
 {{end}}
 
-<style>._sb{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;color:#374151}._sb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}</style>
+<style>._sb{width:28px;height:28px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;color:#475569;font-family:KaTeX_Main,Georgia,serif}._sb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}._sb:active{transform:scale(.9)}
+.ae-wrap:focus-within{border-color:#6366f1!important;box-shadow:0 0 0 3px rgba(99,102,241,.1)}</style>
 <script>
 function _iA(s){
-    var el=document.getElementById('textContent');
-    if(!el)return;
-    var st=el.selectionStart||0,en=el.selectionEnd||0;
-    el.value=el.value.substring(0,st)+s+el.value.substring(en);
-    el.selectionStart=el.selectionEnd=st+s.length;
-    el.focus();
-    el.dispatchEvent(new Event('input',{bubbles:true}));
+    var ed=document.getElementById('textEditor');
+    if(!ed)return;ed.focus();
+    var sel=window.getSelection(),range;
+    if(sel.rangeCount&&ed.contains(sel.anchorNode)){range=sel.getRangeAt(0);}
+    else{range=document.createRange();range.selectNodeContents(ed);range.collapse(false);}
+    range.deleteContents();range.insertNode(document.createTextNode(s));
+    range.collapse(false);sel.removeAllRanges();sel.addRange(range);
+    _meSyncEd(ed);
 }
 </script>
 

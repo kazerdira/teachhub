@@ -180,6 +180,10 @@
 .mp-ins:active{transform:scale(.97)}
 .fx-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;color:#6366f1;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;touch-action:manipulation;font-family:Georgia,serif}
 .fx-btn:hover{background:#eef2ff;border-color:#c7d2fe}
+.mch{display:inline-block;background:#eef2ff;border:1px solid #c7d2fe;border-radius:6px;padding:1px 6px;margin:0 1px;cursor:default;vertical-align:middle;line-height:1.4;user-select:all}
+.mch .katex{font-size:.9em}
+.me-ed{min-height:64px;padding:10px 12px;font-size:.875rem;color:#1f2937;outline:none;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.me-ed:empty::before{content:attr(data-ph);color:#9ca3af;pointer-events:none}
 </style>
 <div id="mpOv" class="mp-ov"></div>
 <div id="mpSh" class="mp-modal">
@@ -261,7 +265,11 @@ function meClose(){
     _meTarget=null;
 }
 function _meInsertText(el,latex){
-    if(!el||(!el.tagName))return;
+    if(!el)return;
+    if(el.getAttribute&&el.getAttribute('contenteditable')==='true'){
+        _meInsertChip(el,latex);return;
+    }
+    if(!el.tagName)return;
     var v=el.value||'',p=el.selectionStart!=null?el.selectionStart:v.length;
     var b=v.substring(0,p),a=v.substring(p);
     var s1=(b.length&&!b.endsWith(' ')&&!b.endsWith('$'))?' ':'';
@@ -270,6 +278,30 @@ function _meInsertText(el,latex){
     var np=p+s1.length+1+latex.length+1+s2.length;
     el.selectionStart=el.selectionEnd=np;
     el.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function _meInsertChip(editor,latex){
+    var chip=document.createElement('span');
+    chip.className='mch';chip.contentEditable='false';chip.setAttribute('data-latex',latex);
+    if(typeof katex!=='undefined')katex.render(latex,chip,{throwOnError:false});
+    else chip.textContent='$'+latex+'$';
+    editor.focus();
+    var sel=window.getSelection(),range;
+    if(sel.rangeCount&&editor.contains(sel.anchorNode)){range=sel.getRangeAt(0);}
+    else{range=document.createRange();range.selectNodeContents(editor);range.collapse(false);}
+    range.deleteContents();range.insertNode(chip);
+    var sp=document.createTextNode('\u00A0');
+    if(chip.nextSibling)chip.parentNode.insertBefore(sp,chip.nextSibling);
+    else chip.parentNode.appendChild(sp);
+    range.setStartAfter(sp);range.collapse(true);sel.removeAllRanges();sel.addRange(range);
+    _meSyncEd(editor);
+}
+function _meSyncEd(editor){
+    var hid=editor.getAttribute('data-for');if(!hid)return;
+    var ta=document.getElementById(hid);if(!ta)return;
+    var r='';(function walk(n){if(n.nodeType===3)r+=n.textContent;
+    else if(n.classList&&n.classList.contains('mch'))r+='$'+n.getAttribute('data-latex')+'$';
+    else if(n.nodeName==='BR')r+='\n';
+    else n.childNodes.forEach(walk);})(editor);ta.value=r;
 }
 function meInsert(){
     var mf=document.getElementById('mf');
