@@ -23,18 +23,18 @@
 {{end}}
 
 <!-- Tabs -->
-<div class="flex gap-6 border-b border-gray-200 mb-6 text-sm overflow-x-auto pb-1">
-    <a href="?tab=resources" class="pb-2 whitespace-nowrap {{if eq .Tab "resources"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "stab_resources"}}</a>
-    <a href="?tab=assignments" class="pb-2 whitespace-nowrap flex items-center gap-1 {{if eq .Tab "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">
+<div id="tabNav" class="flex gap-6 border-b border-gray-200 mb-6 text-sm overflow-x-auto pb-1">
+    <a href="#" data-tab="resources" class="pb-2 whitespace-nowrap tab-link {{if eq .Tab "resources"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "stab_resources"}}</a>
+    <a href="#" data-tab="assignments" class="pb-2 whitespace-nowrap tab-link flex items-center gap-1 {{if eq .Tab "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">
         {{t .Lang "stab_assignments"}}
         {{if .Assignments}}<span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{{len .Assignments}}</span>{{end}}
     </a>
-    <a href="?tab=quizzes" class="pb-2 whitespace-nowrap {{if eq .Tab "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "stab_quizzes"}}</a>
+    <a href="#" data-tab="quizzes" class="pb-2 whitespace-nowrap tab-link {{if eq .Tab "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "stab_quizzes"}}</a>
     <a href="/classroom/{{.Classroom.ID}}/dashboard" class="pb-2 whitespace-nowrap {{if eq .Tab "dashboard"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "tab_my_progress"}}</a>
 </div>
 
 <!-- RESOURCES -->
-{{if eq .Tab "resources"}}
+<div id="tabPanel-resources" class="tab-panel"{{if ne .Tab "resources"}} style="display:none"{{end}}>
 {{if .Resources}}
 <div class="space-y-3">
     {{range .Resources}}
@@ -62,10 +62,10 @@
     <p class="text-gray-500">{{t .Lang "no_resources_avail"}}</p>
 </div>
 {{end}}
-{{end}}
+</div>
 
 <!-- ASSIGNMENTS -->
-{{if eq .Tab "assignments"}}
+<div id="tabPanel-assignments" class="tab-panel"{{if ne .Tab "assignments"}} style="display:none"{{end}}>
 {{if .Assignments}}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {{range .Assignments}}
@@ -93,10 +93,10 @@
     <p class="text-gray-500">{{t .Lang "no_assignments_avail"}}</p>
 </div>
 {{end}}
-{{end}}
+</div>
 
 <!-- QUIZZES -->
-{{if eq .Tab "quizzes"}}
+<div id="tabPanel-quizzes" class="tab-panel"{{if ne .Tab "quizzes"}} style="display:none"{{end}}>
 {{if .Quizzes}}
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {{range .Quizzes}}
@@ -120,6 +120,29 @@
     <p class="text-gray-500">{{t .Lang "no_quizzes_avail"}}</p>
 </div>
 {{end}}
-{{end}}
+</div>
+
+<script>
+(function(){
+    var tabs=['resources','assignments','quizzes'];
+    function switchTab(name){
+        tabs.forEach(function(t){
+            var p=document.getElementById('tabPanel-'+t);
+            if(p)p.style.display=(t===name)?'':'none';
+        });
+        document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
+            var isActive=(a.dataset.tab===name);
+            a.classList.toggle('tab-active',isActive);
+            a.classList.toggle('text-gray-500',!isActive);
+            a.classList.toggle('hover:text-gray-700',!isActive);
+            a.classList.toggle('font-medium',!isActive);
+        });
+        history.replaceState(null,'','?tab='+name);
+    }
+    document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
+        a.addEventListener('click',function(e){e.preventDefault();switchTab(a.dataset.tab);});
+    });
+})();
+</script>
 
 {{template "student_foot" .}}
