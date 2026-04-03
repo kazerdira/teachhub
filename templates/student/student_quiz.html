@@ -125,6 +125,24 @@
         {{else if eq .QuestionType "fill_blank"}}
         <!-- Fill in the Blank -->
         <div class="pl-2">
+            <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px">
+                <button type="button" class="_sb" onclick="_iS(this,'π')">π</button>
+                <button type="button" class="_sb" onclick="_iS(this,'α')">α</button>
+                <button type="button" class="_sb" onclick="_iS(this,'β')">β</button>
+                <button type="button" class="_sb" onclick="_iS(this,'θ')">θ</button>
+                <button type="button" class="_sb" onclick="_iS(this,'Δ')">Δ</button>
+                <button type="button" class="_sb" onclick="_iS(this,'×')">×</button>
+                <button type="button" class="_sb" onclick="_iS(this,'÷')">÷</button>
+                <button type="button" class="_sb" onclick="_iS(this,'±')">±</button>
+                <button type="button" class="_sb" onclick="_iS(this,'√')">√</button>
+                <button type="button" class="_sb" onclick="_iS(this,'²')">²</button>
+                <button type="button" class="_sb" onclick="_iS(this,'³')">³</button>
+                <button type="button" class="_sb" onclick="_iS(this,'∞')">∞</button>
+                <button type="button" class="_sb" onclick="_iS(this,'≤')">≤</button>
+                <button type="button" class="_sb" onclick="_iS(this,'≥')">≥</button>
+                <button type="button" class="_sb" onclick="_iS(this,'≠')">≠</button>
+                <button type="button" class="_sb" onclick="_iS(this,'≈')">≈</button>
+            </div>
             <input type="text" name="q_{{$q.ID}}" required placeholder="{{t $.Lang "fill_blank_ph"}}" class="input w-full text-lg py-3">
         </div>
 
@@ -206,5 +224,8 @@
     <p class="text-gray-500">{{if .Message}}{{.Message}}{{else}}{{t .Lang "quiz_locked"}}{{end}}</p>
 </div>
 {{end}}
+
+<style>._sb{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;color:#374151}._sb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}</style>
+<script>function _iS(b,s){var p=b.parentNode.parentNode;var i=p.querySelector('input[type=text]');if(!i)return;var st=i.selectionStart||0,en=i.selectionEnd||0;i.value=i.value.substring(0,st)+s+i.value.substring(en);i.selectionStart=i.selectionEnd=st+s.length;i.focus();}</script>
 
 {{template "student_foot" .}}
