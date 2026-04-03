@@ -121,6 +121,12 @@
                 {{end}}
             </div>
         </div>
+        {{if .Feedback}}
+        <div style="display:flex;align-items:flex-start;gap:.35rem;padding:.3rem .6rem;margin:-0.25rem 0 0.25rem;background:#faf5ff;border-radius:.375rem;border-left:3px solid #a78bfa;font-size:.7rem;color:#6b21a8;font-style:italic;line-height:1.4">
+            <span style="flex-shrink:0">💬</span>
+            <span>{{.Feedback}}</span>
+        </div>
+        {{end}}
         {{end}}
     </div>
 </div>
@@ -265,6 +271,16 @@
                     </td>
                     <td class="px-4 py-3 text-center text-gray-400 text-xs">{{.SubmittedAt.Format "Jan 2, 3:04 PM"}}</td>
                 </tr>
+                {{if .Feedback}}
+                <tr>
+                    <td colspan="5" style="padding:0 1rem .6rem;border-bottom:1px solid #f1f5f9">
+                        <div style="display:flex;align-items:flex-start;gap:.35rem;padding:.35rem .6rem;background:#faf5ff;border-radius:.375rem;border-left:3px solid #a78bfa;font-size:.75rem;color:#6b21a8;font-style:italic;line-height:1.4">
+                            <span style="flex-shrink:0">💬</span>
+                            <span>{{.Feedback}}</span>
+                        </div>
+                    </td>
+                </tr>
+                {{end}}
                 {{end}}
             </tbody>
         </table>

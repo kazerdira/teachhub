@@ -1299,6 +1299,7 @@ type StudentAssignmentDetail struct {
 	MaxGrade     float64
 	Pct          float64
 	Status       string
+	Feedback     string
 	SubmittedAt  time.Time
 }
 
@@ -1582,7 +1583,7 @@ func (s *Store) GetStudentQuizDetails(ctx context.Context, studentID, classroomI
 
 func (s *Store) GetStudentAssignmentDetails(ctx context.Context, studentID, classroomID int) ([]StudentAssignmentDetail, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT a.id, a.title, sub.grade, a.max_grade, sub.status, sub.submitted_at
+		SELECT a.id, a.title, sub.grade, a.max_grade, sub.status, sub.feedback, sub.submitted_at
 		FROM submission sub
 		JOIN assignment a ON sub.assignment_id = a.id
 		WHERE sub.student_id = $1 AND a.classroom_id = $2
@@ -1594,7 +1595,7 @@ func (s *Store) GetStudentAssignmentDetails(ctx context.Context, studentID, clas
 	var list []StudentAssignmentDetail
 	for rows.Next() {
 		var d StudentAssignmentDetail
-		if err := rows.Scan(&d.AssignmentID, &d.Title, &d.Grade, &d.MaxGrade, &d.Status, &d.SubmittedAt); err != nil {
+		if err := rows.Scan(&d.AssignmentID, &d.Title, &d.Grade, &d.MaxGrade, &d.Status, &d.Feedback, &d.SubmittedAt); err != nil {
 			return nil, err
 		}
 		if d.Grade != nil && d.MaxGrade > 0 {

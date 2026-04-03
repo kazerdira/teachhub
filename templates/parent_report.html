@@ -199,6 +199,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
                         {{end}}
                     </td>
                 </tr>
+                {{if .Feedback}}
+                <tr>
+                    <td colspan="3" style="padding:0 .5rem .6rem;border-bottom:1px solid #f1f5f9">
+                        <div style="display:flex;align-items:flex-start;gap:.35rem;padding:.35rem .6rem;background:#faf5ff;border-radius:.375rem;border-left:3px solid #a78bfa;font-size:.75rem;color:#6b21a8;font-style:italic;line-height:1.4">
+                            <span style="flex-shrink:0">💬</span>
+                            <span>{{.Feedback}}</span>
+                        </div>
+                    </td>
+                </tr>
+                {{end}}
                 {{end}}
             </tbody>
         </table>
