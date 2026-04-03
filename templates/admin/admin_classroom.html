@@ -407,6 +407,7 @@ document.addEventListener('DOMContentLoaded',function(){
             {{if .Email}}<span class="text-xs text-gray-400 sm:ml-2 block sm:inline">{{.Email}}</span>{{end}}
         </div>
         <div class="flex items-center gap-2">
+            <a href="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}" class="text-indigo-600 text-xs hover:underline font-medium" title="{{t $.Lang "view_profile_notes"}}">📊 {{t $.Lang "profile"}}</a>
             {{if .ParentCode}}
             <button onclick="copyParentLink('{{$.BaseURL}}/p/{{.ParentCode}}')" class="text-gray-400 hover:text-indigo-600 transition" title="{{t $.Lang "copy_parent_link"}}">
                 <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10"/></svg>

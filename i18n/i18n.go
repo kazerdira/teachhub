@@ -94,6 +94,8 @@ var Translations = map[string]map[string]string{
 	"graded":               {"en": "graded", "fr": "notées"},
 	"due":                  {"en": "Due:", "fr": "Échéance :"},
 	"view":                 {"en": "View", "fr": "Voir"},
+	"profile":              {"en": "Profile", "fr": "Profil"},
+	"view_profile_notes":   {"en": "View profile & add notes", "fr": "Voir profil & ajouter des notes"},
 	"assign_empty":         {"en": "No assignments yet", "fr": "Aucun devoir pour le moment"},
 
 	// Quizzes section
