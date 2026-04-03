@@ -201,12 +201,12 @@ var Translations = map[string]map[string]string{
 	"ai_generate_btn":  {"en": "✨ Generate", "fr": "✨ Générer"},
 
 	// Math editor
-	"insert_math":      {"en": "Insert Math", "fr": "Insérer une formule"},
-	"pick_formula":     {"en": "Pick a formula or symbol to start", "fr": "Choisissez une formule ou un symbole"},
-	"formulas":         {"en": "Formulas", "fr": "Formules"},
-	"symbols_tab":      {"en": "Symbols", "fr": "Symboles"},
-	"add_to_formula":   {"en": "Add to formula", "fr": "Ajouter à la formule"},
-	"insert":           {"en": "Insert", "fr": "Insérer"},
+	"insert_math":    {"en": "Insert Math", "fr": "Insérer une formule"},
+	"pick_formula":   {"en": "Pick a formula or symbol to start", "fr": "Choisissez une formule ou un symbole"},
+	"formulas":       {"en": "Formulas", "fr": "Formules"},
+	"symbols_tab":    {"en": "Symbols", "fr": "Symboles"},
+	"add_to_formula": {"en": "Add to formula", "fr": "Ajouter à la formule"},
+	"insert":         {"en": "Insert", "fr": "Insérer"},
 
 	// Student attempts
 	"student_attempts": {"en": "Student Attempts", "fr": "Tentatives des étudiants"},

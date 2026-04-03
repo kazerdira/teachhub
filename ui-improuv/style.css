@@ -1,0 +1,551 @@
+/* ═══════════════════════════════════════════════════
+   TeachHub — Enhanced Design System
+   Warm, refined educational aesthetic
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Custom Properties ─────────────────────────── */
+:root {
+    /* Primary palette */
+    --th-primary: #4f46e5;
+    --th-primary-light: #818cf8;
+    --th-primary-lighter: #c7d2fe;
+    --th-primary-bg: #eef2ff;
+    --th-primary-glow: rgba(79, 70, 229, 0.15);
+
+    /* Accent */
+    --th-accent: #f59e0b;
+    --th-accent-light: #fcd34d;
+
+    /* Neutrals — warm-tinted */
+    --th-bg: #f8f9fc;
+    --th-bg-warm: #faf9f7;
+    --th-surface: #ffffff;
+    --th-surface-hover: #fafbff;
+    --th-border: #e8e5e1;
+    --th-border-light: #f0eeeb;
+    --th-text: #1a1a2e;
+    --th-text-secondary: #5a5a72;
+    --th-text-muted: #9393a8;
+
+    /* Shadows — layered for depth */
+    --th-shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+    --th-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --th-shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+    --th-shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.08), 0 4px 10px -5px rgba(0,0,0,0.04);
+    --th-shadow-xl: 0 20px 40px -12px rgba(0,0,0,0.12);
+    --th-shadow-glow: 0 0 20px rgba(79, 70, 229, 0.1);
+
+    /* Radius */
+    --th-radius-sm: 8px;
+    --th-radius-md: 12px;
+    --th-radius-lg: 16px;
+    --th-radius-xl: 20px;
+
+    /* Transitions */
+    --th-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --th-duration: 200ms;
+
+    /* Content type accents */
+    --th-quiz-color: #4f46e5;
+    --th-quiz-bg: #eef2ff;
+    --th-assign-color: #059669;
+    --th-assign-bg: #ecfdf5;
+    --th-live-color: #dc2626;
+    --th-live-bg: #fef2f2;
+    --th-resource-color: #7c3aed;
+    --th-resource-bg: #f5f3ff;
+}
+
+/* ─── Base Reset Enhancements ───────────────────── */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    color: var(--th-text);
+    letter-spacing: -0.01em;
+}
+
+/* ─── Typography Scale ──────────────────────────── */
+h1, h2, h3, h4, h5, h6,
+.font-bold, .font-semibold, .font-extrabold, .font-black {
+    letter-spacing: -0.025em;
+}
+
+/* ─── Enhanced Selection ────────────────────────── */
+::selection {
+    background: var(--th-primary-lighter);
+    color: var(--th-primary);
+}
+
+/* ─── Scrollbar Styling ─────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}
+
+/* ─── Focus Ring System ─────────────────────────── */
+:focus-visible {
+    outline: 2px solid var(--th-primary-light);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════════
+   COMPONENT OVERRIDES
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Cards — Elevated & Warm ───────────────────── */
+.card {
+    background: var(--th-surface);
+    border: 1px solid var(--th-border-light);
+    border-radius: var(--th-radius-lg);
+    box-shadow: var(--th-shadow-sm);
+    transition: all var(--th-duration) var(--th-ease);
+    position: relative;
+    overflow: hidden;
+}
+.card:hover {
+    border-color: var(--th-primary-lighter);
+    box-shadow: var(--th-shadow-md), var(--th-shadow-glow);
+    transform: translateY(-1px);
+}
+/* Prevent transform on cards with forms/interactives inside */
+.card:has(form):hover,
+.card:has(.tab-panel):hover,
+.card:has(table):hover,
+.card:has(details):hover {
+    transform: none;
+}
+
+/* Card with left accent border */
+.card-accent-quiz { border-left: 4px solid var(--th-quiz-color); }
+.card-accent-assign { border-left: 4px solid var(--th-assign-color); }
+.card-accent-live { border-left: 4px solid var(--th-live-color); }
+.card-accent-resource { border-left: 4px solid var(--th-resource-color); }
+
+/* ─── Buttons — Refined ─────────────────────────── */
+.btn-primary {
+    background: linear-gradient(135deg, #5b54f0 0%, #4338ca 100%);
+    color: white;
+    border-radius: var(--th-radius-sm);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition: all var(--th-duration) var(--th-ease);
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+    position: relative;
+    overflow: hidden;
+}
+.btn-primary:hover {
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+}
+
+/* ─── Inputs — Warm & Clear ─────────────────────── */
+.input {
+    border: 1.5px solid var(--th-border);
+    border-radius: var(--th-radius-sm);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    transition: all var(--th-duration) var(--th-ease);
+    outline: none;
+    background: var(--th-surface);
+    color: var(--th-text);
+}
+.input::placeholder {
+    color: var(--th-text-muted);
+}
+.input:focus {
+    border-color: var(--th-primary-light);
+    box-shadow: 0 0 0 3px var(--th-primary-glow), var(--th-shadow-sm);
+    background: white;
+}
+.input:hover:not(:focus) {
+    border-color: #c7c5c0;
+}
+
+/* Select styling */
+select.input {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem;
+    appearance: none;
+}
+
+/* ─── Badges — Polished ─────────────────────────── */
+.badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* ─── Tabs — Modern ─────────────────────────────── */
+.tab-active {
+    border-bottom: 2.5px solid var(--th-primary);
+    color: var(--th-primary);
+    font-weight: 600;
+}
+.tab-link {
+    padding-bottom: 0.5rem;
+    transition: all var(--th-duration) var(--th-ease);
+    position: relative;
+}
+.tab-link:hover:not(.tab-active) {
+    color: var(--th-text) !important;
+}
+.tab-link:not(.tab-active)::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2.5px;
+    background: var(--th-primary-lighter);
+    transition: all 0.3s var(--th-ease);
+    transform: translateX(-50%);
+    border-radius: 999px;
+}
+.tab-link:not(.tab-active):hover::after {
+    width: 100%;
+}
+
+/* ─── Tables — Refined ──────────────────────────── */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+table thead tr {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+table thead th {
+    background: #f9fafb;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--th-text-muted);
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+table tbody tr {
+    transition: background-color var(--th-duration) var(--th-ease);
+}
+table tbody tr:hover {
+    background-color: #fafbfe !important;
+}
+table tbody td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ─── Tooltips (title attr enhancement) ─────────── */
+[title] {
+    position: relative;
+}
+
+/* ─── Links ─────────────────────────────────────── */
+a {
+    transition: color var(--th-duration) var(--th-ease);
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGE BACKGROUND — Subtle warmth
+   ═══════════════════════════════════════════════════ */
+body.bg-gray-50 {
+    background: var(--th-bg);
+    background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.04), transparent),
+        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(139, 92, 246, 0.03), transparent);
+}
+
+/* ═══════════════════════════════════════════════════
+   NAV ENHANCEMENTS
+   ═══════════════════════════════════════════════════ */
+
+/* Admin nav glass effect */
+nav.bg-gradient-to-r {
+    backdrop-filter: blur(12px) saturate(1.5);
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+}
+
+/* ═══════════════════════════════════════════════════
+   ADMIN DASHBOARD SPECIFIC
+   ═══════════════════════════════════════════════════ */
+
+/* Classroom grid cards — staggered entrance */
+.grid > .card,
+.space-y-2 > .card,
+.space-y-3 > .card,
+.space-y-4 > .card {
+    animation: cardFadeIn 0.4s var(--th-ease) backwards;
+}
+.grid > .card:nth-child(1), .space-y-3 > .card:nth-child(1) { animation-delay: 0ms; }
+.grid > .card:nth-child(2), .space-y-3 > .card:nth-child(2) { animation-delay: 50ms; }
+.grid > .card:nth-child(3), .space-y-3 > .card:nth-child(3) { animation-delay: 100ms; }
+.grid > .card:nth-child(4), .space-y-3 > .card:nth-child(4) { animation-delay: 150ms; }
+.grid > .card:nth-child(5), .space-y-3 > .card:nth-child(5) { animation-delay: 200ms; }
+.grid > .card:nth-child(n+6), .space-y-3 > .card:nth-child(n+6) { animation-delay: 250ms; }
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   ANALYTICS BAR CHARTS
+   ═══════════════════════════════════════════════════ */
+.bg-gradient-to-r.from-emerald-400,
+.bg-gradient-to-r.from-yellow-400,
+.bg-gradient-to-r.from-orange-400,
+.bg-gradient-to-r.from-red-400 {
+    transition: width 0.6s var(--th-ease);
+}
+
+/* ═══════════════════════════════════════════════════
+   QUIZ EDITOR ENHANCEMENTS
+   ═══════════════════════════════════════════════════ */
+
+/* Question cards numbering */
+.card .text-indigo-500.mr-2 {
+    background: var(--th-primary-bg);
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════════════
+   FORM CONTAINERS — Better sections
+   ═══════════════════════════════════════════════════ */
+details {
+    border-radius: var(--th-radius-lg);
+}
+details > summary {
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    transition: background-color var(--th-duration) var(--th-ease);
+}
+details > summary::-webkit-details-marker {
+    display: none;
+}
+details > summary::marker {
+    display: none;
+}
+details[open] > summary {
+    border-bottom: 1px solid var(--th-border-light);
+}
+
+/* ═══════════════════════════════════════════════════
+   STUDENT-SPECIFIC
+   ═══════════════════════════════════════════════════ */
+
+/* Quiz option hover — tactile feel */
+label:has(input[type="radio"]):hover {
+    transform: translateX(2px);
+}
+label:has(input[type="radio"]) {
+    transition: all var(--th-duration) var(--th-ease);
+}
+
+/* File input styling */
+input[type="file"]::file-selector-button {
+    transition: all var(--th-duration) var(--th-ease);
+}
+
+/* ═══════════════════════════════════════════════════
+   STAT/METRIC CARDS
+   ═══════════════════════════════════════════════════ */
+.grid-cols-2 > .card.p-4,
+.grid-cols-4 > .card.p-4,
+.grid-cols-2 > .card.p-5,
+.grid-cols-4 > .card.p-5 {
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.grid-cols-2 > .card.p-4::before,
+.grid-cols-4 > .card.p-4::before,
+.grid-cols-2 > .card.p-5::before,
+.grid-cols-4 > .card.p-5::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--th-primary-lighter), var(--th-primary-light));
+    opacity: 0;
+    transition: opacity var(--th-duration) var(--th-ease);
+}
+.grid-cols-2 > .card.p-4:hover::before,
+.grid-cols-4 > .card.p-4:hover::before,
+.grid-cols-2 > .card.p-5:hover::before,
+.grid-cols-4 > .card.p-5:hover::before {
+    opacity: 1;
+}
+
+/* Large stat values */
+.text-2xl.font-bold,
+.text-3xl.font-bold {
+    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════
+   PROGRESS BARS — Smoother
+   ═══════════════════════════════════════════════════ */
+.bg-gray-100.rounded-full,
+.bg-gray-200.rounded-full {
+    overflow: hidden;
+}
+.bg-gray-100.rounded-full > div,
+.bg-gray-200.rounded-full > div {
+    transition: width 0.6s var(--th-ease);
+}
+
+/* ═══════════════════════════════════════════════════
+   LIVE CLASS BANNER — Pulse glow
+   ═══════════════════════════════════════════════════ */
+.bg-red-50.border-red-200 {
+    animation: liveGlow 2s ease-in-out infinite;
+}
+@keyframes liveGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    50% { box-shadow: 0 0 20px 0 rgba(239, 68, 68, 0.1); }
+}
+
+/* ═══════════════════════════════════════════════════
+   EMPTY STATES
+   ═══════════════════════════════════════════════════ */
+.border-dashed {
+    border-style: dashed;
+    border-width: 2px;
+    border-color: var(--th-border);
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGE TRANSITIONS
+   ═══════════════════════════════════════════════════ */
+main {
+    animation: pageIn 0.3s var(--th-ease);
+}
+@keyframes pageIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE REFINEMENTS
+   ═══════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+    /* Bigger click targets on desktop */
+    .btn-primary {
+        min-height: 40px;
+    }
+
+    /* Better card padding on desktop */
+    .card > .p-4 { padding: 1.25rem; }
+    .card > .p-5 { padding: 1.5rem; }
+
+    /* Wider spacing between sections */
+    .mb-6 { margin-bottom: 2rem; }
+    .mb-8 { margin-bottom: 2.5rem; }
+}
+
+@media (min-width: 1024px) {
+    /* Even more breathing room on large screens */
+    .card {
+        border-radius: var(--th-radius-xl);
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════════════════════ */
+@media print {
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #d1d5db !important;
+        break-inside: avoid;
+    }
+    nav, .btn-primary, [onclick] {
+        display: none !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILITY ADDITIONS
+   ═══════════════════════════════════════════════════ */
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px) saturate(1.5);
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--th-primary), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hover-lift {
+    transition: transform var(--th-duration) var(--th-ease), box-shadow var(--th-duration) var(--th-ease);
+}
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--th-shadow-lg);
+}
+
+/* Smooth counter animations for stat numbers */
+@property --num {
+    syntax: '<integer>';
+    initial-value: 0;
+    inherits: false;
+}
