@@ -145,9 +145,30 @@
     <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/assignment" class="space-y-4">
 {{csrfField $.CSRFToken}}
         <input type="text" name="title" placeholder="{{t .Lang "assign_title_ph"}}" required class="input w-full">
-        <div>
-            <button type="button" class="fx-btn" onclick="meOpen(this.nextElementSibling)" style="margin-bottom:4px">𝑓x {{t .Lang "insert_math"}}</button>
-            <textarea name="description" placeholder="{{t .Lang "assign_instructions"}}" rows="2" class="input w-full"></textarea>
+        <div class="ae-wrap">
+            <div class="ae-tb">
+                <button type="button" class="ae-b" onclick="_aeWrap(this,'**')" title="Bold"><b>B</b></button>
+                <button type="button" class="ae-b" onclick="_aeWrap(this,'_')" title="Italic"><i>I</i></button>
+                <button type="button" class="ae-b" onclick="_aeWrap(this,'~~')" title="Strikethrough"><s>S</s></button>
+                <span class="ae-sep"></span>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'π')">π</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'α')">α</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'β')">β</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'θ')">θ</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'Δ')">Δ</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'×')">×</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'÷')">÷</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'±')">±</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'√')">√</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'²')">²</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≤')">≤</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≥')">≥</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≠')">≠</button>
+                <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'∞')">∞</button>
+                <span class="ae-sep"></span>
+                <button type="button" class="ae-b ae-fx" onclick="meOpen(this.closest('.ae-wrap').querySelector('textarea'))">𝑓x</button>
+            </div>
+            <textarea name="description" placeholder="{{t .Lang "assign_instructions"}}" rows="3" class="ae-ta"></textarea>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -180,11 +201,47 @@
         <button class="btn-primary px-5 py-2.5 text-sm">{{t .Lang "create_assignment"}}</button>
     </form>
 </div>
+<style>
+.ae-wrap{border:1.5px solid #d1d5db;border-radius:10px;overflow:hidden;transition:border-color .15s,box-shadow .15s;background:#fff}
+.ae-wrap:focus-within{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.ae-tb{display:flex;flex-wrap:wrap;align-items:center;gap:2px;padding:6px 8px;background:#f8fafc;border-bottom:1px solid #e5e7eb}
+.ae-b{width:28px;height:28px;border:1px solid transparent;border-radius:6px;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#475569;transition:all .12s;flex-shrink:0}
+.ae-b:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}
+.ae-b:active{transform:scale(.9)}
+.ae-sym{font-family:KaTeX_Main,Georgia,serif;font-size:14px}
+.ae-fx{font-family:Georgia,serif;font-weight:700;color:#6366f1;font-size:13px;width:auto;padding:0 8px;background:#eef2ff;border-color:#c7d2fe}
+.ae-fx:hover{background:#e0e7ff;border-color:#818cf8}
+.ae-sep{width:1px;height:20px;background:#e2e8f0;margin:0 4px;flex-shrink:0}
+.ae-ta{display:block;width:100%;border:none;outline:none;resize:vertical;padding:10px 12px;font-size:.875rem;font-family:inherit;color:#1f2937;min-height:64px;background:#fff}
+.ae-ta::placeholder{color:#9ca3af}
+</style>
 <script>
 function toggleAssignmentFields() {
     const rt = document.getElementById('responseType').value;
     document.getElementById('fileSizeField').style.display = (rt === 'text') ? 'none' : 'block';
     document.getElementById('maxCharsField').style.display = (rt === 'file') ? 'none' : 'block';
+}
+function _aeIns(btn,s){
+    var ta=btn.closest('.ae-wrap').querySelector('textarea');
+    if(!ta)return;
+    var st=ta.selectionStart||0,en=ta.selectionEnd||0;
+    ta.value=ta.value.substring(0,st)+s+ta.value.substring(en);
+    ta.selectionStart=ta.selectionEnd=st+s.length;
+    ta.focus();
+}
+function _aeWrap(btn,mark){
+    var ta=btn.closest('.ae-wrap').querySelector('textarea');
+    if(!ta)return;
+    var st=ta.selectionStart||0,en=ta.selectionEnd||0,v=ta.value;
+    var sel=v.substring(st,en);
+    if(sel.length){
+        ta.value=v.substring(0,st)+mark+sel+mark+v.substring(en);
+        ta.selectionStart=st;ta.selectionEnd=st+mark.length+sel.length+mark.length;
+    } else {
+        ta.value=v.substring(0,st)+mark+mark+v.substring(en);
+        ta.selectionStart=ta.selectionEnd=st+mark.length;
+    }
+    ta.focus();
 }
 </script>
 
@@ -222,9 +279,30 @@ function toggleAssignmentFields() {
             <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/edit" class="space-y-3">
 {{csrfField $.CSRFToken}}
                 <input type="text" name="title" value="{{.Title}}" required class="input w-full">
-                <div>
-                    <button type="button" class="fx-btn" onclick="meOpen(this.nextElementSibling)" style="margin-bottom:4px">𝑓x {{t $.Lang "insert_math"}}</button>
-                    <textarea name="description" rows="2" class="input w-full" placeholder="{{t $.Lang "assign_instructions"}}">{{.Description}}</textarea>
+                <div class="ae-wrap">
+                    <div class="ae-tb">
+                        <button type="button" class="ae-b" onclick="_aeWrap(this,'**')" title="Bold"><b>B</b></button>
+                        <button type="button" class="ae-b" onclick="_aeWrap(this,'_')" title="Italic"><i>I</i></button>
+                        <button type="button" class="ae-b" onclick="_aeWrap(this,'~~')" title="Strikethrough"><s>S</s></button>
+                        <span class="ae-sep"></span>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'π')">π</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'α')">α</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'β')">β</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'θ')">θ</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'Δ')">Δ</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'×')">×</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'÷')">÷</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'±')">±</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'√')">√</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'²')">²</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≤')">≤</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≥')">≥</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'≠')">≠</button>
+                        <button type="button" class="ae-b ae-sym" onclick="_aeIns(this,'∞')">∞</button>
+                        <span class="ae-sep"></span>
+                        <button type="button" class="ae-b ae-fx" onclick="meOpen(this.closest('.ae-wrap').querySelector('textarea'))">𝑓x</button>
+                    </div>
+                    <textarea name="description" rows="3" class="ae-ta" placeholder="{{t $.Lang "assign_instructions"}}">{{.Description}}</textarea>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
