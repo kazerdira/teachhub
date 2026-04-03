@@ -142,6 +142,7 @@
                 <button type="button" class="_sb" onclick="_iS(this,'≥')">≥</button>
                 <button type="button" class="_sb" onclick="_iS(this,'≠')">≠</button>
                 <button type="button" class="_sb" onclick="_iS(this,'≈')">≈</button>
+                <button type="button" class="_sb" style="font-family:Georgia,serif;font-weight:700;color:#6366f1;border-color:#c7d2fe;background:#eef2ff;width:auto;padding:0 8px" onclick="meOpen(this.closest('.pl-2').querySelector('input[type=text]'))">𝑓x</button>
             </div>
             <input type="text" name="q_{{$q.ID}}" required placeholder="{{t $.Lang "fill_blank_ph"}}" class="input w-full text-lg py-3">
         </div>
@@ -149,6 +150,7 @@
         {{else if eq .QuestionType "open_ended"}}
         <!-- Open Ended -->
         <div class="pl-2">
+            <button type="button" class="fx-btn" onclick="meOpen(this.nextElementSibling)" style="margin-bottom:6px">𝑓x {{t $.Lang "insert_math"}}</button>
             <textarea name="q_{{$q.ID}}" rows="4" required placeholder="{{t $.Lang "open_ended_ph"}}" class="input w-full"></textarea>
         </div>
 

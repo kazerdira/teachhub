@@ -47,7 +47,10 @@
         {{if or (eq .Assignment.ResponseType "text") (eq .Assignment.ResponseType "both")}}
         <div>
             <div class="flex justify-between items-end mb-1">
-                <label class="text-sm font-medium text-gray-700">{{t .Lang "your_answer"}}</label>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium text-gray-700">{{t .Lang "your_answer"}}</label>
+                    <button type="button" class="fx-btn" onclick="meOpen(document.getElementById('textContent'))">𝑓x</button>
+                </div>
                 {{if gt .Assignment.MaxChars 0}}
                 <span class="text-xs text-gray-400" id="charCount">0 / {{.Assignment.MaxChars}} chars</span>
                 {{end}}

@@ -145,6 +145,154 @@
 })();
 </script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');</script>
+<!-- MathLive Formula Editor -->
+<style>
+.ML__keyboard{z-index:10002!important}
+.mp-ov{display:none;position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.45);backdrop-filter:blur(2px);-webkit-tap-highlight-color:transparent}
+.mp-modal{position:fixed;top:8vh;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:92%;max-width:540px;display:none;flex-direction:column;overflow:hidden}
+.mp-modal.open{display:flex;animation:mpIn .22s ease}
+@keyframes mpIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%)}}
+@media(max-width:480px){.mp-modal{top:3vh;width:96%;max-width:none;border-radius:14px}}
+.mp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 6px}
+.mp-title{font-size:15px;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:6px}
+.mp-x{width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;color:#94a3b8;font-size:14px;cursor:pointer;transition:all .12s;flex-shrink:0}
+.mp-x:hover{background:#e2e8f0;color:#475569}
+.mp-mf{padding:10px 20px 8px}
+.mp-mf math-field{display:block;width:100%;min-height:56px;font-size:24px;padding:14px 16px;border:2px solid #e2e8f0;border-radius:14px;background:#f8fafc;--caret-color:#6366f1;--selection-background-color:rgba(99,102,241,.15);--keyboard-zindex:10001;--_hue:239}
+.mp-mf math-field:focus-within{border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.12);background:#fff}
+.mp-kb-row{padding:2px 20px 6px;display:flex;align-items:center;gap:8px}
+.mp-kb-toggle{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;touch-action:manipulation}
+.mp-kb-toggle:hover{border-color:#c7d2fe;background:#eef2ff;color:#4f46e5}
+.mp-kb-toggle.active{border-color:#818cf8;background:#eef2ff;color:#4f46e5;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.mp-kb-toggle svg{width:16px;height:16px}
+.mp-kb-hint{font-size:11px;color:#94a3b8}
+.mp-qi{padding:4px 20px 10px;display:flex;flex-wrap:wrap;gap:4px}
+.mp-qb{height:32px;min-width:32px;padding:0 7px;border:1.5px solid #f1f5f9;border-radius:8px;background:#fafbfc;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .12s;touch-action:manipulation;color:#475569;font-family:KaTeX_Main,Georgia,serif}
+.mp-qb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}
+.mp-qb:active{transform:scale(.9)}
+.mp-hint{padding:0 20px 8px;font-size:11px;color:#94a3b8;line-height:1.4}
+.mp-hint kbd{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:10px;font-family:inherit;border:1px solid #e2e8f0}
+.mp-foot{padding:10px 20px 16px;display:flex;gap:8px;border-top:1px solid #f1f5f9}
+.mp-cancel{flex:1;padding:11px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;color:#475569;font-size:14px;font-weight:600;cursor:pointer;transition:all .12s;touch-action:manipulation}
+.mp-cancel:hover{background:#f8fafc}
+.mp-ins{flex:2;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.2);transition:all .15s;touch-action:manipulation}
+.mp-ins:hover{box-shadow:0 6px 20px rgba(99,102,241,.3);transform:translateY(-1px)}
+.mp-ins:active{transform:scale(.97)}
+.fx-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;color:#6366f1;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;touch-action:manipulation;font-family:Georgia,serif}
+.fx-btn:hover{background:#eef2ff;border-color:#c7d2fe}
+</style>
+<div id="mpOv" class="mp-ov"></div>
+<div id="mpSh" class="mp-modal">
+  <div class="mp-head">
+    <div class="mp-title">✏️ {{t .Lang "insert_math"}}</div>
+    <button type="button" onclick="meClose()" class="mp-x">✕</button>
+  </div>
+  <div class="mp-mf">
+    <math-field id="mf" virtual-keyboard-mode="manual" smart-fence smart-superscript></math-field>
+  </div>
+  <div class="mp-kb-row">
+    <button type="button" id="mpKbToggle" class="mp-kb-toggle" onclick="mfToggleKbd()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="2" stroke-width="1.8"/><path d="M6 8h1m3 0h1m3 0h1m-12 4h1m3 0h1m3 0h1m-9 4h8" stroke-width="1.8" stroke-linecap="round"/></svg>
+      Math Keyboard
+    </button>
+    <span class="mp-kb-hint">or type with your keyboard</span>
+  </div>
+  <div class="mp-qi">
+    <button type="button" class="mp-qb" data-ml="\frac{#?}{#?}" title="Fraction">a/b</button>
+    <button type="button" class="mp-qb" data-ml="#@^{#?}" title="Power">x²</button>
+    <button type="button" class="mp-qb" data-ml="\sqrt{#0}" title="Square root">√x</button>
+    <button type="button" class="mp-qb" data-ml="\sqrt[#?]{#0}" title="Nth root">ⁿ√</button>
+    <button type="button" class="mp-qb" data-ml="#@_{#?}" title="Subscript">xₙ</button>
+    <button type="button" class="mp-qb" data-ml="\sum_{#?}^{#?}" title="Sum">∑</button>
+    <button type="button" class="mp-qb" data-ml="\int_{#?}^{#?}" title="Integral">∫</button>
+    <button type="button" class="mp-qb" data-ml="\lim_{x\to #?}" title="Limit">lim</button>
+    <button type="button" class="mp-qb" data-ml="\pi" title="Pi">π</button>
+    <button type="button" class="mp-qb" data-ml="\alpha" title="Alpha">α</button>
+    <button type="button" class="mp-qb" data-ml="\beta" title="Beta">β</button>
+    <button type="button" class="mp-qb" data-ml="\theta" title="Theta">θ</button>
+    <button type="button" class="mp-qb" data-ml="\infty" title="Infinity">∞</button>
+    <button type="button" class="mp-qb" data-ml="\leq" title="≤">≤</button>
+    <button type="button" class="mp-qb" data-ml="\geq" title="≥">≥</button>
+    <button type="button" class="mp-qb" data-ml="\neq" title="≠">≠</button>
+    <button type="button" class="mp-qb" data-ml="\pm" title="±">±</button>
+    <button type="button" class="mp-qb" data-ml="\times" title="×">×</button>
+    <button type="button" class="mp-qb" data-ml="\div" title="÷">÷</button>
+    <button type="button" class="mp-qb" data-ml="\rightarrow" title="→">→</button>
+  </div>
+  <div class="mp-hint">Type math naturally · <kbd>/</kbd> fraction · <kbd>^</kbd> power · <kbd>_</kbd> subscript</div>
+  <div class="mp-foot">
+    <button type="button" onclick="meClose()" class="mp-cancel">{{t .Lang "cancel"}}</button>
+    <button type="button" onclick="meInsert()" class="mp-ins">{{t .Lang "insert"}} ✓</button>
+  </div>
+</div>
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
+<script>
+var _meTarget=null,_meCursor=0,_kbVisible=false;
+function mfToggleKbd(){
+    var vk=window.mathVirtualKeyboard;if(!vk)return;
+    _kbVisible=!_kbVisible;if(_kbVisible)vk.show();else vk.hide();
+    var btn=document.getElementById('mpKbToggle');if(btn)btn.classList.toggle('active',_kbVisible);
+}
+function meOpen(el){
+    if(!el)return;
+    var mf=document.getElementById('mf');
+    if(!mf||typeof mf.getValue!=='function'){
+        var latex=prompt('LaTeX formula (e.g. \\frac{a}{b}):');
+        if(latex&&latex.trim())_meInsertText(el,latex.trim());
+        return;
+    }
+    _meTarget=el;
+    _meCursor=el.selectionStart!=null?el.selectionStart:(el.value||'').length;
+    mf.value='';_kbVisible=false;
+    var btn=document.getElementById('mpKbToggle');if(btn)btn.classList.remove('active');
+    document.getElementById('mpOv').style.display='block';
+    document.getElementById('mpSh').classList.add('open');
+    document.body.style.overflow='hidden';
+    setTimeout(function(){mf.focus();},180);
+}
+function meClose(){
+    document.getElementById('mpSh').classList.remove('open');
+    document.getElementById('mpOv').style.display='none';
+    document.body.style.overflow='';
+    var vk=window.mathVirtualKeyboard;if(vk)try{vk.hide();}catch(e){}
+    _kbVisible=false;
+    var btn=document.getElementById('mpKbToggle');if(btn)btn.classList.remove('active');
+    var mf=document.getElementById('mf');if(mf&&typeof mf.blur==='function')mf.blur();
+    _meTarget=null;
+}
+function _meInsertText(el,latex){
+    if(!el||(!el.tagName))return;
+    var v=el.value||'',p=el.selectionStart!=null?el.selectionStart:v.length;
+    var b=v.substring(0,p),a=v.substring(p);
+    var s1=(b.length&&!b.endsWith(' ')&&!b.endsWith('$'))?' ':'';
+    var s2=(a.length&&!a.startsWith(' ')&&!a.startsWith('$'))?' ':'';
+    el.value=b+s1+'$'+latex+'$'+s2+a;
+    var np=p+s1.length+1+latex.length+1+s2.length;
+    el.selectionStart=el.selectionEnd=np;
+    el.dispatchEvent(new Event('input',{bubbles:true}));
+}
+function meInsert(){
+    var mf=document.getElementById('mf');
+    if(!mf||!_meTarget){meClose();return;}
+    var latex=(typeof mf.getValue==='function')?mf.getValue('latex'):mf.value;
+    if(!latex||!latex.trim()){meClose();return;}
+    var el=_meTarget;
+    meClose();
+    _meInsertText(el,latex.trim());
+    el.focus();
+}
+document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('.mp-qb').forEach(function(btn){
+        btn.addEventListener('click',function(e){
+            e.preventDefault();
+            var mf=document.getElementById('mf');
+            if(mf&&typeof mf.executeCommand==='function'){mf.executeCommand(['insert',btn.dataset.ml]);mf.focus();}
+        });
+    });
+    var ov=document.getElementById('mpOv');if(ov)ov.addEventListener('click',meClose);
+    document.addEventListener('keydown',function(e){var sh=document.getElementById('mpSh');if(e.key==='Escape'&&sh&&sh.classList.contains('open'))meClose();});
+});
+</script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});document.querySelectorAll('.ql-formula[data-value]').forEach(function(el){katex.render(el.getAttribute('data-value'),el,{throwOnError:false});});"></script>
 <style>.qc-display p{margin:0}.qc-display .ql-formula{display:inline-block}.qc-display .ql-size-small{font-size:.75em}.qc-display .ql-size-large{font-size:1.5em}.qc-display .ql-size-huge{font-size:2.5em}</style>
