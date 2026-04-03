@@ -300,48 +300,6 @@
 <!--  MATHLIVE FORMULA EDITOR                   -->
 <!-- ═══════════════════════════════════════════ -->
 <style>
-/* Overlay */
-.mp-ov{display:none;position:fixed;inset:0;z-index:9998;background:rgba(15,23,42,.45);backdrop-filter:blur(2px);-webkit-tap-highlight-color:transparent}
-/* MathLive Modal */
-.mp-modal{position:fixed;top:8vh;left:50%;transform:translateX(-50%);z-index:9999;background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:92%;max-width:540px;display:none;flex-direction:column;overflow:hidden}
-.mp-modal.open{display:flex;animation:mpIn .22s ease}
-@keyframes mpIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%)}}
-@media(max-width:480px){.mp-modal{top:3vh;width:96%;max-width:none;border-radius:14px}}
-/* Modal header */
-.mp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 6px}
-.mp-hi{flex:1;min-width:0}
-.mp-title{font-size:15px;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:6px}
-.mp-sub{font-size:11px;color:#818cf8;font-weight:600;margin-top:2px}
-.mp-x{width:32px;height:32px;border-radius:50%;border:none;background:#f1f5f9;color:#94a3b8;font-size:14px;cursor:pointer;transition:all .12s;flex-shrink:0}
-.mp-x:hover{background:#e2e8f0;color:#475569}
-/* MathLive field area */
-.mp-mf{padding:10px 20px 8px}
-.mp-mf math-field{display:block;width:100%;min-height:56px;font-size:24px;padding:14px 16px;border:2px solid #e2e8f0;border-radius:14px;background:#f8fafc;--caret-color:#6366f1;--selection-background-color:rgba(99,102,241,.15);--keyboard-zindex:10001;--_hue:239}
-.mp-mf math-field:focus-within{border-color:#818cf8;box-shadow:0 0 0 3px rgba(99,102,241,.12);background:#fff}
-/* Quick-insert buttons */
-.mp-qi{padding:4px 20px 10px;display:flex;flex-wrap:wrap;gap:4px}
-.mp-qb{height:32px;min-width:32px;padding:0 7px;border:1.5px solid #f1f5f9;border-radius:8px;background:#fafbfc;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .12s;touch-action:manipulation;color:#475569;font-family:KaTeX_Main,Georgia,serif}
-.mp-qb:hover{background:#eef2ff;border-color:#c7d2fe;color:#4f46e5}
-.mp-qb:active{transform:scale(.9)}
-/* Force MathLive virtual keyboard above our overlay */
-.ML__keyboard{z-index:10002!important}
-/* Keyboard toggle */
-.mp-kb-row{padding:2px 20px 6px;display:flex;align-items:center;gap:8px}
-.mp-kb-toggle{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;color:#64748b;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;touch-action:manipulation}
-.mp-kb-toggle:hover{border-color:#c7d2fe;background:#eef2ff;color:#4f46e5}
-.mp-kb-toggle.active{border-color:#818cf8;background:#eef2ff;color:#4f46e5;box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-.mp-kb-toggle svg{width:16px;height:16px}
-.mp-kb-hint{font-size:11px;color:#94a3b8}
-/* Hint */
-.mp-hint{padding:0 20px 8px;font-size:11px;color:#94a3b8;line-height:1.4}
-.mp-hint kbd{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:10px;font-family:inherit;border:1px solid #e2e8f0}
-/* Bottom actions */
-.mp-foot{padding:10px 20px 16px;display:flex;gap:8px;border-top:1px solid #f1f5f9}
-.mp-cancel{flex:1;padding:11px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;color:#475569;font-size:14px;font-weight:600;cursor:pointer;transition:all .12s;touch-action:manipulation}
-.mp-cancel:hover{background:#f8fafc}
-.mp-insert{flex:2;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.2);transition:all .15s;touch-action:manipulation}
-.mp-insert:hover{box-shadow:0 6px 20px rgba(99,102,241,.3);transform:translateY(-1px)}
-.mp-insert:active{transform:scale(.97)}
 /* Quill editor */
 .ql-toolbar.ql-snow{border-radius:.5rem .5rem 0 0;border-color:#d1d5db;background:#f9fafb;padding:6px 8px}
 .ql-container.ql-snow{border-radius:0 0 .5rem .5rem;border-color:#d1d5db;font-family:Inter,system-ui,sans-serif;font-size:.875rem}
@@ -353,9 +311,6 @@
 .ql-snow .ql-toolbar button.ql-formula::after{content:'𝑓x';font-family:Georgia,serif;font-size:13px;font-weight:700}
 .ql-snow .ql-toolbar button.ql-formula svg{display:none}
 .ql-snow .ql-editor .ql-formula::after{content:none}
-/* Rich content display */
-.qc-display p{margin:0}.qc-display .ql-formula{display:inline-block}
-.qc-display .ql-size-small{font-size:.75em}.qc-display .ql-size-large{font-size:1.5em}.qc-display .ql-size-huge{font-size:2.5em}
 /* Math symbol bar */
 .sym-bar{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:6px}
 .sym-bar .sb{width:32px;height:32px;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .12s;color:#374151}
@@ -375,60 +330,16 @@
 .opt-ed .ql-container.ql-snow{border-radius:8px;border-color:#d1d5db}
 .opt-ed .ql-editor{min-height:32px;padding:6px 10px;font-size:.8125rem}
 .opt-ed .ql-editor:focus{box-shadow:0 0 0 2px rgba(99,102,241,.15)}
+/* Override insert button class from layout */
+.mp-insert{flex:2;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.2);transition:all .15s;touch-action:manipulation}
+.mp-insert:hover{box-shadow:0 6px 20px rgba(99,102,241,.3);transform:translateY(-1px)}
+.mp-insert:active{transform:scale(.97)}
 </style>
 
-<!-- MathLive Formula Modal -->
-<div id="mpOv" class="mp-ov"></div>
-<div id="mpSh" class="mp-modal">
-  <div class="mp-head">
-    <div class="mp-hi">
-      <div class="mp-title">✏️ {{t .Lang "insert_math"}}</div>
-      <div class="mp-sub" id="mpLbl"></div>
-    </div>
-    <button type="button" onclick="meClose()" class="mp-x">✕</button>
-  </div>
-  <div class="mp-mf">
-    <math-field id="mf" virtual-keyboard-mode="manual" smart-fence smart-superscript></math-field>
-  </div>
-  <div class="mp-kb-row">
-    <button type="button" id="mpKbToggle" class="mp-kb-toggle" onclick="mfToggleKbd()">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="2" stroke-width="1.8"/><path d="M6 8h1m3 0h1m3 0h1m-12 4h1m3 0h1m3 0h1m-9 4h8" stroke-width="1.8" stroke-linecap="round"/></svg>
-      Math Keyboard
-    </button>
-    <span class="mp-kb-hint">or type with your keyboard</span>
-  </div>
-  <div class="mp-qi">
-    <button type="button" class="mp-qb" data-ml="\frac{#?}{#?}" title="Fraction">a/b</button>
-    <button type="button" class="mp-qb" data-ml="#@^{#?}" title="Power">x²</button>
-    <button type="button" class="mp-qb" data-ml="\sqrt{#0}" title="Square root">√x</button>
-    <button type="button" class="mp-qb" data-ml="\sqrt[#?]{#0}" title="Nth root">ⁿ√</button>
-    <button type="button" class="mp-qb" data-ml="#@_{#?}" title="Subscript">xₙ</button>
-    <button type="button" class="mp-qb" data-ml="\sum_{#?}^{#?}" title="Sum">∑</button>
-    <button type="button" class="mp-qb" data-ml="\int_{#?}^{#?}" title="Integral">∫</button>
-    <button type="button" class="mp-qb" data-ml="\lim_{x\to #?}" title="Limit">lim</button>
-    <button type="button" class="mp-qb" data-ml="\pi" title="Pi">π</button>
-    <button type="button" class="mp-qb" data-ml="\alpha" title="Alpha">α</button>
-    <button type="button" class="mp-qb" data-ml="\beta" title="Beta">β</button>
-    <button type="button" class="mp-qb" data-ml="\theta" title="Theta">θ</button>
-    <button type="button" class="mp-qb" data-ml="\infty" title="Infinity">∞</button>
-    <button type="button" class="mp-qb" data-ml="\leq" title="≤">≤</button>
-    <button type="button" class="mp-qb" data-ml="\geq" title="≥">≥</button>
-    <button type="button" class="mp-qb" data-ml="\neq" title="≠">≠</button>
-    <button type="button" class="mp-qb" data-ml="\pm" title="±">±</button>
-    <button type="button" class="mp-qb" data-ml="\times" title="×">×</button>
-    <button type="button" class="mp-qb" data-ml="\div" title="÷">÷</button>
-    <button type="button" class="mp-qb" data-ml="\rightarrow" title="→">→</button>
-  </div>
-  <div class="mp-hint">Type math naturally · <kbd>/</kbd> fraction · <kbd>^</kbd> power · <kbd>_</kbd> subscript · Use the virtual keyboard for more</div>
-  <div class="mp-foot">
-    <button type="button" onclick="meClose()" class="mp-cancel">{{t .Lang "cancel"}}</button>
-    <button type="button" onclick="meInsert()" class="mp-insert">{{t .Lang "insert"}} ✓</button>
-  </div>
-</div>
-
-<script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
+/* Mark MathLive as handled — prevents admin layout from defining default functions */
+window._mlReady=true;
 /* === Quiz type toggle === */
 function toggleQTypeFields(){
     var t=document.getElementById('newQType').value;

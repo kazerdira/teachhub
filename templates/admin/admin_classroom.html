@@ -145,7 +145,10 @@
     <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/assignment" class="space-y-4">
 {{csrfField $.CSRFToken}}
         <input type="text" name="title" placeholder="{{t .Lang "assign_title_ph"}}" required class="input w-full">
-        <textarea name="description" placeholder="{{t .Lang "assign_instructions"}}" rows="2" class="input w-full"></textarea>
+        <div>
+            <button type="button" class="fx-btn" onclick="meOpen(this.nextElementSibling)" style="margin-bottom:4px">𝑓x {{t .Lang "insert_math"}}</button>
+            <textarea name="description" placeholder="{{t .Lang "assign_instructions"}}" rows="2" class="input w-full"></textarea>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
                 <label class="text-xs font-medium text-gray-500 mb-1 block">{{t .Lang "assign_response_type"}}</label>
@@ -219,7 +222,10 @@ function toggleAssignmentFields() {
             <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/edit" class="space-y-3">
 {{csrfField $.CSRFToken}}
                 <input type="text" name="title" value="{{.Title}}" required class="input w-full">
-                <textarea name="description" rows="2" class="input w-full" placeholder="{{t $.Lang "assign_instructions"}}">{{.Description}}</textarea>
+                <div>
+                    <button type="button" class="fx-btn" onclick="meOpen(this.nextElementSibling)" style="margin-bottom:4px">𝑓x {{t $.Lang "insert_math"}}</button>
+                    <textarea name="description" rows="2" class="input w-full" placeholder="{{t $.Lang "assign_instructions"}}">{{.Description}}</textarea>
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-medium text-gray-500 mb-1 block">{{t $.Lang "assign_response_type"}}</label>
