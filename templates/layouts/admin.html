@@ -16,13 +16,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .tab-active { border-bottom: 2px solid #6366f1; color: #6366f1; font-weight: 600; }
-        .card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; transition: all 0.15s; }
-        .card:hover { border-color: #c7d2fe; box-shadow: 0 1px 3px 0 rgba(99,102,241,0.08); }
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; transition: all 0.2s ease; position: relative; }
+        @media (hover: hover) {
+          .card:hover { border-color: #c7d2fe; box-shadow: 0 8px 25px -5px rgba(99,102,241,0.1), 0 2px 8px -2px rgba(0,0,0,0.04); transform: translateY(-2px); }
+          .card-accent::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 0.75rem 0.75rem 0 0; opacity: 0; transition: opacity 0.2s; }
+          .card-accent:hover::before { opacity: 1; }
+        }
         .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; border-radius: 0.5rem; font-weight: 500; transition: all 0.15s; }
         .btn-primary:hover { box-shadow: 0 4px 12px rgba(99,102,241,0.35); transform: translateY(-1px); }
         .input { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; transition: all 0.15s; outline: none; }
         .input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
         .badge { font-size: 0.75rem; font-weight: 500; padding: 0.125rem 0.5rem; border-radius: 9999px; }
+        /* Pill segmented tabs */
+        .seg-nav { display: inline-flex; padding: 4px; background: #f3f4f6; border-radius: 12px; border: 1px solid #e5e7eb; gap: 2px; }
+        .seg-tab { padding: 7px 18px; border-radius: 9px; font-size: 0.8125rem; font-weight: 600; color: #6b7280; background: transparent; transition: all 0.2s; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+        .seg-tab-active { background: #fff; color: #4f46e5; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        @media (hover: hover) { .seg-tab:not(.seg-tab-active):hover { background: rgba(255,255,255,0.5); color: #374151; } }
         .ql-toolbar.ql-snow{border-radius:.5rem .5rem 0 0;border-color:#d1d5db;background:#f9fafb;padding:6px 8px}
         .ql-container.ql-snow{border-radius:0 0 .5rem .5rem;border-color:#d1d5db;font-family:Inter,system-ui,sans-serif;font-size:.875rem}
         .ql-editor{min-height:80px;padding:10px 14px}

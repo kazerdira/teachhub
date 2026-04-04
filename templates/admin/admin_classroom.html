@@ -52,17 +52,19 @@
 {{end}}
 
 <!-- Tabs -->
-<div id="tabNav" class="flex gap-4 sm:gap-6 border-b border-gray-200 mb-6 text-sm overflow-x-auto">
-    <a href="#" data-tab="resources" class="pb-2 tab-link {{if eq .Tab "resources"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "tab_resources"}}</a>
-    <a href="#" data-tab="assignments" class="pb-2 tab-link {{if eq .Tab "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "tab_assignments"}}</a>
-    <a href="#" data-tab="quizzes" class="pb-2 tab-link {{if eq .Tab "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "tab_quizzes"}}</a>
-    <a href="#" data-tab="students" class="pb-2 tab-link flex items-center gap-1 {{if eq .Tab "students"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">
+<div class="mb-6 overflow-x-auto pb-1">
+<div id="tabNav" class="seg-nav">
+    <a href="#" data-tab="resources" class="seg-tab tab-link {{if eq .Tab "resources"}}seg-tab-active{{end}}">{{t .Lang "tab_resources"}}</a>
+    <a href="#" data-tab="assignments" class="seg-tab tab-link {{if eq .Tab "assignments"}}seg-tab-active{{end}}">{{t .Lang "tab_assignments"}}</a>
+    <a href="#" data-tab="quizzes" class="seg-tab tab-link {{if eq .Tab "quizzes"}}seg-tab-active{{end}}">{{t .Lang "tab_quizzes"}}</a>
+    <a href="#" data-tab="students" class="seg-tab tab-link {{if eq .Tab "students"}}seg-tab-active{{end}}">
         {{t .Lang "tab_students"}}
-        {{if .PendingStudents}}<span class="bg-yellow-400 text-yellow-900 text-xs font-bold px-1.5 py-0.5 rounded-full">{{len .PendingStudents}}</span>{{end}}
+        {{if .PendingStudents}}<span style="background:#fbbf24;color:#78350f;font-size:10px;font-weight:800;padding:1px 7px;border-radius:9999px">{{len .PendingStudents}}</span>{{end}}
     </a>
-    <a href="/admin/classroom/{{.Classroom.ID}}/analytics" class="pb-2 flex items-center gap-1 text-gray-500 hover:text-gray-700">
-        {{t .Lang "tab_analytics"}}
+    <a href="/admin/classroom/{{.Classroom.ID}}/analytics" class="seg-tab">
+        📊 {{t .Lang "tab_analytics"}}
     </a>
+</div>
 </div>
 
 <!-- RESOURCES TAB -->
@@ -494,10 +496,7 @@ function copyParentLink(url) {
             if(p)p.style.display=(t===name)?'':'none';
         });
         document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
-            var isActive=(a.dataset.tab===name);
-            a.classList.toggle('tab-active',isActive);
-            a.classList.toggle('text-gray-500',!isActive);
-            a.classList.toggle('hover:text-gray-700',!isActive);
+            a.classList.toggle('seg-tab-active',a.dataset.tab===name);
         });
         history.replaceState(null,'','?tab='+name);
     }
