@@ -960,6 +960,73 @@ var Translations = map[string]map[string]string{
 	"copied":             {"en": "Copied!", "fr": "Copié !"},
 	"regen_code":         {"en": "Regenerate link", "fr": "Régénérer le lien"},
 	"regen_confirm":      {"en": "Regenerate link? The old link will stop working.", "fr": "Régénérer le lien ? L'ancien lien ne fonctionnera plus."},
+
+	// ─── CGU / Privacy ──────────────────────────────────
+	"cgu_title":        {"en": "Terms of Use & Privacy Policy", "fr": "Conditions d'Utilisation & Politique de Confidentialité"},
+	"cgu_link":         {"en": "Terms & Privacy", "fr": "CGU & Confidentialité"},
+	"cgu_back_home":    {"en": "Home", "fr": "Accueil"},
+	"cgu_last_updated": {"en": "Last updated", "fr": "Dernière mise à jour"},
+	"cgu_april":        {"en": "April", "fr": "Avril"},
+	"cgu_tab_terms":    {"en": "Terms of Use", "fr": "Conditions d'Utilisation"},
+	"cgu_tab_privacy":  {"en": "Privacy Policy", "fr": "Politique de Confidentialité"},
+
+	// Terms sections
+	"cgu_s1_title": {"en": "Acceptance of Terms", "fr": "Acceptation des conditions"},
+	"cgu_s1_text":  {"en": "By accessing or using TeachHub, you agree to be bound by these Terms of Use. If you do not agree, please do not use the platform. These terms apply to all users: teachers, students, and parents.", "fr": "En accédant ou en utilisant TeachHub, vous acceptez d'être lié par ces Conditions d'Utilisation. Si vous n'êtes pas d'accord, veuillez ne pas utiliser la plateforme. Ces conditions s'appliquent à tous les utilisateurs : enseignants, élèves et parents."},
+
+	"cgu_s2_title": {"en": "Description of Service", "fr": "Description du service"},
+	"cgu_s2_text":  {"en": "TeachHub is an educational platform that allows teachers to create virtual classrooms, share resources, assign work, create quizzes, run live sessions, and track student progress. Students can join classrooms, submit work, and take quizzes. Parents can view their child's progress reports via a shared link.", "fr": "TeachHub est une plateforme éducative qui permet aux enseignants de créer des classes virtuelles, partager des ressources, donner des devoirs, créer des quiz, animer des sessions en direct et suivre la progression des élèves. Les élèves peuvent rejoindre des classes, soumettre des travaux et passer des quiz. Les parents peuvent consulter les rapports de progression de leur enfant via un lien partagé."},
+
+	"cgu_s3_title": {"en": "User Accounts", "fr": "Comptes utilisateurs"},
+	"cgu_s3_text":  {"en": "Different users access TeachHub in different ways:", "fr": "Les différents utilisateurs accèdent à TeachHub de différentes manières :"},
+	"cgu_s3_li1":   {"en": "Teachers: must apply and be approved by the platform administrator. Login credentials are provided upon approval.", "fr": "Enseignants : doivent postuler et être approuvés par l'administrateur de la plateforme. Les identifiants de connexion sont fournis lors de l'approbation."},
+	"cgu_s3_li2":   {"en": "Students: join classrooms using a code shared by their teacher. A name and email are required to create a student session.", "fr": "Élèves : rejoignent les classes à l'aide d'un code partagé par leur enseignant. Un nom et un e-mail sont requis pour créer une session élève."},
+	"cgu_s3_li3":   {"en": "Parents: access progress reports via a unique link shared by the teacher. No account is required.", "fr": "Parents : accèdent aux rapports de progression via un lien unique partagé par l'enseignant. Aucun compte n'est requis."},
+	"cgu_s3_li4":   {"en": "You are responsible for keeping your login credentials confidential.", "fr": "Vous êtes responsable de la confidentialité de vos identifiants de connexion."},
+
+	"cgu_s4_title": {"en": "Acceptable Use", "fr": "Utilisation acceptable"},
+	"cgu_s4_text":  {"en": "You agree not to:", "fr": "Vous vous engagez à ne pas :"},
+	"cgu_s4_li1":   {"en": "Use the platform for any illegal or unauthorized purpose.", "fr": "Utiliser la plateforme à des fins illégales ou non autorisées."},
+	"cgu_s4_li2":   {"en": "Upload content that is offensive, harmful, or violates the rights of others.", "fr": "Téléverser du contenu offensant, nuisible ou portant atteinte aux droits d'autrui."},
+	"cgu_s4_li3":   {"en": "Attempt to access accounts or data belonging to other users.", "fr": "Tenter d'accéder aux comptes ou aux données d'autres utilisateurs."},
+
+	"cgu_s5_title": {"en": "Intellectual Property", "fr": "Propriété intellectuelle"},
+	"cgu_s5_text":  {"en": "Teachers retain ownership of the content they create and upload (quizzes, resources, assignments). TeachHub does not claim ownership of user-generated content. The TeachHub platform, its design, and code are the property of TeachHub.", "fr": "Les enseignants conservent la propriété du contenu qu'ils créent et téléversent (quiz, ressources, devoirs). TeachHub ne revendique pas la propriété du contenu généré par les utilisateurs. La plateforme TeachHub, son design et son code sont la propriété de TeachHub."},
+
+	"cgu_s6_title": {"en": "Limitation of Liability", "fr": "Limitation de responsabilité"},
+	"cgu_s6_text":  {"en": "TeachHub is provided \"as is\" without warranty of any kind. We strive to keep the platform available and reliable, but we cannot guarantee uninterrupted access. TeachHub shall not be liable for any loss of data or any indirect damages arising from the use of the platform.", "fr": "TeachHub est fourni « en l'état » sans aucune garantie. Nous nous efforçons de maintenir la plateforme disponible et fiable, mais nous ne pouvons pas garantir un accès ininterrompu. TeachHub ne saurait être tenu responsable de toute perte de données ou de tout dommage indirect résultant de l'utilisation de la plateforme."},
+
+	"cgu_s7_title": {"en": "Changes to Terms", "fr": "Modifications des conditions"},
+	"cgu_s7_text":  {"en": "We may update these terms from time to time. Continued use of the platform after changes constitutes acceptance of the new terms. We will indicate the date of the last update at the top of this page.", "fr": "Nous pouvons mettre à jour ces conditions de temps à autre. L'utilisation continue de la plateforme après les modifications constitue l'acceptation des nouvelles conditions. Nous indiquerons la date de la dernière mise à jour en haut de cette page."},
+
+	// Privacy sections
+	"priv_s1_title": {"en": "Data We Collect", "fr": "Données que nous collectons"},
+	"priv_s1_text":  {"en": "We collect only the minimum data necessary to provide our educational services:", "fr": "Nous collectons uniquement les données minimales nécessaires pour fournir nos services éducatifs :"},
+	"priv_s1_li1":   {"en": "Teachers: name, email, school, wilaya, subject, and login credentials (password stored securely hashed).", "fr": "Enseignants : nom, e-mail, établissement, wilaya, matière et identifiants de connexion (mot de passe stocké de manière sécurisée et haché)."},
+	"priv_s1_li2":   {"en": "Students: name and email (provided when joining a classroom).", "fr": "Élèves : nom et e-mail (fournis lors de l'inscription à une classe)."},
+	"priv_s1_li3":   {"en": "Academic data: quiz responses, assignment submissions, grades, and attendance.", "fr": "Données académiques : réponses aux quiz, soumissions de devoirs, notes et assiduité."},
+	"priv_s1_li4":   {"en": "Uploaded files: resources, assignment files, and student submissions.", "fr": "Fichiers téléversés : ressources, fichiers de devoirs et soumissions des élèves."},
+
+	"priv_s2_title": {"en": "How We Use Your Data", "fr": "Comment nous utilisons vos données"},
+	"priv_s2_text":  {"en": "Your data is used exclusively to:", "fr": "Vos données sont utilisées exclusivement pour :"},
+	"priv_s2_li1":   {"en": "Provide the educational services described above (classrooms, quizzes, grading, etc.).", "fr": "Fournir les services éducatifs décrits ci-dessus (classes, quiz, notation, etc.)."},
+	"priv_s2_li2":   {"en": "Generate progress reports accessible to teachers and parents.", "fr": "Générer des rapports de progression accessibles aux enseignants et aux parents."},
+	"priv_s2_li3":   {"en": "Improve the platform's functionality and user experience.", "fr": "Améliorer le fonctionnement de la plateforme et l'expérience utilisateur."},
+
+	"priv_s3_title": {"en": "Data Sharing", "fr": "Partage des données"},
+	"priv_s3_text":  {"en": "We do not sell, rent, or share your personal data with third parties for marketing purposes. Student data is only visible to their classroom teacher. Parent progress reports are accessible only via a unique, private link. We may use third-party services (hosting, CDN) that process data solely to deliver the platform.", "fr": "Nous ne vendons, louons ni ne partageons vos données personnelles avec des tiers à des fins marketing. Les données des élèves ne sont visibles que par l'enseignant de leur classe. Les rapports de progression des parents ne sont accessibles que via un lien unique et privé. Nous pouvons utiliser des services tiers (hébergement, CDN) qui traitent les données uniquement pour fournir la plateforme."},
+
+	"priv_s4_title": {"en": "Data Security", "fr": "Sécurité des données"},
+	"priv_s4_text":  {"en": "We take reasonable measures to protect your data:", "fr": "Nous prenons des mesures raisonnables pour protéger vos données :"},
+	"priv_s4_li1":   {"en": "All connections are encrypted via HTTPS.", "fr": "Toutes les connexions sont chiffrées via HTTPS."},
+	"priv_s4_li2":   {"en": "Passwords are securely hashed using bcrypt.", "fr": "Les mots de passe sont hachés de manière sécurisée avec bcrypt."},
+	"priv_s4_li3":   {"en": "Access to student data is restricted to the classroom teacher.", "fr": "L'accès aux données des élèves est limité à l'enseignant de la classe."},
+
+	"priv_s5_title": {"en": "Data Retention & Deletion", "fr": "Conservation et suppression des données"},
+	"priv_s5_text":  {"en": "Data is retained as long as the teacher account is active. When a classroom is deleted, all associated student data, submissions, and resources are permanently removed. Teachers can request full account deletion by contacting the platform administrator.", "fr": "Les données sont conservées tant que le compte enseignant est actif. Lorsqu'une classe est supprimée, toutes les données des élèves, soumissions et ressources associées sont définitivement supprimées. Les enseignants peuvent demander la suppression complète de leur compte en contactant l'administrateur de la plateforme."},
+
+	"priv_s6_title": {"en": "Contact", "fr": "Contact"},
+	"priv_s6_text":  {"en": "For any questions about these terms or your data, please contact the platform administrator through the application process or your provided credentials.", "fr": "Pour toute question concernant ces conditions ou vos données, veuillez contacter l'administrateur de la plateforme via le processus de candidature ou vos identifiants fournis."},
 }
 
 // T returns a translated string for the given key and language.

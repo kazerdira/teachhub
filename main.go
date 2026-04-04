@@ -228,6 +228,7 @@ func main() {
 		"templates/platform/*.html",
 		"templates/landing.html",
 		"templates/parent_report.html",
+		"templates/cgu.html",
 	} {
 		tmpl, err = tmpl.ParseGlob(pattern)
 		if err != nil {
@@ -286,6 +287,9 @@ func main() {
 		}
 		c.Redirect(http.StatusFound, ref)
 	})
+
+	// ─── CGU / Privacy ──────────────────────────────────
+	r.GET("/cgu", h.CGUPage)
 
 	// ─── Platform Admin Routes ──────────────────────────
 	r.GET(platformPath+"/login", h.PlatformLoginPage)

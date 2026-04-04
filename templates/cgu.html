@@ -1,0 +1,193 @@
+{{define "cgu.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub — {{t .Lang "cgu_title"}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        html { scroll-behavior: smooth; }
+        .legal-section { margin-bottom: 2.5rem; }
+        .legal-section h2 { font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 0.75rem; }
+        .legal-section h3 { font-size: 1.05rem; font-weight: 600; color: #374151; margin: 1rem 0 0.5rem; }
+        .legal-section p, .legal-section li { font-size: 0.9375rem; color: #4b5563; line-height: 1.75; }
+        .legal-section ul { list-style: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .legal-section li { margin-bottom: 0.35rem; }
+        .legal-tabs { display: inline-flex; padding: 4px; background: #f3f4f6; border-radius: 12px; gap: 2px; }
+        .legal-tab { padding: 8px 20px; border-radius: 9px; font-size: 0.8125rem; font-weight: 600; color: #6b7280; cursor: pointer; border: none; background: none; transition: all 0.15s; }
+        .legal-tab.active { background: #fff; color: #4f46e5; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body class="bg-white font-sans text-gray-900 antialiased">
+
+    <!-- Nav -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <a href="/" class="flex items-center gap-2">
+                <div style="width:1.75rem;height:1.75rem;background:linear-gradient(135deg,#6366f1,#7c3aed);border-radius:0.5rem;display:flex;align-items:center;justify-content:center;">
+                    <span style="color:#fff;font-size:0.75rem;">📚</span>
+                </div>
+                <span class="text-base font-bold text-gray-900 tracking-tight">TeachHub</span>
+            </a>
+            <div class="flex items-center gap-3">
+                {{if eq .Lang "fr"}}
+                    <a href="/set-lang?lang=en" class="text-xs text-gray-400 hover:text-gray-600 transition">🇬🇧 EN</a>
+                {{else}}
+                    <a href="/set-lang?lang=fr" class="text-xs text-gray-400 hover:text-gray-600 transition">🇫🇷 FR</a>
+                {{end}}
+                <a href="/" class="text-sm text-indigo-600 font-medium hover:underline">← {{t .Lang "cgu_back_home"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+
+        <!-- Header -->
+        <div class="mb-10">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{{t .Lang "cgu_title"}}</h1>
+            <p class="text-gray-500 text-sm">{{t .Lang "cgu_last_updated"}}: 4 {{t .Lang "cgu_april"}} 2026</p>
+        </div>
+
+        <!-- Tab switcher -->
+        <div class="mb-8">
+            <div class="legal-tabs">
+                <button class="legal-tab active" onclick="showSection('cgu',this)">{{t .Lang "cgu_tab_terms"}}</button>
+                <button class="legal-tab" onclick="showSection('privacy',this)">{{t .Lang "cgu_tab_privacy"}}</button>
+            </div>
+        </div>
+
+        <!-- ═══ CGU / Terms of Use ═══ -->
+        <div id="sec-cgu">
+
+            <div class="legal-section">
+                <h2>1. {{t .Lang "cgu_s1_title"}}</h2>
+                <p>{{t .Lang "cgu_s1_text"}}</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>2. {{t .Lang "cgu_s2_title"}}</h2>
+                <p>{{t .Lang "cgu_s2_text"}}</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>3. {{t .Lang "cgu_s3_title"}}</h2>
+                <p>{{t .Lang "cgu_s3_text"}}</p>
+                <ul>
+                    <li>{{t .Lang "cgu_s3_li1"}}</li>
+                    <li>{{t .Lang "cgu_s3_li2"}}</li>
+                    <li>{{t .Lang "cgu_s3_li3"}}</li>
+                    <li>{{t .Lang "cgu_s3_li4"}}</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>4. {{t .Lang "cgu_s4_title"}}</h2>
+                <p>{{t .Lang "cgu_s4_text"}}</p>
+                <ul>
+                    <li>{{t .Lang "cgu_s4_li1"}}</li>
+                    <li>{{t .Lang "cgu_s4_li2"}}</li>
+                    <li>{{t .Lang "cgu_s4_li3"}}</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>5. {{t .Lang "cgu_s5_title"}}</h2>
+                <p>{{t .Lang "cgu_s5_text"}}</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>6. {{t .Lang "cgu_s6_title"}}</h2>
+                <p>{{t .Lang "cgu_s6_text"}}</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>7. {{t .Lang "cgu_s7_title"}}</h2>
+                <p>{{t .Lang "cgu_s7_text"}}</p>
+            </div>
+
+        </div>
+
+        <!-- ═══ Privacy / Confidentiality ═══ -->
+        <div id="sec-privacy" style="display:none;">
+
+            <div class="legal-section">
+                <h2>1. {{t .Lang "priv_s1_title"}}</h2>
+                <p>{{t .Lang "priv_s1_text"}}</p>
+                <ul>
+                    <li>{{t .Lang "priv_s1_li1"}}</li>
+                    <li>{{t .Lang "priv_s1_li2"}}</li>
+                    <li>{{t .Lang "priv_s1_li3"}}</li>
+                    <li>{{t .Lang "priv_s1_li4"}}</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>2. {{t .Lang "priv_s2_title"}}</h2>
+                <p>{{t .Lang "priv_s2_text"}}</p>
+                <ul>
+                    <li>{{t .Lang "priv_s2_li1"}}</li>
+                    <li>{{t .Lang "priv_s2_li2"}}</li>
+                    <li>{{t .Lang "priv_s2_li3"}}</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>3. {{t .Lang "priv_s3_title"}}</h2>
+                <p>{{t .Lang "priv_s3_text"}}</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>4. {{t .Lang "priv_s4_title"}}</h2>
+                <p>{{t .Lang "priv_s4_text"}}</p>
+                <ul>
+                    <li>{{t .Lang "priv_s4_li1"}}</li>
+                    <li>{{t .Lang "priv_s4_li2"}}</li>
+                    <li>{{t .Lang "priv_s4_li3"}}</li>
+                </ul>
+            </div>
+
+            <div class="legal-section">
+                <h2>5. {{t .Lang "priv_s5_title"}}</h2>
+                <p>{{t .Lang "priv_s5_text"}}</p>
+            </div>
+
+            <div class="legal-section">
+                <h2>6. {{t .Lang "priv_s6_title"}}</h2>
+                <p>{{t .Lang "priv_s6_text"}}</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-100 py-6 px-4">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-400">
+            <div class="flex items-center gap-2">
+                <span>📚</span>
+                <span class="font-semibold text-gray-600">TeachHub</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/" class="hover:text-indigo-600 transition">{{t .Lang "cgu_back_home"}}</a>
+                <span class="text-gray-200">|</span>
+                <span class="text-gray-500 font-medium">{{t .Lang "cgu_title"}}</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    function showSection(name, btn) {
+        document.getElementById('sec-cgu').style.display = name === 'cgu' ? '' : 'none';
+        document.getElementById('sec-privacy').style.display = name === 'privacy' ? '' : 'none';
+        document.querySelectorAll('.legal-tab').forEach(function(t) {
+            t.classList.toggle('active', t === btn);
+        });
+    }
+    </script>
+
+</body>
+</html>
+{{end}}

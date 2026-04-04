@@ -16,6 +16,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ─── CGU / Privacy ──────────────────────────────────────
+
+func (h *Handler) CGUPage(c *gin.Context) {
+	h.render(c, "cgu.html", gin.H{})
+}
+
 // ─── Home / Join ────────────────────────────────────────
 
 func (h *Handler) Home(c *gin.Context) {
