@@ -419,12 +419,12 @@ var Translations = map[string]map[string]string{
 	// ─────────────────────────────────────────────────
 	// LANDING PAGE
 	// ─────────────────────────────────────────────────
-	"land_tagline":        {"en": "The classroom platform for Algerian teachers", "fr": "La plateforme de classe pour les enseignants algériens"},
-	"land_badge":          {"en": "Built for Algerian classrooms", "fr": "Conçu pour les classes algériennes"},
+	"land_tagline":        {"en": "The classroom platform for teachers", "fr": "La plateforme de classe pour les enseignants"},
+	"land_badge":          {"en": "Built for the classroom", "fr": "Conçu pour la classe"},
 	"land_hero_1":         {"en": "Your classroom, ", "fr": "Votre classe, "},
 	"land_hero_highlight": {"en": "simplified.", "fr": "simplifiée."},
 	"land_hero_2":         {"en": "", "fr": ""},
-	"land_hero_desc":      {"en": "Create quizzes, share resources, run live sessions, and track student progress — all in one lightweight platform built for Algerian teachers.", "fr": "Créez des quiz, partagez des ressources, lancez des sessions en direct et suivez la progression des élèves — le tout dans une plateforme légère conçue pour les enseignants algériens."},
+	"land_hero_desc":      {"en": "Create quizzes, share resources, run live sessions, and track student progress — all in one lightweight platform built for teachers.", "fr": "Créez des quiz, partagez des ressources, lancez des sessions en direct et suivez la progression des élèves — le tout dans une plateforme légère conçue pour les enseignants."},
 	"land_cta_teacher":    {"en": "Apply as Teacher", "fr": "Postuler comme Enseignant"},
 	"land_cta_student":    {"en": "I'm a Student", "fr": "Je suis Élève"},
 	"land_cta_free":       {"en": "Free to apply · No credit card required", "fr": "Inscription gratuite · Aucune carte bancaire requise"},
@@ -464,8 +464,8 @@ var Translations = map[string]map[string]string{
 
 	// Final CTA & Footer
 	"land_final_title":    {"en": "Ready to transform your classroom?", "fr": "Prêt à transformer votre classe ?"},
-	"land_final_desc":     {"en": "Join teachers across Algeria who are already using TeachHub to make teaching simpler.", "fr": "Rejoignez les enseignants à travers l'Algérie qui utilisent déjà TeachHub pour simplifier l'enseignement."},
-	"land_footer_tagline": {"en": "Made for Algerian teachers", "fr": "Fait pour les enseignants algériens"},
+	"land_final_desc":     {"en": "Join teachers who are already using TeachHub to make teaching simpler.", "fr": "Rejoignez les enseignants qui utilisent déjà TeachHub pour simplifier l'enseignement."},
+	"land_footer_tagline": {"en": "Made for teachers", "fr": "Fait pour les enseignants"},
 
 	// Student home (logged out) — kept for student_home.html
 	"home_heading":     {"en": "TeachHub", "fr": "TeachHub"},
@@ -1046,7 +1046,7 @@ var Translations = map[string]map[string]string{
 	"priv_s7_li5":   {"en": "Right to object (Art. 21): object to data processing based on legitimate interest.", "fr": "Droit d'opposition (Art. 21) : s'opposer au traitement basé sur l'intérêt légitime."},
 	"priv_s7_li6":   {"en": "Right to restrict processing (Art. 18): request limitation of processing.", "fr": "Droit à la limitation du traitement (Art. 18) : demander la limitation du traitement."},
 	"priv_s7_li7":   {"en": "To exercise any of these rights, contact us at: contact@teachhub.chickenkiller.com", "fr": "Pour exercer l'un de ces droits, contactez-nous à : contact@teachhub.chickenkiller.com"},
-	"priv_s7_li8":   {"en": "You also have the right to lodge a complaint with your supervisory authority (in Algeria: ANPDP — anpdp.dz).", "fr": "Vous disposez également du droit d'introduire une réclamation auprès de votre autorité de contrôle (en Algérie : ANPDP — anpdp.dz)."},
+	"priv_s7_li8":   {"en": "You also have the right to lodge a complaint with your local data protection supervisory authority.", "fr": "Vous disposez également du droit d'introduire une réclamation auprès de votre autorité locale de protection des données."},
 
 	"priv_s8_title": {"en": "Data Retention", "fr": "Conservation des données"},
 	"priv_s8_text":  {"en": "Data is retained only as long as necessary:", "fr": "Les données ne sont conservées que le temps nécessaire :"},
