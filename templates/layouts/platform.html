@@ -10,8 +10,7 @@
     <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
     <link rel="stylesheet" href="/static/css/style.css">
     <script src="/static/js/htmx.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/fonts/inter.css">
     <style>
         .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; transition: all 0.15s; }
         .card:hover { border-color: rgba(139,92,246,0.4); }
@@ -46,6 +45,26 @@
         {{template "platform_content" .}}
     </main>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/static/sw.js');</script>
+<!-- Cookie Consent Banner -->
+<div id="cookieBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;background:#fff;border-top:1px solid #e5e7eb;box-shadow:0 -4px 20px rgba(0,0,0,0.08);padding:0.875rem 1rem;font-family:Inter,system-ui,sans-serif;">
+  <div style="max-width:64rem;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <p style="margin:0;font-size:0.8125rem;color:#4b5563;flex:1;min-width:200px;">🍪 {{t .Lang "cookie_msg"}} <a href="/cgu" style="color:#6366f1;text-decoration:underline;">{{t .Lang "cgu_tab_privacy"}}</a></p>
+    <div style="display:flex;gap:0.5rem;flex-shrink:0;">
+      <button onclick="cookieConsent('declined')" style="padding:0.4rem 1rem;border-radius:0.5rem;font-size:0.8125rem;font-weight:500;border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;">{{t .Lang "cookie_decline"}}</button>
+      <button onclick="cookieConsent('accepted')" style="padding:0.4rem 1rem;border-radius:0.5rem;font-size:0.8125rem;font-weight:500;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;cursor:pointer;">{{t .Lang "cookie_accept"}}</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  if(document.cookie.indexOf('cookie_consent=')!==-1) return;
+  var b=document.getElementById('cookieBanner');if(b) b.style.display='block';
+})();
+function cookieConsent(v){
+  document.cookie='cookie_consent='+v+';path=/;max-age=31536000;SameSite=Lax';
+  var b=document.getElementById('cookieBanner');if(b) b.style.display='none';
+}
+</script>
 </body>
 </html>
 {{end}}
