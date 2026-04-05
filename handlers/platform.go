@@ -57,7 +57,7 @@ func (h *Handler) ApplySubmit(c *gin.Context) {
 	email := strings.TrimSpace(c.PostForm("email"))
 	phone := strings.TrimSpace(c.PostForm("phone"))
 	school := strings.TrimSpace(c.PostForm("school_name"))
-	wilaya := strings.TrimSpace(c.PostForm("wilaya"))
+	// wilaya field commented out (region-agnostic)
 	message := strings.TrimSpace(c.PostForm("message"))
 
 	if fullName == "" || email == "" {
@@ -65,7 +65,7 @@ func (h *Handler) ApplySubmit(c *gin.Context) {
 		return
 	}
 
-	err := h.Store.CreateTeacherApplication(c.Request.Context(), fullName, email, phone, school, wilaya, message)
+	err := h.Store.CreateTeacherApplication(c.Request.Context(), fullName, email, phone, school, "", message)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/apply?error=submit_failed")
 		return

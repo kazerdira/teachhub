@@ -84,12 +84,12 @@
                     <div class="text-white">{{.App.SchoolName}}</div>
                 </div>
                 {{end}}
-                {{if .App.Wilaya}}
+                {{if .App.Wilaya}}<!-- wilaya hidden (region-agnostic)
                 <div>
                     <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "apply_wilaya"}}</div>
                     <div class="text-white">{{.App.Wilaya}}</div>
                 </div>
-                {{end}}
+                -->{{end}}
             </div>
 
             {{if .App.Message}}
