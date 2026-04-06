@@ -78,6 +78,7 @@ func (h *Handler) JoinClassroom(c *gin.Context) {
 	code := c.Param("code")
 	name := strings.TrimSpace(c.PostForm("name"))
 	email := strings.TrimSpace(c.PostForm("email"))
+	phone := strings.TrimSpace(c.PostForm("phone"))
 
 	classroom, err := h.Store.GetClassroomByCode(c.Request.Context(), code)
 	if err != nil {
@@ -127,7 +128,7 @@ func (h *Handler) JoinClassroom(c *gin.Context) {
 		status = "approved"
 	}
 
-	studentID, err := h.Store.CreateStudentAndJoinWithStatus(c.Request.Context(), name, email, classroom.ID, status)
+	studentID, err := h.Store.CreateStudentAndJoinWithStatus(c.Request.Context(), name, email, phone, classroom.ID, status)
 	if err != nil {
 		h.render(c, "student_join.html", gin.H{"Classroom": classroom, "Code": code, "Error": "Failed to join"})
 		return

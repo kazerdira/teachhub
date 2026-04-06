@@ -491,6 +491,9 @@ var Translations = map[string]map[string]string{
 	"email_label":      {"en": "Email Address", "fr": "Adresse email"},
 	"email_ph":         {"en": "student@example.com", "fr": "etudiant@exemple.com"},
 	"email_help":       {"en": "If your teacher pre-registered you, use that exact email to be approved instantly.", "fr": "Si votre enseignant vous a pré-inscrit, utilisez cet email exact pour être approuvé automatiquement."},
+	"phone_label":      {"en": "Phone Number (parent)", "fr": "Numéro de téléphone (parent)"},
+	"phone_ph":         {"en": "0612345678", "fr": "0612345678"},
+	"phone_help":       {"en": "10-digit phone number so the teacher can contact you.", "fr": "Numéro à 10 chiffres pour que l'enseignant puisse vous contacter."},
 	"request_join":     {"en": "Request to Join", "fr": "Demander à rejoindre"},
 
 	// ─────────────────────────────────────────────────
@@ -1059,9 +1062,9 @@ var Translations = map[string]map[string]string{
 	"priv_s9_text":  {"en": "For any questions about this policy or to exercise your rights, contact us at contact@teachhub.chickenkiller.com. If you believe your rights have not been respected, you may lodge a complaint with the relevant data protection authority.", "fr": "Pour toute question sur cette politique ou pour exercer vos droits, contactez-nous à contact@teachhub.chickenkiller.com. Si vous estimez que vos droits n'ont pas été respectés, vous pouvez déposer une réclamation auprès de l'autorité de protection des données compétente."},
 
 	// Cookie consent banner
-	"cookie_msg":    {"en": "This site uses a cookie to save your language preference.", "fr": "Ce site utilise un cookie pour enregistrer votre préférence de langue."},
-	"cookie_accept": {"en": "Accept", "fr": "Accepter"},
-	"cookie_decline":{"en": "Decline", "fr": "Refuser"},
+	"cookie_msg":     {"en": "This site uses a cookie to save your language preference.", "fr": "Ce site utilise un cookie pour enregistrer votre préférence de langue."},
+	"cookie_accept":  {"en": "Accept", "fr": "Accepter"},
+	"cookie_decline": {"en": "Decline", "fr": "Refuser"},
 }
 
 // T returns a translated string for the given key and language.

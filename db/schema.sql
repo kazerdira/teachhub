@@ -84,6 +84,13 @@ CREATE TABLE IF NOT EXISTS student (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- phone column (migration-safe)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='student' AND column_name='phone') THEN
+        ALTER TABLE student ADD COLUMN phone TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+
 -- ─── Student <-> Classroom membership ───────────────────
 CREATE TABLE IF NOT EXISTS classroom_student (
     classroom_id INT NOT NULL REFERENCES classroom(id) ON DELETE CASCADE,

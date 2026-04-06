@@ -124,18 +124,18 @@ func (h *Handler) PlatformDashboard(c *gin.Context) {
 	h.Store.CheckAndExpireSubscriptions(ctx)
 
 	h.platformRender(c, "platform_dashboard.html", gin.H{
-		"Pending":        pending,
-		"Approved":       approved,
-		"Rejected":       rejected,
-		"Contacted":      contacted,
-		"Total":          pending + approved + rejected + contacted,
-		"ActiveTeachers":  active,
+		"Pending":           pending,
+		"Approved":          approved,
+		"Rejected":          rejected,
+		"Contacted":         contacted,
+		"Total":             pending + approved + rejected + contacted,
+		"ActiveTeachers":    active,
 		"SuspendedTeachers": suspended,
-		"ExpiredTeachers": expired,
-		"TotalTeachers":  active + suspended + expired,
-		"ExpiringSoon":   expiringSoon,
-		"TotalRevenue":   totalRevenue,
-		"MonthlyRevenue": monthlyRevenue,
+		"ExpiredTeachers":   expired,
+		"TotalTeachers":     active + suspended + expired,
+		"ExpiringSoon":      expiringSoon,
+		"TotalRevenue":      totalRevenue,
+		"MonthlyRevenue":    monthlyRevenue,
 	})
 }
 
@@ -278,10 +278,10 @@ func (h *Handler) PlatformCredentials(c *gin.Context) {
 	}
 
 	h.platformRender(c, "platform_credentials.html", gin.H{
-		"App":             app,
-		"Username":        teacherUsername,
-		"Password":        password,
-		"HasPending":      pendingPassword != nil,
+		"App":        app,
+		"Username":   teacherUsername,
+		"Password":   password,
+		"HasPending": pendingPassword != nil,
 	})
 }
 
@@ -317,16 +317,16 @@ func (h *Handler) PlatformTeacherDetail(c *gin.Context) {
 	totalPaid, paymentCount, _ := h.Store.GetTeacherTotalPayments(ctx, id)
 
 	h.platformRender(c, "platform_teacher_detail.html", gin.H{
-		"Teacher":         teacher,
-		"Classrooms":      classrooms,
-		"Students":        students,
-		"Quizzes":         quizzes,
-		"Resources":       resources,
-		"Payments":        payments,
-		"TotalPaid":       totalPaid,
-		"PaymentCount":    paymentCount,
-		"Saved":           c.Query("saved"),
-		"HasPendingPW":    teacher.PendingPassword != nil,
+		"Teacher":      teacher,
+		"Classrooms":   classrooms,
+		"Students":     students,
+		"Quizzes":      quizzes,
+		"Resources":    resources,
+		"Payments":     payments,
+		"TotalPaid":    totalPaid,
+		"PaymentCount": paymentCount,
+		"Saved":        c.Query("saved"),
+		"HasPendingPW": teacher.PendingPassword != nil,
 	})
 }
 
@@ -467,18 +467,18 @@ func (h *Handler) PlatformAnalytics(c *gin.Context) {
 	appTrend, _ := h.Store.ApplicationsTrend(ctx, 6)
 
 	h.platformRender(c, "platform_analytics.html", gin.H{
-		"ActiveTeachers":   active,
+		"ActiveTeachers":    active,
 		"SuspendedTeachers": suspended,
-		"ExpiredTeachers":  expired,
-		"TotalTeachers":    active + suspended + expired,
-		"TotalStudents":    totalStudents,
-		"TotalClassrooms":  totalClassrooms,
-		"TotalQuizzes":     totalQuizzes,
-		"TotalRevenue":     totalRevenue,
-		"MonthlyRevenue":   monthlyRevenue,
-		"TopTeachers":      topTeachers,
-		"RevenueBreakdown": revenueBreakdown,
-		"AppTrend":         appTrend,
+		"ExpiredTeachers":   expired,
+		"TotalTeachers":     active + suspended + expired,
+		"TotalStudents":     totalStudents,
+		"TotalClassrooms":   totalClassrooms,
+		"TotalQuizzes":      totalQuizzes,
+		"TotalRevenue":      totalRevenue,
+		"MonthlyRevenue":    monthlyRevenue,
+		"TopTeachers":       topTeachers,
+		"RevenueBreakdown":  revenueBreakdown,
+		"AppTrend":          appTrend,
 	})
 }
 

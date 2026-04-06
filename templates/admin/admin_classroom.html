@@ -381,6 +381,7 @@ document.addEventListener('DOMContentLoaded',function(){
             <div class="min-w-0">
                 <span class="font-medium text-gray-900 text-sm">{{.Name}}</span>
                 {{if .Email}}<span class="text-xs text-gray-400 sm:ml-2 block sm:inline">{{.Email}}</span>{{end}}
+                {{if .Phone}}<a href="tel:{{.Phone}}" class="text-xs text-indigo-500 sm:ml-2 block sm:inline">📞 {{.Phone}}</a>{{end}}
             </div>
             <div class="flex items-center gap-2">
                 <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}/approve">
@@ -407,6 +408,7 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="min-w-0">
             <a href="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}" class="font-medium text-gray-900 text-sm hover:text-indigo-600">{{.Name}}</a>
             {{if .Email}}<span class="text-xs text-gray-400 sm:ml-2 block sm:inline">{{.Email}}</span>{{end}}
+            {{if .Phone}}<a href="tel:{{.Phone}}" class="text-xs text-indigo-500 sm:ml-2 block sm:inline">📞 {{.Phone}}</a>{{end}}
         </div>
         <div class="flex items-center gap-2">
             <a href="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}" class="text-indigo-600 text-xs hover:underline font-medium" title="{{t $.Lang "view_profile_notes"}}">📊 {{t $.Lang "profile"}}</a>

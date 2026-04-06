@@ -97,6 +97,7 @@ type Student struct {
 	ID           int
 	Name         string
 	Email        string
+	Phone        string
 	CreatedAt    time.Time
 	MemberStatus string // approved, pending, rejected — only set in classroom context
 	ParentCode   string // per-classroom secret link for parent reports
@@ -324,7 +325,7 @@ func (s *Store) SetClassroomTeacherPic(ctx context.Context, classroomID, adminID
 
 func (s *Store) ListClassroomStudents(ctx context.Context, classroomID int) ([]Student, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT s.id, s.name, COALESCE(s.email,''), s.created_at, cs.status, COALESCE(cs.parent_code,'')
+		SELECT s.id, s.name, COALESCE(s.email,''), COALESCE(s.phone,''), s.created_at, cs.status, COALESCE(cs.parent_code,'')
 		FROM student s JOIN classroom_student cs ON s.id=cs.student_id
 		WHERE cs.classroom_id=$1 ORDER BY cs.status, s.name`, classroomID)
 	if err != nil {
@@ -334,7 +335,7 @@ func (s *Store) ListClassroomStudents(ctx context.Context, classroomID int) ([]S
 	var list []Student
 	for rows.Next() {
 		var st Student
-		if err := rows.Scan(&st.ID, &st.Name, &st.Email, &st.CreatedAt, &st.MemberStatus, &st.ParentCode); err != nil {
+		if err := rows.Scan(&st.ID, &st.Name, &st.Email, &st.Phone, &st.CreatedAt, &st.MemberStatus, &st.ParentCode); err != nil {
 			return nil, err
 		}
 		list = append(list, st)
@@ -344,8 +345,8 @@ func (s *Store) ListClassroomStudents(ctx context.Context, classroomID int) ([]S
 
 func (s *Store) GetStudent(ctx context.Context, id int) (*Student, error) {
 	st := &Student{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, COALESCE(email,''), created_at FROM student WHERE id=$1`, id).
-		Scan(&st.ID, &st.Name, &st.Email, &st.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, COALESCE(email,''), COALESCE(phone,''), created_at FROM student WHERE id=$1`, id).
+		Scan(&st.ID, &st.Name, &st.Email, &st.Phone, &st.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -353,10 +354,10 @@ func (s *Store) GetStudent(ctx context.Context, id int) (*Student, error) {
 }
 
 func (s *Store) CreateStudentAndJoin(ctx context.Context, name, email string, classroomID int) (int, error) {
-	return s.CreateStudentAndJoinWithStatus(ctx, name, email, classroomID, "approved")
+	return s.CreateStudentAndJoinWithStatus(ctx, name, email, "", classroomID, "approved")
 }
 
-func (s *Store) CreateStudentAndJoinWithStatus(ctx context.Context, name, email string, classroomID int, status string) (int, error) {
+func (s *Store) CreateStudentAndJoinWithStatus(ctx context.Context, name, email, phone string, classroomID int, status string) (int, error) {
 	tx, err := s.DB.Begin(ctx)
 	if err != nil {
 		return 0, err
@@ -364,7 +365,7 @@ func (s *Store) CreateStudentAndJoinWithStatus(ctx context.Context, name, email 
 	defer tx.Rollback(ctx)
 
 	var id int
-	err = tx.QueryRow(ctx, `INSERT INTO student (name, email) VALUES ($1, $2) RETURNING id`, name, email).Scan(&id)
+	err = tx.QueryRow(ctx, `INSERT INTO student (name, email, phone) VALUES ($1, $2, $3) RETURNING id`, name, email, phone).Scan(&id)
 	if err != nil {
 		return 0, err
 	}

@@ -42,6 +42,11 @@
                 <input type="email" name="email" required class="input w-full py-2.5" placeholder="{{t .Lang "email_ph"}}">
                 <p class="text-xs text-gray-500 mt-1">{{t .Lang "email_help"}}</p>
             </div>
+            <div>
+                <label class="text-sm font-medium text-gray-700 block mb-1">{{t .Lang "phone_label"}}</label>
+                <input type="tel" name="phone" required class="input w-full py-2.5" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="{{t .Lang "phone_ph"}}" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                <p class="text-xs text-gray-500 mt-1">{{t .Lang "phone_help"}}</p>
+            </div>
             <button class="btn-primary w-full py-3 mt-2">{{t .Lang "request_join"}}</button>
         </form>
     </div>
