@@ -262,6 +262,28 @@ CREATE TABLE IF NOT EXISTS resource_view (
     viewed_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ─── Login tracking (migration-safe) ────────────────────
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='last_login_at') THEN
+        ALTER TABLE admin ADD COLUMN last_login_at TIMESTAMPTZ;
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='last_login_ip') THEN
+        ALTER TABLE admin ADD COLUMN last_login_ip TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='student' AND column_name='last_login_at') THEN
+        ALTER TABLE student ADD COLUMN last_login_at TIMESTAMPTZ;
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='student' AND column_name='last_login_ip') THEN
+        ALTER TABLE student ADD COLUMN last_login_ip TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+
 -- ─── Indexes ────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_payment_teacher ON payment(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_classroom_admin_id ON classroom(admin_id);

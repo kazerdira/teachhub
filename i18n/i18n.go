@@ -855,6 +855,7 @@ var Translations = map[string]map[string]string{
 	"plat_teachers_since":      {"en": "Since", "fr": "Depuis"},
 	"plat_teachers_empty":      {"en": "No teachers yet", "fr": "Aucun enseignant pour le moment"},
 	"plat_teachers_empty_sub":  {"en": "Approve an application to create a teacher account", "fr": "Approuvez une candidature pour créer un compte enseignant"},
+	"plat_never_logged_in":     {"en": "Never logged in", "fr": "Jamais connecté"},
 
 	// Subscription status
 	"plat_sub_active":    {"en": "Active", "fr": "Actif"},
@@ -1027,6 +1028,7 @@ var Translations = map[string]map[string]string{
 	"priv_s4_li2":   {"en": "CSRF cookie (teachhub-csrf): strictly necessary for security (prevents cross-site request forgery). Duration: 7 days. No consent required.", "fr": "Cookie CSRF (teachhub-csrf) : strictement nécessaire à la sécurité (protection contre les attaques CSRF). Durée : 7 jours. Pas de consentement requis."},
 	"priv_s4_li3":   {"en": "Language preference cookie (lang): stores your language choice (fr/en). Duration: 1 year. Set only with your consent.", "fr": "Cookie de préférence linguistique (lang) : enregistre votre choix de langue (fr/en). Durée : 1 an. Déposé uniquement avec votre consentement."},
 	"priv_s4_li4":   {"en": "We do not use any analytics, advertising, or tracking cookies.", "fr": "Nous n'utilisons aucun cookie d'analyse, de publicité ou de traçage."},
+	"priv_s4_li5":   {"en": "We record your last login IP address and timestamp for security purposes (fraud prevention). This data is overwritten on each login and is not shared with third parties.", "fr": "Nous enregistrons votre dernière adresse IP de connexion et l'horodatage à des fins de sécurité (prévention de la fraude). Cette donnée est écrasée à chaque connexion et n'est pas partagée avec des tiers."},
 
 	"priv_s5_title": {"en": "Third-Party Services", "fr": "Services tiers"},
 	"priv_s5_text":  {"en": "To deliver the platform, we use the following third-party services that may receive your IP address when loading resources:", "fr": "Pour fournir la plateforme, nous utilisons les services tiers suivants qui peuvent recevoir votre adresse IP lors du chargement des ressources :"},

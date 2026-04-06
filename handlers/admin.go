@@ -112,6 +112,8 @@ func (h *Handler) AdminLogin(c *gin.Context) {
 		}
 	}
 	middleware.SetAdminSession(c, admin.ID)
+	// Record last login IP and time
+	h.Store.UpdateAdminLastLogin(c.Request.Context(), admin.ID, c.ClientIP())
 	// Clear pending password on first login so platform owner can no longer see it
 	if admin.PendingPassword != nil {
 		h.Store.ClearPendingPassword(c.Request.Context(), admin.ID)

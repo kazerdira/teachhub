@@ -34,6 +34,8 @@ type Admin struct {
 	CreatedByPlatform  bool
 	ApplicationID      *int
 	PendingPassword    *string
+	LastLoginAt        *time.Time
+	LastLoginIP        string
 }
 
 type TeacherListItem struct {
@@ -47,6 +49,8 @@ type TeacherListItem struct {
 	CreatedAt          time.Time
 	ClassroomCount     int
 	StudentCount       int
+	LastLoginAt        *time.Time
+	LastLoginIP        string
 }
 
 type PlatformAdmin struct {
@@ -101,6 +105,8 @@ type Student struct {
 	CreatedAt    time.Time
 	MemberStatus string // approved, pending, rejected — only set in classroom context
 	ParentCode   string // per-classroom secret link for parent reports
+	LastLoginAt  *time.Time
+	LastLoginIP  string
 }
 
 type AllowedStudent struct {
@@ -224,11 +230,13 @@ func (s *Store) GetAdmin(ctx context.Context, username string) (*Admin, error) {
 	a := &Admin{}
 	err := s.DB.QueryRow(ctx,
 		`SELECT id, username, password, email, school_name, subscription_status,
-		        subscription_start, subscription_end, created_by_platform, application_id, pending_password
+		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
+		        last_login_at, COALESCE(last_login_ip,'')
 		 FROM admin WHERE username=$1`, username).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
-			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword)
+			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
+			&a.LastLoginAt, &a.LastLoginIP)
 	if err != nil {
 		return nil, err
 	}
@@ -345,8 +353,8 @@ func (s *Store) ListClassroomStudents(ctx context.Context, classroomID int) ([]S
 
 func (s *Store) GetStudent(ctx context.Context, id int) (*Student, error) {
 	st := &Student{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, COALESCE(email,''), COALESCE(phone,''), created_at FROM student WHERE id=$1`, id).
-		Scan(&st.ID, &st.Name, &st.Email, &st.Phone, &st.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, COALESCE(email,''), COALESCE(phone,''), created_at, last_login_at, COALESCE(last_login_ip,'') FROM student WHERE id=$1`, id).
+		Scan(&st.ID, &st.Name, &st.Email, &st.Phone, &st.CreatedAt, &st.LastLoginAt, &st.LastLoginIP)
 	if err != nil {
 		return nil, err
 	}
@@ -2317,11 +2325,13 @@ func (s *Store) GetAdminByID(ctx context.Context, id int) (*Admin, error) {
 	a := &Admin{}
 	err := s.DB.QueryRow(ctx,
 		`SELECT id, username, password, email, school_name, subscription_status,
-		        subscription_start, subscription_end, created_by_platform, application_id, pending_password
+		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
+		        last_login_at, COALESCE(last_login_ip,'')
 		 FROM admin WHERE id=$1`, id).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
-			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword)
+			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
+			&a.LastLoginAt, &a.LastLoginIP)
 	if err != nil {
 		return nil, err
 	}
@@ -2341,12 +2351,21 @@ func (s *Store) ClearPendingPassword(ctx context.Context, adminID int) {
 	s.DB.Exec(ctx, `UPDATE admin SET pending_password = NULL WHERE id = $1`, adminID)
 }
 
+func (s *Store) UpdateAdminLastLogin(ctx context.Context, adminID int, ip string) {
+	s.DB.Exec(ctx, `UPDATE admin SET last_login_at = NOW(), last_login_ip = $1 WHERE id = $2`, ip, adminID)
+}
+
+func (s *Store) UpdateStudentLastLogin(ctx context.Context, studentID int, ip string) {
+	s.DB.Exec(ctx, `UPDATE student SET last_login_at = NOW(), last_login_ip = $1 WHERE id = $2`, ip, studentID)
+}
+
 func (s *Store) ListTeachers(ctx context.Context) ([]TeacherListItem, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT a.id, a.username, a.email, a.school_name, a.subscription_status,
 		       a.subscription_start, a.subscription_end,
 		       COALESCE((SELECT COUNT(*) FROM classroom WHERE admin_id = a.id), 0) AS classroom_count,
-		       COALESCE((SELECT COUNT(DISTINCT cs.student_id) FROM classroom_student cs JOIN classroom c ON c.id = cs.classroom_id WHERE c.admin_id = a.id AND cs.status='approved'), 0) AS student_count
+		       COALESCE((SELECT COUNT(DISTINCT cs.student_id) FROM classroom_student cs JOIN classroom c ON c.id = cs.classroom_id WHERE c.admin_id = a.id AND cs.status='approved'), 0) AS student_count,
+		       a.last_login_at, COALESCE(a.last_login_ip,'')
 		FROM admin a
 		WHERE a.created_by_platform = true
 		ORDER BY a.subscription_start DESC NULLS LAST`)
@@ -2358,7 +2377,8 @@ func (s *Store) ListTeachers(ctx context.Context) ([]TeacherListItem, error) {
 	for rows.Next() {
 		var t TeacherListItem
 		if err := rows.Scan(&t.ID, &t.Username, &t.Email, &t.SchoolName, &t.SubscriptionStatus,
-			&t.SubscriptionStart, &t.SubscriptionEnd, &t.ClassroomCount, &t.StudentCount); err != nil {
+			&t.SubscriptionStart, &t.SubscriptionEnd, &t.ClassroomCount, &t.StudentCount,
+			&t.LastLoginAt, &t.LastLoginIP); err != nil {
 			return nil, err
 		}
 		list = append(list, t)

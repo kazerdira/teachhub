@@ -28,6 +28,7 @@ func (h *Handler) Home(c *gin.Context) {
 	student := middleware.GetStudent(c)
 	if student != nil {
 		classrooms, _ := h.Store.GetStudentClassrooms(c.Request.Context(), student.ID)
+		h.Store.UpdateStudentLastLogin(c.Request.Context(), student.ID, c.ClientIP())
 		h.render(c, "student_home.html", gin.H{"Student": student, "Classrooms": classrooms})
 		return
 	}
@@ -134,6 +135,7 @@ func (h *Handler) JoinClassroom(c *gin.Context) {
 		return
 	}
 	middleware.SetStudentSession(c, studentID)
+	h.Store.UpdateStudentLastLogin(c.Request.Context(), studentID, c.ClientIP())
 
 	if status == "approved" {
 		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d", classroom.ID))

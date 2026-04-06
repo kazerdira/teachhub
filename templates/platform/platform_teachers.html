@@ -56,6 +56,11 @@
                     {{if .SubscriptionStart}}
                     <div class="text-slate-500 text-xs">{{t $.Lang "plat_teachers_since"}} {{.SubscriptionStart.Format "02 Jan 2006"}}</div>
                     {{end}}
+                    {{if .LastLoginAt}}
+                    <div class="text-slate-500 text-xs" title="IP: {{.LastLoginIP}}">🕐 {{.LastLoginAt.Format "02 Jan 15:04"}} · {{.LastLoginIP}}</div>
+                    {{else}}
+                    <div class="text-slate-600 text-xs">{{t $.Lang "plat_never_logged_in"}}</div>
+                    {{end}}
                 </div>
                 <div>
                     {{if eq .SubscriptionStatus "active"}}
