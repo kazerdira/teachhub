@@ -409,22 +409,27 @@ func (s *Store) IsStudentMemberOfClassroom(ctx context.Context, studentID, class
 	return true, status, nil
 }
 
-func (s *Store) GetStudentClassrooms(ctx context.Context, studentID int) ([]Classroom, error) {
+type StudentClassroomItem struct {
+	Classroom
+	Status string
+}
+
+func (s *Store) GetStudentClassrooms(ctx context.Context, studentID int) ([]StudentClassroomItem, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT c.id, c.name, c.join_code, c.created_at
+		SELECT c.id, c.name, c.join_code, c.created_at, cs.status
 		FROM classroom c JOIN classroom_student cs ON c.id=cs.classroom_id
 		WHERE cs.student_id=$1 ORDER BY cs.joined_at DESC`, studentID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var list []Classroom
+	var list []StudentClassroomItem
 	for rows.Next() {
-		var c Classroom
-		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.CreatedAt); err != nil {
+		var item StudentClassroomItem
+		if err := rows.Scan(&item.ID, &item.Name, &item.JoinCode, &item.CreatedAt, &item.Status); err != nil {
 			return nil, err
 		}
-		list = append(list, c)
+		list = append(list, item)
 	}
 	return list, nil
 }

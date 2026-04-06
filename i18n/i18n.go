@@ -399,6 +399,8 @@ var Translations = map[string]map[string]string{
 	// ─────────────────────────────────────────────────
 	"my_classrooms":        {"en": "My Classrooms", "fr": "Mes classes"},
 	"go_to_classroom":      {"en": "Go to classroom →", "fr": "Aller à la classe →"},
+	"waiting_approval":     {"en": "Waiting for teacher approval", "fr": "En attente d'approbation"},
+	"waiting_approval_sub": {"en": "You'll get access once the teacher accepts you", "fr": "Vous aurez accès dès que l'enseignant vous accepte"},
 	"no_classrooms_joined": {"en": "You haven't joined any classrooms yet", "fr": "Vous n'avez rejoint aucune classe"},
 	"use_join_code":        {"en": "Use the form below to enter a join code.", "fr": "Utilisez le formulaire ci-dessous pour entrer un code."},
 	"join_classroom":       {"en": "Join a new classroom", "fr": "Rejoindre une nouvelle classe"},
