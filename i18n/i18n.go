@@ -860,11 +860,11 @@ var Translations = map[string]map[string]string{
 	// Teachers list page — stats & filters
 	"plat_stat_total_teachers": {"en": "Total Teachers", "fr": "Total enseignants"},
 	"plat_stat_active":         {"en": "Active Subscriptions", "fr": "Abonnements actifs"},
-	"plat_stat_logged_7d":      {"en": "Logged in (7 days)", "fr": "Connectés (7 jours)"},
+	"plat_stat_logged_30d":     {"en": "Logged in (30 days)", "fr": "Connectés (30 jours)"},
 	"plat_stat_never_logged":   {"en": "Never Logged In", "fr": "Jamais connectés"},
 	"plat_search_teachers":     {"en": "Search by name, email, school or IP", "fr": "Rechercher par nom, email, école ou IP"},
 	"plat_filter_never_logged": {"en": "Never Logged", "fr": "Jamais connecté"},
-	"plat_filter_recent":       {"en": "Recent (7d)", "fr": "Récents (7j)"},
+	"plat_filter_recent":       {"en": "Recent (30d)", "fr": "Récents (30j)"},
 	"plat_col_teacher":         {"en": "Teacher", "fr": "Enseignant"},
 	"plat_col_email":           {"en": "Email", "fr": "Email"},
 	"plat_col_students":        {"en": "Students", "fr": "Étudiants"},

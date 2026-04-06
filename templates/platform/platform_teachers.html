@@ -77,7 +77,7 @@
             </div>
             <div class="stat-box">
                 <div class="text-2xl font-bold text-blue-400" id="sRecent">0</div>
-                <div class="text-slate-500 text-xs mt-0.5">{{t .Lang "plat_stat_logged_7d"}}</div>
+                <div class="text-slate-500 text-xs mt-0.5">{{t .Lang "plat_stat_logged_30d"}}</div>
             </div>
             <div class="stat-box">
                 <div class="text-2xl font-bold text-slate-500" id="sNever">0</div>
@@ -142,9 +142,7 @@
                         <span class="dot jd"></span>
                         <span class="jrt text-slate-300" data-ts="{{.LastLoginAt.Unix}}"></span>
                     </div>
-                    <div class="text-slate-600 mt-0.5 truncate" style="font-size:0.625rem" data-tip="{{.LastLoginAt.Format "02 Jan 2006 15:04 UTC"}}">
-                        📍 {{.LastLoginIP}}
-                    </div>
+                    {{if .LastLoginIP}}<div class="text-slate-600 mt-0.5 truncate" style="font-size:0.625rem">📍 {{.LastLoginIP}}</div>{{end}}
                     {{else}}
                     <div class="flex items-center gap-1">
                         <span class="dot dot-r"></span>
@@ -191,7 +189,7 @@
     document.querySelectorAll('.jrt').forEach(function(e){var ts=parseInt(e.dataset.ts);e.textContent=rel(ts)});
     document.querySelectorAll('.jd').forEach(function(e){var s=e.nextElementSibling;if(s&&s.dataset.ts)e.className='dot '+dcl(parseInt(s.dataset.ts))});
     var rows=document.querySelectorAll('#tList .t-row'),ac=0,rc=0,nv=0;
-    rows.forEach(function(r){if(r.dataset.status==='active')ac++;var ts=parseInt(r.dataset.lts);if(!ts)nv++;else if(now-ts<7*D)rc++});
+    rows.forEach(function(r){if(r.dataset.status==='active')ac++;var ts=parseInt(r.dataset.lts);if(!ts)nv++;else if(now-ts<30*D)rc++});
     var e;e=document.getElementById('sActive');if(e)e.textContent=ac;
     e=document.getElementById('sRecent');if(e)e.textContent=rc;
     e=document.getElementById('sNever');if(e)e.textContent=nv;
@@ -199,7 +197,7 @@
     function af(){var q=(qi?qi.value:'').toLowerCase().trim(),sh=0;
         rows.forEach(function(r){var n=(r.dataset.name||'').toLowerCase(),em=(r.dataset.email||'').toLowerCase(),sc=(r.dataset.school||'').toLowerCase(),ip=(r.dataset.lip||'').toLowerCase();
             var ms=!q||n.indexOf(q)!==-1||em.indexOf(q)!==-1||sc.indexOf(q)!==-1||ip.indexOf(q)!==-1;
-            var mf=true;if(cf==='active')mf=r.dataset.status==='active';else if(cf==='expired')mf=r.dataset.status==='expired';else if(cf==='suspended')mf=r.dataset.status==='suspended';else if(cf==='never')mf=parseInt(r.dataset.lts)===0;else if(cf==='recent')mf=parseInt(r.dataset.lts)>0&&(now-parseInt(r.dataset.lts))<7*D;
+            var mf=true;if(cf==='active')mf=r.dataset.status==='active';else if(cf==='expired')mf=r.dataset.status==='expired';else if(cf==='suspended')mf=r.dataset.status==='suspended';else if(cf==='never')mf=parseInt(r.dataset.lts)===0;else if(cf==='recent')mf=parseInt(r.dataset.lts)>0&&(now-parseInt(r.dataset.lts))<30*D;
             var ok=ms&&mf;r.style.display=ok?'':'none';if(ok)sh++});
         if(nr)nr.style.display=sh===0?'':'none';if(rc2)rc2.textContent=sh+'/'+rows.length+(L==='fr'?' enseignants':' teachers')}
     if(qi)qi.addEventListener('input',af);
