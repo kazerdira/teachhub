@@ -64,7 +64,7 @@
             </div>
 
             <!-- Subscription Info -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 {{if .Teacher.SubscriptionStart}}
                 <div>
                     <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "plat_teacher_start"}}</div>
@@ -84,6 +84,26 @@
                 <div>
                     <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "plat_pay_count"}}</div>
                     <div class="text-white text-sm">{{.PaymentCount}}</div>
+                </div>
+            </div>
+
+            <!-- Last Login Info -->
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:0.5rem;padding:0.75rem 1rem">
+                <div class="flex items-center gap-4 text-sm">
+                    <div>
+                        <span class="text-slate-500 text-xs uppercase tracking-wider">{{t .Lang "plat_last_login_label"}}</span>
+                        {{if .Teacher.LastLoginAt}}
+                        <div class="text-white mt-0.5">🕐 {{.Teacher.LastLoginAt.Format "02 Jan 2006 — 15:04 UTC"}}</div>
+                        {{else}}
+                        <div class="text-slate-600 mt-0.5">{{t .Lang "plat_never_logged_in"}}</div>
+                        {{end}}
+                    </div>
+                    {{if .Teacher.LastLoginIP}}
+                    <div>
+                        <span class="text-slate-500 text-xs uppercase tracking-wider">{{t .Lang "plat_login_ip_label"}}</span>
+                        <div class="text-white mt-0.5 font-mono text-xs">📍 {{.Teacher.LastLoginIP}}</div>
+                    </div>
+                    {{end}}
                 </div>
             </div>
         </div>

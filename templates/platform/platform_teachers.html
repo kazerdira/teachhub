@@ -8,8 +8,28 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/fonts/inter.css">
     <style>
-        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; transition: all 0.15s; }
-        .card:hover { border-color: rgba(139,92,246,0.4); }
+        .t-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:0.75rem;transition:border-color 0.15s,background 0.15s}
+        .t-card:hover{border-color:rgba(139,92,246,0.35);background:rgba(255,255,255,0.06)}
+        .stat-box{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:0.75rem;padding:1.125rem 1.25rem}
+        .search-wrap{position:relative;flex:1;min-width:200px;max-width:340px}
+        .search-wrap svg{position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);width:14px;height:14px;color:#64748b}
+        .s-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.625rem;padding:0.5rem 0.75rem 0.5rem 2.25rem;color:#fff;font-size:0.8125rem;outline:none;width:100%;transition:border-color 0.15s,box-shadow 0.15s}
+        .s-input::placeholder{color:#64748b}.s-input:focus{border-color:rgba(139,92,246,0.5);box-shadow:0 0 0 3px rgba(139,92,246,0.1)}
+        .fbtn{padding:0.35rem 0.8rem;border-radius:0.5rem;font-size:0.75rem;font-weight:600;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#94a3b8;cursor:pointer;transition:all 0.12s;white-space:nowrap}
+        .fbtn:hover{border-color:rgba(139,92,246,0.3);color:#c4b5fd}
+        .fbtn.on{background:rgba(139,92,246,0.15);border-color:rgba(139,92,246,0.4);color:#c4b5fd}
+        .th-row{display:grid;grid-template-columns:2.5rem 1fr 1fr 5rem 5rem 11rem 5.5rem 1.5rem;align-items:center;gap:0.75rem;padding:0.625rem 1.25rem;font-size:0.6875rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid rgba(255,255,255,0.06);user-select:none}
+        .th-row>div[data-sort]{cursor:pointer;display:flex;align-items:center;gap:3px;transition:color 0.1s}.th-row>div[data-sort]:hover{color:#c4b5fd}
+        .t-row{display:grid;grid-template-columns:2.5rem 1fr 1fr 5rem 5rem 11rem 5.5rem 1.5rem;align-items:center;gap:0.75rem;padding:0.875rem 1.25rem;text-decoration:none;color:inherit;transition:background 0.1s;border-bottom:1px solid rgba(255,255,255,0.03)}
+        .t-row:hover{background:rgba(255,255,255,0.03)}
+        .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+        .dot-g{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,0.5)}.dot-y{background:#f59e0b}.dot-r{background:#475569}
+        .bcnt{display:inline-flex;align-items:center;justify-content:center;min-width:1.25rem;height:1.25rem;padding:0 0.375rem;border-radius:9999px;font-size:0.6875rem;font-weight:700}
+        @media(max-width:900px){
+            .th-row,.t-row{grid-template-columns:2.25rem 1fr 9rem 5.5rem 1.5rem}
+            .t-row .hm,.th-row .hm{display:none}
+        }
+        [data-tip]{position:relative}[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(255,255,255,0.15);color:#e2e8f0;font-size:0.6875rem;padding:0.25rem 0.625rem;border-radius:0.375rem;white-space:nowrap;z-index:10;pointer-events:none;font-weight:400}
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-sans text-white">
@@ -35,54 +55,161 @@
     </nav>
 
     <main class="max-w-6xl mx-auto px-4 py-8">
-        <div class="mb-8">
-            <h1 class="text-2xl font-bold">{{t .Lang "plat_teachers_heading"}}</h1>
-            <p class="text-slate-400 text-sm mt-1">{{t .Lang "plat_teachers_subheading"}}</p>
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-bold">{{t .Lang "plat_teachers_heading"}}</h1>
+                <p class="text-slate-400 text-sm mt-1">{{t .Lang "plat_teachers_subheading"}}</p>
+            </div>
+            <a href="{{.PlatformPath}}/teachers/export" style="padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.8125rem;font-weight:500;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#94a3b8;text-decoration:none;transition:all 0.12s" title="Export CSV">📥 CSV</a>
         </div>
 
         {{if .Teachers}}
-        <div class="space-y-3">
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="stat-box">
+                <div class="text-2xl font-bold text-white" id="sTotal">{{len .Teachers}}</div>
+                <div class="text-slate-500 text-xs mt-0.5">{{t .Lang "plat_stat_total_teachers"}}</div>
+            </div>
+            <div class="stat-box">
+                <div class="text-2xl font-bold text-emerald-400" id="sActive">0</div>
+                <div class="text-slate-500 text-xs mt-0.5">{{t .Lang "plat_stat_active"}}</div>
+            </div>
+            <div class="stat-box">
+                <div class="text-2xl font-bold text-blue-400" id="sRecent">0</div>
+                <div class="text-slate-500 text-xs mt-0.5">{{t .Lang "plat_stat_logged_7d"}}</div>
+            </div>
+            <div class="stat-box">
+                <div class="text-2xl font-bold text-slate-500" id="sNever">0</div>
+                <div class="text-slate-500 text-xs mt-0.5">{{t .Lang "plat_stat_never_logged"}}</div>
+            </div>
+        </div>
+
+        <!-- Search + Filters -->
+        <div class="flex flex-wrap items-center gap-3 mb-4">
+            <div class="search-wrap">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/></svg>
+                <input type="text" id="qInput" class="s-input" placeholder="{{t .Lang "plat_search_teachers"}}...">
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <button class="fbtn on" data-f="all">{{t .Lang "plat_filter_all"}}</button>
+                <button class="fbtn" data-f="active">🟢 {{t .Lang "plat_sub_active"}}</button>
+                <button class="fbtn" data-f="expired">⏰ {{t .Lang "plat_sub_expired"}}</button>
+                <button class="fbtn" data-f="suspended">🚫 {{t .Lang "plat_sub_suspended"}}</button>
+                <button class="fbtn" data-f="never">👻 {{t .Lang "plat_filter_never_logged"}}</button>
+                <button class="fbtn" data-f="recent">🟢 {{t .Lang "plat_filter_recent"}}</button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="t-card" style="overflow:hidden">
+            <div class="th-row">
+                <div></div>
+                <div data-sort="name">{{t .Lang "plat_col_teacher"}} <span class="arr">↕</span></div>
+                <div class="hm" data-sort="email">{{t .Lang "plat_col_email"}} <span class="arr">↕</span></div>
+                <div data-sort="students">{{t .Lang "plat_col_students"}} <span class="arr">↕</span></div>
+                <div class="hm" data-sort="classrooms">{{t .Lang "plat_col_classes"}} <span class="arr">↕</span></div>
+                <div data-sort="login">{{t .Lang "plat_col_last_login"}} <span class="arr">↕</span></div>
+                <div>{{t .Lang "plat_col_status"}}</div>
+                <div></div>
+            </div>
+
+            <div id="tList">
             {{range .Teachers}}
-            <a href="{{$.PlatformPath}}/teachers/{{.ID}}" class="card p-5 flex items-center gap-4 block hover:bg-white/5 transition group">
-                <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-xl font-bold text-purple-300">
+            <a href="{{$.PlatformPath}}/teachers/{{.ID}}" class="t-row"
+               data-name="{{.Username}}" data-email="{{.Email}}" data-school="{{.SchoolName}}"
+               data-status="{{.SubscriptionStatus}}" data-stu="{{.StudentCount}}" data-cls="{{.ClassroomCount}}"
+               data-lts="{{if .LastLoginAt}}{{.LastLoginAt.Unix}}{{else}}0{{end}}" data-lip="{{.LastLoginIP}}">
+                <div class="w-9 h-9 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-300" style="flex-shrink:0">
                     {{printf "%.1s" .Username | upper}}
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="font-semibold group-hover:text-purple-300 transition">{{.Username}}</div>
-                    <div class="text-slate-400 text-sm truncate">{{.Email}} {{if .SchoolName}}· {{.SchoolName}}{{end}}</div>
+                <div style="min-width:0">
+                    <div class="text-sm font-semibold text-white truncate">{{.Username}}</div>
+                    {{if .SchoolName}}<div class="text-xs text-slate-500 truncate">{{.SchoolName}}</div>{{end}}
                 </div>
-                <div class="text-right text-sm hidden md:block">
-                    <div class="text-slate-400">{{.ClassroomCount}} {{t $.Lang "plat_teachers_classrooms"}} · {{.StudentCount}} {{t $.Lang "plat_teachers_students"}}</div>
-                    {{if .SubscriptionStart}}
-                    <div class="text-slate-500 text-xs">{{t $.Lang "plat_teachers_since"}} {{.SubscriptionStart.Format "02 Jan 2006"}}</div>
-                    {{end}}
+                <div class="hm text-xs text-slate-400 truncate">{{.Email}}</div>
+                <div class="text-sm text-center">
+                    {{if gt .StudentCount 0}}<span class="bcnt bg-blue-500/20 text-blue-300">{{.StudentCount}}</span>
+                    {{else}}<span class="text-slate-600">0</span>{{end}}
+                </div>
+                <div class="hm text-sm text-center">
+                    {{if gt .ClassroomCount 0}}<span class="bcnt bg-purple-500/20 text-purple-300">{{.ClassroomCount}}</span>
+                    {{else}}<span class="text-slate-600">0</span>{{end}}
+                </div>
+                <div class="text-xs" style="min-width:0">
                     {{if .LastLoginAt}}
-                    <div class="text-slate-500 text-xs" title="IP: {{.LastLoginIP}}">🕐 {{.LastLoginAt.Format "02 Jan 15:04"}} · {{.LastLoginIP}}</div>
+                    <div class="flex items-center gap-1">
+                        <span class="dot jd"></span>
+                        <span class="jrt text-slate-300" data-ts="{{.LastLoginAt.Unix}}"></span>
+                    </div>
+                    <div class="text-slate-600 mt-0.5 truncate" style="font-size:0.625rem" data-tip="{{.LastLoginAt.Format "02 Jan 2006 15:04 UTC"}}">
+                        📍 {{.LastLoginIP}}
+                    </div>
                     {{else}}
-                    <div class="text-slate-600 text-xs">{{t $.Lang "plat_never_logged_in"}}</div>
+                    <div class="flex items-center gap-1">
+                        <span class="dot dot-r"></span>
+                        <span class="text-slate-600">{{t $.Lang "plat_never_logged_in"}}</span>
+                    </div>
                     {{end}}
                 </div>
                 <div>
                     {{if eq .SubscriptionStatus "active"}}
-                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">{{t $.Lang "plat_sub_active"}}</span>
+                        <span class="bcnt bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" style="font-size:0.625rem;padding:2px 8px">{{t $.Lang "plat_sub_active"}}</span>
                     {{else if eq .SubscriptionStatus "suspended"}}
-                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-300 border border-red-500/30">{{t $.Lang "plat_sub_suspended"}}</span>
+                        <span class="bcnt bg-red-500/20 text-red-300 border border-red-500/30" style="font-size:0.625rem;padding:2px 8px">{{t $.Lang "plat_sub_suspended"}}</span>
                     {{else}}
-                        <span class="inline-block px-3 py-1 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">{{t $.Lang "plat_sub_expired"}}</span>
+                        <span class="bcnt bg-amber-500/20 text-amber-300 border border-amber-500/30" style="font-size:0.625rem;padding:2px 8px">{{t $.Lang "plat_sub_expired"}}</span>
                     {{end}}
                 </div>
-                <div class="text-slate-500 group-hover:text-white transition">→</div>
+                <div class="text-slate-600 text-sm" style="text-align:right">→</div>
             </a>
             {{end}}
+            </div>
+
+            <div id="noRes" style="display:none;padding:3.5rem 2rem;text-align:center">
+                <div class="text-3xl mb-2">🔍</div>
+                <div class="text-slate-500 text-sm">{{t .Lang "plat_no_results"}}</div>
+            </div>
         </div>
+
+        <div class="text-slate-600 text-xs mt-3 text-right" id="rCnt"></div>
+
         {{else}}
-        <div class="card p-12 text-center">
+        <div class="t-card" style="padding:3rem 2rem;text-align:center">
             <div class="text-4xl mb-3">👨‍🏫</div>
             <div class="text-slate-400">{{t .Lang "plat_teachers_empty"}}</div>
             <div class="text-slate-500 text-sm mt-1">{{t .Lang "plat_teachers_empty_sub"}}</div>
         </div>
         {{end}}
     </main>
+
+<script>
+(function(){
+    var L='{{.Lang}}',now=Math.floor(Date.now()/1000),H=3600,D=86400;
+    function rel(ts){if(!ts)return'';var d=now-ts;if(d<60)return L==='fr'?"À l'instant":'Just now';if(d<H)return Math.floor(d/60)+(L==='fr'?' min':' min ago');if(d<D)return Math.floor(d/H)+(L==='fr'?' h':' h ago');if(d<7*D)return Math.floor(d/D)+(L==='fr'?' j':' d ago');if(d<30*D)return Math.floor(d/(7*D))+(L==='fr'?' sem':' w ago');return Math.floor(d/(30*D))+(L==='fr'?' mois':' mo ago')}
+    function dcl(ts){if(!ts)return'dot-r';var d=now-ts;return d<7*D?'dot-g':d<30*D?'dot-y':'dot-r'}
+    document.querySelectorAll('.jrt').forEach(function(e){var ts=parseInt(e.dataset.ts);e.textContent=rel(ts)});
+    document.querySelectorAll('.jd').forEach(function(e){var s=e.nextElementSibling;if(s&&s.dataset.ts)e.className='dot '+dcl(parseInt(s.dataset.ts))});
+    var rows=document.querySelectorAll('#tList .t-row'),ac=0,rc=0,nv=0;
+    rows.forEach(function(r){if(r.dataset.status==='active')ac++;var ts=parseInt(r.dataset.lts);if(!ts)nv++;else if(now-ts<7*D)rc++});
+    var e;e=document.getElementById('sActive');if(e)e.textContent=ac;
+    e=document.getElementById('sRecent');if(e)e.textContent=rc;
+    e=document.getElementById('sNever');if(e)e.textContent=nv;
+    var qi=document.getElementById('qInput'),nr=document.getElementById('noRes'),rc2=document.getElementById('rCnt'),cf='all';
+    function af(){var q=(qi?qi.value:'').toLowerCase().trim(),sh=0;
+        rows.forEach(function(r){var n=(r.dataset.name||'').toLowerCase(),em=(r.dataset.email||'').toLowerCase(),sc=(r.dataset.school||'').toLowerCase(),ip=(r.dataset.lip||'').toLowerCase();
+            var ms=!q||n.indexOf(q)!==-1||em.indexOf(q)!==-1||sc.indexOf(q)!==-1||ip.indexOf(q)!==-1;
+            var mf=true;if(cf==='active')mf=r.dataset.status==='active';else if(cf==='expired')mf=r.dataset.status==='expired';else if(cf==='suspended')mf=r.dataset.status==='suspended';else if(cf==='never')mf=parseInt(r.dataset.lts)===0;else if(cf==='recent')mf=parseInt(r.dataset.lts)>0&&(now-parseInt(r.dataset.lts))<7*D;
+            var ok=ms&&mf;r.style.display=ok?'':'none';if(ok)sh++});
+        if(nr)nr.style.display=sh===0?'':'none';if(rc2)rc2.textContent=sh+'/'+rows.length+(L==='fr'?' enseignants':' teachers')}
+    if(qi)qi.addEventListener('input',af);
+    document.querySelectorAll('.fbtn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.fbtn').forEach(function(x){x.classList.remove('on')});b.classList.add('on');cf=b.dataset.f;af()})});
+    var sd={};document.querySelectorAll('.th-row>div[data-sort]').forEach(function(th){th.addEventListener('click',function(){var k=th.dataset.sort;sd[k]=sd[k]==='asc'?'desc':'asc';var d=sd[k]==='asc'?1:-1,list=document.getElementById('tList'),a=Array.from(rows);
+        a.sort(function(x,y){var va,vb;if(k==='name'){va=x.dataset.name.toLowerCase();vb=y.dataset.name.toLowerCase();return va<vb?-d:va>vb?d:0}if(k==='email'){va=x.dataset.email.toLowerCase();vb=y.dataset.email.toLowerCase();return va<vb?-d:va>vb?d:0}if(k==='students')return(parseInt(x.dataset.stu)-parseInt(y.dataset.stu))*d;if(k==='classrooms')return(parseInt(x.dataset.cls)-parseInt(y.dataset.cls))*d;if(k==='login')return(parseInt(x.dataset.lts)-parseInt(y.dataset.lts))*d;return 0});
+        a.forEach(function(r){list.appendChild(r)});document.querySelectorAll('.th-row>div[data-sort]').forEach(function(h){var ar=h.querySelector('.arr');if(ar)ar.textContent=h===th?(sd[k]==='asc'?'↑':'↓'):'↕'})})});
+    af();
+})();
+</script>
 </body>
 </html>
 {{end}}

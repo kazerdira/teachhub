@@ -857,6 +857,24 @@ var Translations = map[string]map[string]string{
 	"plat_teachers_empty_sub":  {"en": "Approve an application to create a teacher account", "fr": "Approuvez une candidature pour créer un compte enseignant"},
 	"plat_never_logged_in":     {"en": "Never logged in", "fr": "Jamais connecté"},
 
+	// Teachers list page — stats & filters
+	"plat_stat_total_teachers": {"en": "Total Teachers", "fr": "Total enseignants"},
+	"plat_stat_active":         {"en": "Active Subscriptions", "fr": "Abonnements actifs"},
+	"plat_stat_logged_7d":      {"en": "Logged in (7 days)", "fr": "Connectés (7 jours)"},
+	"plat_stat_never_logged":   {"en": "Never Logged In", "fr": "Jamais connectés"},
+	"plat_search_teachers":     {"en": "Search by name, email, school or IP", "fr": "Rechercher par nom, email, école ou IP"},
+	"plat_filter_never_logged": {"en": "Never Logged", "fr": "Jamais connecté"},
+	"plat_filter_recent":       {"en": "Recent (7d)", "fr": "Récents (7j)"},
+	"plat_col_teacher":         {"en": "Teacher", "fr": "Enseignant"},
+	"plat_col_email":           {"en": "Email", "fr": "Email"},
+	"plat_col_students":        {"en": "Students", "fr": "Étudiants"},
+	"plat_col_classes":         {"en": "Classes", "fr": "Classes"},
+	"plat_col_last_login":      {"en": "Last Login", "fr": "Dernière connexion"},
+	"plat_col_status":          {"en": "Status", "fr": "Statut"},
+	"plat_no_results":          {"en": "No teachers match your search", "fr": "Aucun enseignant ne correspond à votre recherche"},
+	"plat_last_login_label":    {"en": "Last Login", "fr": "Dernière connexion"},
+	"plat_login_ip_label":      {"en": "IP Address", "fr": "Adresse IP"},
+
 	// Subscription status
 	"plat_sub_active":    {"en": "Active", "fr": "Actif"},
 	"plat_sub_suspended": {"en": "Suspended", "fr": "Suspendu"},
