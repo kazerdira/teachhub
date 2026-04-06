@@ -28,7 +28,10 @@ func (h *Handler) Home(c *gin.Context) {
 	student := middleware.GetStudent(c)
 	if student != nil {
 		classrooms, _ := h.Store.GetStudentClassrooms(c.Request.Context(), student.ID)
-		h.Store.UpdateStudentLastLogin(c.Request.Context(), student.ID, c.ClientIP())
+		// Only update last-login once per day to avoid a DB write on every page load
+		if student.LastLoginAt == nil || time.Since(*student.LastLoginAt) > 24*time.Hour {
+			h.Store.UpdateStudentLastLogin(c.Request.Context(), student.ID, c.ClientIP())
+		}
 		h.render(c, "student_home.html", gin.H{"Student": student, "Classrooms": classrooms})
 		return
 	}
