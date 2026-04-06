@@ -67,6 +67,7 @@
 </div>
 </div>
 
+<div id="tabPanelContainer" style="position:relative;min-height:200px;width:100%;">
 <!-- RESOURCES TAB -->
 <div id="tabPanel-resources" class="tab-panel"{{if ne .Tab "resources"}} style="display:none"{{end}}>
 <div class="mb-6">
@@ -489,11 +490,16 @@ function copyParentLink(url) {
 
 </div>
 
+</div><!-- /tabPanelContainer -->
+
 <script>
 (function(){
     var tabs=['resources','assignments','quizzes','students'];
+    var container=document.getElementById('tabPanelContainer');
     function switchTab(name){
-        var sx=window.scrollX,sy=window.scrollY;
+        /* Lock the container height to prevent reflow during switch */
+        var h=container.offsetHeight;
+        container.style.minHeight=h+'px';
         tabs.forEach(function(t){
             var p=document.getElementById('tabPanel-'+t);
             if(p)p.style.display=(t===name)?'':'none';
@@ -501,8 +507,13 @@ function copyParentLink(url) {
         document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
             a.classList.toggle('seg-tab-active',a.dataset.tab===name);
         });
-        window.scrollTo(sx,sy);
         history.replaceState(null,'','?tab='+name);
+        /* Release height lock after browser paints the new tab */
+        requestAnimationFrame(function(){
+            requestAnimationFrame(function(){
+                container.style.minHeight='200px';
+            });
+        });
     }
     document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
         a.addEventListener('click',function(e){e.preventDefault();switchTab(a.dataset.tab);});

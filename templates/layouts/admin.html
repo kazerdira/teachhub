@@ -63,7 +63,7 @@
         /* Print */
         @media print { .card { box-shadow: none!important; border: 1px solid #d1d5db!important; break-inside: avoid; } nav,.btn-primary,[onclick] { display: none!important; } }
         /* Prevent layout shift when scrollbar appears/disappears */
-        html { overflow-y: scroll; overflow-x: hidden; }
+        html { overflow-y: auto; scrollbar-gutter: stable; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans" style="display:flex;flex-direction:column;">
