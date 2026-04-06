@@ -493,6 +493,7 @@ function copyParentLink(url) {
 (function(){
     var tabs=['resources','assignments','quizzes','students'];
     function switchTab(name){
+        var sx=window.scrollX,sy=window.scrollY;
         tabs.forEach(function(t){
             var p=document.getElementById('tabPanel-'+t);
             if(p)p.style.display=(t===name)?'':'none';
@@ -500,6 +501,7 @@ function copyParentLink(url) {
         document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
             a.classList.toggle('seg-tab-active',a.dataset.tab===name);
         });
+        window.scrollTo(sx,sy);
         history.replaceState(null,'','?tab='+name);
     }
     document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
