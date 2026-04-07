@@ -1,20 +1,20 @@
 {{template "admin_head" .}}
 
 <div class="mb-4">
-    <a href="/admin" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back"}}</a>
+    <a href="/admin" style="color:#6c5ce7;font-size:0.875rem;text-decoration:none;font-weight:500;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">← {{t .Lang "back"}}</a>
 </div>
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
-    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{.Classroom.Name}}</h1>
+    <h1 style="font-size:clamp(1.25rem,3vw,1.75rem);font-weight:800;color:#1a1a2e;letter-spacing:-0.03em;line-height:1.1;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{.Classroom.Name}}</h1>
     <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/delete" onsubmit="return confirm('{{t .Lang "confirm_delete"}}')">
 {{csrfField $.CSRFToken}}
         <button class="text-sm text-red-500 hover:underline">{{t .Lang "delete"}}</button>
     </form>
 </div>
 
-<div class="bg-white border border-gray-200 rounded-lg p-3 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm overflow-hidden">
+<div style="background:#fff;border:1.5px solid rgba(0,0,0,0.06);border-radius:14px;padding:0.75rem 1rem;" class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm overflow-hidden">
     <div class="min-w-0">
-        <span class="text-gray-500">{{t .Lang "join_link"}}</span> <a href="{{.JoinURL}}" class="text-indigo-600 font-mono text-xs sm:text-sm break-all" target="_blank">{{.JoinURL}}</a>
+        <span style="color:#8b8ba3;">{{t .Lang "join_link"}}</span> <a href="{{.JoinURL}}" style="color:#6c5ce7;font-family:'DM Sans',monospace;font-size:0.8125rem;word-break:break-all;" target="_blank">{{.JoinURL}}</a>
     </div>
     <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/regenerate-code" class="flex-shrink-0">
 {{csrfField $.CSRFToken}}
@@ -54,12 +54,13 @@
 <!-- Tabs -->
 <div class="mb-6 overflow-x-auto pb-1">
 <div id="tabNav" class="seg-nav">
-    <a href="#" data-tab="resources" class="seg-tab tab-link {{if eq .Tab "resources"}}seg-tab-active{{end}}">{{t .Lang "tab_resources"}}</a>
-    <a href="#" data-tab="assignments" class="seg-tab tab-link {{if eq .Tab "assignments"}}seg-tab-active{{end}}">{{t .Lang "tab_assignments"}}</a>
-    <a href="#" data-tab="quizzes" class="seg-tab tab-link {{if eq .Tab "quizzes"}}seg-tab-active{{end}}">{{t .Lang "tab_quizzes"}}</a>
+    <div id="segIndicator" class="seg-indicator"></div>
+    <a href="#" data-tab="resources" class="seg-tab tab-link {{if eq .Tab "resources"}}seg-tab-active{{end}}">📂 {{t .Lang "tab_resources"}}</a>
+    <a href="#" data-tab="assignments" class="seg-tab tab-link {{if eq .Tab "assignments"}}seg-tab-active{{end}}">📋 {{t .Lang "tab_assignments"}}</a>
+    <a href="#" data-tab="quizzes" class="seg-tab tab-link {{if eq .Tab "quizzes"}}seg-tab-active{{end}}">❓ {{t .Lang "tab_quizzes"}}</a>
     <a href="#" data-tab="students" class="seg-tab tab-link {{if eq .Tab "students"}}seg-tab-active{{end}}">
-        {{t .Lang "tab_students"}}
-        {{if .PendingStudents}}<span style="background:#fbbf24;color:#78350f;font-size:10px;font-weight:800;padding:1px 7px;border-radius:9999px">{{len .PendingStudents}}</span>{{end}}
+        👥 {{t .Lang "tab_students"}}
+        {{if .PendingStudents}}<span style="background:linear-gradient(135deg,#fdcb6e,#ffeaa7);color:#78350f;font-size:10px;font-weight:800;padding:1px 7px;border-radius:9999px;">{{len .PendingStudents}}</span>{{end}}
     </a>
     <a href="/admin/classroom/{{.Classroom.ID}}/analytics" class="seg-tab">
         📊 {{t .Lang "tab_analytics"}}
@@ -496,8 +497,18 @@ function copyParentLink(url) {
 (function(){
     var tabs=['resources','assignments','quizzes','students'];
     var container=document.getElementById('tabPanelContainer');
+    var nav=document.getElementById('tabNav');
+    var indicator=document.getElementById('segIndicator');
+
+    function moveIndicator(el){
+        if(!el||!indicator||!nav) return;
+        var nr=nav.getBoundingClientRect();
+        var er=el.getBoundingClientRect();
+        indicator.style.left=(er.left-nr.left)+'px';
+        indicator.style.width=er.width+'px';
+    }
+
     function switchTab(name){
-        /* Lock the container height to prevent reflow during switch */
         var h=container.offsetHeight;
         container.style.minHeight=h+'px';
         tabs.forEach(function(t){
@@ -505,19 +516,29 @@ function copyParentLink(url) {
             if(p)p.style.display=(t===name)?'':'none';
         });
         document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
-            a.classList.toggle('seg-tab-active',a.dataset.tab===name);
+            var isActive=(a.dataset.tab===name);
+            a.classList.toggle('seg-tab-active',isActive);
+            if(isActive) moveIndicator(a);
         });
         history.replaceState(null,'','?tab='+name);
-        /* Release height lock after browser paints the new tab */
         requestAnimationFrame(function(){
             requestAnimationFrame(function(){
                 container.style.minHeight='200px';
             });
         });
     }
+
     document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
         a.addEventListener('click',function(e){e.preventDefault();switchTab(a.dataset.tab);});
     });
+
+    /* Initialize indicator on the active tab */
+    var activeTab=nav.querySelector('.seg-tab-active');
+    if(activeTab){
+        indicator.style.transition='none';
+        moveIndicator(activeTab);
+        setTimeout(function(){ indicator.style.transition=''; },50);
+    }
 })();
 </script>
 
