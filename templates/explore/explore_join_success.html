@@ -1,0 +1,15 @@
+{{template "explore_head" .}}
+
+<div style="max-width:36rem;margin:0 auto;text-align:center;padding:3rem 0;">
+    <div style="width:80px;height:80px;border-radius:50%;background:rgba(0,184,148,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+        <span class="material-symbols-outlined" style="font-size:40px;color:#00b894;">check_circle</span>
+    </div>
+    <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;">{{t .Lang "explore_join_success_title"}}</h1>
+    <p style="font-size:1rem;color:#8b8ba3;margin-top:0.75rem;max-width:24rem;margin-left:auto;margin-right:auto;line-height:1.6;">{{t .Lang "explore_join_success_text"}}</p>
+    <div style="margin-top:2rem;display:flex;justify-content:center;gap:1rem;">
+        {{if .Teacher}}<a href="/explore/teacher/{{.Teacher.ID}}" style="font-size:0.875rem;color:#6c5ce7;font-weight:600;text-decoration:none;">{{t .Lang "explore_join_success_back"}}</a>{{end}}
+        <a href="/explore" style="font-size:0.875rem;color:#8b8ba3;text-decoration:none;">{{t .Lang "explore_back"}}</a>
+    </div>
+</div>
+
+{{template "explore_foot" .}}

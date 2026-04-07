@@ -1,0 +1,142 @@
+{{template "admin_head" .}}
+
+<div style="max-width:48rem;margin:0 auto;">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 style="font-size:clamp(1.25rem,3vw,1.75rem);font-weight:800;color:#1a1a2e;letter-spacing:-0.03em;line-height:1.1;margin:0;">{{t .Lang "profile_heading"}}</h1>
+            <p style="font-size:0.8125rem;color:#8b8ba3;margin-top:0.25rem;">{{t .Lang "profile_subheading"}}</p>
+        </div>
+        <a href="/admin" style="font-size:0.8125rem;color:#8b8ba3;text-decoration:none;display:flex;align-items:center;gap:4px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span> {{t .Lang "back"}}
+        </a>
+    </div>
+
+    {{if eq (mapGet .Query "saved") "1"}}
+    <div style="background:rgba(0,184,148,0.1);border-radius:12px;padding:12px 16px;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="font-size:18px;color:#00b894;">check_circle</span>
+        <span style="font-size:0.875rem;color:#00b894;font-weight:600;">{{t .Lang "profile_saved"}}</span>
+    </div>
+    {{end}}
+
+    <form method="POST" action="/admin/profile" class="card p-6">
+        {{csrfField $.CSRFToken}}
+
+        <!-- Public Profile Toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:1px solid rgba(0,0,0,0.04);margin-bottom:1.25rem;">
+            <div>
+                <h3 style="font-size:0.9375rem;font-weight:700;color:#1a1a2e;margin:0;">{{t .Lang "profile_public_toggle"}}</h3>
+                <p style="font-size:0.8125rem;color:#8b8ba3;margin-top:2px;">{{t .Lang "profile_public_desc"}}</p>
+            </div>
+            <label style="position:relative;display:inline-block;width:48px;height:28px;cursor:pointer;">
+                <input type="checkbox" name="public_profile" {{if .Admin.PublicProfile}}checked{{end}} style="opacity:0;width:0;height:0;">
+                <span style="position:absolute;top:0;left:0;right:0;bottom:0;background:{{if .Admin.PublicProfile}}#6c5ce7{{else}}#ccc{{end}};border-radius:28px;transition:0.3s;" onclick="
+                    var cb=this.previousElementSibling;cb.checked=!cb.checked;
+                    this.style.background=cb.checked?'#6c5ce7':'#ccc';
+                    this.querySelector('span').style.transform=cb.checked?'translateX(20px)':'translateX(0)';
+                ">
+                    <span style="position:absolute;content:'';height:22px;width:22px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.3s;transform:{{if .Admin.PublicProfile}}translateX(20px){{else}}translateX(0){{end}};box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+                </span>
+            </label>
+        </div>
+
+        <!-- Country -->
+        <div style="margin-bottom:1rem;">
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_country"}}</label>
+            <select name="country" id="profileCountry" class="input" onchange="updateProfileCountry(this.value)">
+                {{range .Countries}}
+                <option value="{{.Code}}" {{if eq .Code $.Country}}selected{{end}}>{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <!-- Region -->
+        <div style="margin-bottom:1rem;">
+            <label id="regionLabel" style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{.RegionLabel}}</label>
+            <select name="region" id="profileRegion" class="input">
+                <option value="">—</option>
+                {{range .Regions}}
+                <option value="{{.}}" {{if eq . $.Admin.Region}}selected{{end}}>{{.}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <!-- Bio -->
+        <div style="margin-bottom:1rem;">
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "profile_bio"}}</label>
+            <textarea name="bio" class="input" rows="4" style="resize:vertical;" placeholder="{{t .Lang "profile_bio_ph"}}">{{.Admin.Bio}}</textarea>
+        </div>
+
+        <!-- Subjects (multi-select checkboxes) -->
+        <div style="margin-bottom:1rem;">
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:8px;">{{t .Lang "profile_subjects"}}</label>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;">
+                {{range .Subjects}}
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;font-size:0.8125rem;background:rgba(0,0,0,0.02);transition:all 0.15s;"
+                    onmouseover="this.style.background='rgba(108,92,231,0.06)'" onmouseout="this.style.background=this.querySelector('input').checked?'rgba(108,92,231,0.08)':'rgba(0,0,0,0.02)'">
+                    <input type="checkbox" name="subjects" value="{{.Key}}"
+                        {{if contains $.Admin.Subjects .Key}}checked{{end}}
+                        style="accent-color:#6c5ce7;width:16px;height:16px;">
+                    <span>{{.Emoji}} {{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</span>
+                </label>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- Levels (multi-select checkboxes) -->
+        <div style="margin-bottom:1.5rem;">
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:8px;">{{t .Lang "profile_levels"}}</label>
+            <div id="profileLevels" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;">
+                {{range .Levels}}
+                <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;font-size:0.8125rem;background:rgba(0,0,0,0.02);transition:all 0.15s;">
+                    <input type="checkbox" name="levels" value="{{.Key}}"
+                        {{if contains $.Admin.Levels .Key}}checked{{end}}
+                        style="accent-color:#6c5ce7;width:16px;height:16px;">
+                    <span>{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</span>
+                </label>
+                {{end}}
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="padding:12px 28px;font-size:0.9375rem;">
+            <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">save</span>
+            {{t .Lang "profile_save"}}
+        </button>
+    </form>
+
+    <!-- Preview link -->
+    {{if .Admin.PublicProfile}}
+    <div style="text-align:center;margin-top:1.5rem;">
+        <a href="/explore/teacher/{{.Admin.ID}}" target="_blank" style="font-size:0.8125rem;color:#6c5ce7;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span> {{t .Lang "profile_preview"}}
+        </a>
+    </div>
+    {{end}}
+</div>
+
+<script>
+function updateProfileCountry(country) {
+    fetch('/api/regions?country='+country)
+        .then(r=>r.json())
+        .then(data=>{
+            var sel=document.getElementById('profileRegion');
+            sel.innerHTML='<option value="">—</option>';
+            (data.regions||[]).forEach(function(r){
+                sel.innerHTML+='<option value="'+r+'">'+r+'</option>';
+            });
+            document.getElementById('regionLabel').textContent=data.label||'Region';
+        });
+    fetch('/api/levels?country='+country)
+        .then(r=>r.json())
+        .then(levels=>{
+            var div=document.getElementById('profileLevels');
+            div.innerHTML='';
+            levels.forEach(function(l){
+                var lang='{{.Lang}}';
+                var label=lang==='fr'?l.Fr:l.En;
+                div.innerHTML+='<label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;cursor:pointer;font-size:0.8125rem;background:rgba(0,0,0,0.02);"><input type="checkbox" name="levels" value="'+l.Key+'" style="accent-color:#6c5ce7;width:16px;height:16px;"><span>'+label+'</span></label>';
+            });
+        });
+}
+</script>
+
+{{template "admin_foot" .}}

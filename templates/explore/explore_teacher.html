@@ -1,0 +1,93 @@
+{{template "explore_head" .}}
+
+<div style="max-width:48rem;margin:0 auto;">
+    <!-- Back link -->
+    <a href="/explore" style="display:inline-flex;align-items:center;gap:4px;font-size:0.8125rem;color:#8b8ba3;text-decoration:none;margin-bottom:1.5rem;">
+        <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span> {{t .Lang "explore_back"}}
+    </a>
+
+    <!-- Teacher card -->
+    <div class="card p-6" style="margin-bottom:1.5rem;">
+        <div class="flex items-start gap-5">
+            <div style="width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:700;flex-shrink:0;">
+                {{printf "%.1s" .Teacher.SchoolName}}
+            </div>
+            <div style="flex:1;">
+                <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;">{{.Teacher.SchoolName}}</h1>
+                {{if .Teacher.Region}}
+                <p style="font-size:0.875rem;color:#8b8ba3;margin-top:4px;">
+                    <span class="material-symbols-outlined" style="font-size:15px;vertical-align:-2px;">location_on</span> {{.Teacher.Region}}{{if .Teacher.Country}}, {{if eq .Teacher.Country "DZ"}}{{t .Lang "explore_algeria"}}{{else if eq .Teacher.Country "FR"}}{{t .Lang "explore_france"}}{{end}}{{end}}
+                </p>
+                {{end}}
+                <div style="display:flex;gap:1rem;margin-top:0.5rem;">
+                    <span style="font-size:0.8125rem;color:#8b8ba3;">
+                        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">school</span> {{.Teacher.ClassroomCount}} {{t .Lang "explore_classrooms"}}
+                    </span>
+                    <span style="font-size:0.8125rem;color:#8b8ba3;">
+                        <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;">group</span> {{.Teacher.StudentCount}} {{t .Lang "dash_students"}}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {{if .Teacher.Bio}}
+        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(0,0,0,0.04);">
+            <p style="font-size:0.9rem;color:#555;line-height:1.7;">{{.Teacher.Bio}}</p>
+        </div>
+        {{end}}
+
+        <!-- Subject badges -->
+        {{if .Teacher.Subjects}}
+        <div style="margin-top:1rem;">
+            <h4 style="font-size:0.75rem;font-weight:600;color:#8b8ba3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">{{t .Lang "explore_subjects_taught"}}</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                {{range .Teacher.Subjects}}
+                    {{$subj := subjectInfo .}}
+                    <span class="badge" style="background:rgba(108,92,231,0.06);color:#6c5ce7;padding:5px 12px;font-size:0.8125rem;">{{$subj.Emoji}} {{if eq $.Lang "fr"}}{{$subj.Fr}}{{else}}{{$subj.En}}{{end}}</span>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+
+        <!-- Level badges -->
+        {{if .Teacher.Levels}}
+        <div style="margin-top:1rem;">
+            <h4 style="font-size:0.75rem;font-weight:600;color:#8b8ba3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">{{t .Lang "explore_levels_taught"}}</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                {{range .Teacher.Levels}}
+                <span class="badge" style="background:rgba(0,184,148,0.08);color:#00b894;padding:5px 12px;font-size:0.8125rem;">{{.}}</span>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
+    </div>
+
+    <!-- Classrooms -->
+    {{if .Classrooms}}
+    <h2 style="font-size:1.125rem;font-weight:700;color:#1a1a2e;margin-bottom:1rem;">{{t .Lang "explore_classrooms_title"}}</h2>
+    <div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));margin-bottom:1.5rem;">
+        {{range .Classrooms}}
+        <div class="card p-4">
+            <h3 style="font-weight:600;font-size:0.9375rem;color:#1a1a2e;margin:0;">{{.Name}}</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:0.5rem;">
+                {{if .Subject}}<span class="badge" style="background:rgba(108,92,231,0.06);color:#6c5ce7;">{{.Subject}}</span>{{end}}
+                {{if .Level}}<span class="badge" style="background:rgba(0,184,148,0.08);color:#00b894;">{{.Level}}</span>{{end}}
+                <span class="badge" style="background:rgba(0,0,0,0.04);color:#8b8ba3;">
+                    <span class="material-symbols-outlined" style="font-size:13px;">group</span> {{.StudentCount}}
+                </span>
+            </div>
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+
+    <!-- CTA: Join this teacher -->
+    <div style="text-align:center;margin-top:2rem;">
+        <a href="/explore/teacher/{{.Teacher.ID}}/join" class="btn-primary" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;font-size:1rem;text-decoration:none;">
+            <span class="material-symbols-outlined" style="font-size:20px;">person_add</span>
+            {{t .Lang "explore_join_cta"}}
+        </a>
+    </div>
+</div>
+
+{{template "explore_foot" .}}

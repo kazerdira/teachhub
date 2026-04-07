@@ -1087,6 +1087,79 @@ var Translations = map[string]map[string]string{
 	"cookie_msg":     {"en": "This site uses a cookie to save your language preference.", "fr": "Ce site utilise un cookie pour enregistrer votre préférence de langue."},
 	"cookie_accept":  {"en": "Accept", "fr": "Accepter"},
 	"cookie_decline": {"en": "Decline", "fr": "Refuser"},
+
+	// ─────────────────────────────────────────────────
+	// EXPLORE (public teacher directory)
+	// ─────────────────────────────────────────────────
+	"explore_title":          {"en": "Find a Teacher", "fr": "Trouver un enseignant"},
+	"explore_nav_badge":      {"en": "Explore", "fr": "Explorer"},
+	"explore_nav_student":    {"en": "Student Portal", "fr": "Espace élève"},
+	"explore_heading":        {"en": "Find Your Teacher", "fr": "Trouvez votre enseignant"},
+	"explore_subheading":     {"en": "Browse verified teachers and request to join their classrooms", "fr": "Parcourez les enseignants vérifiés et demandez à rejoindre leurs classes"},
+	"explore_country":        {"en": "Country", "fr": "Pays"},
+	"explore_subject":        {"en": "Subject", "fr": "Matière"},
+	"explore_level":          {"en": "Level", "fr": "Niveau"},
+	"explore_all":            {"en": "All", "fr": "Tous"},
+	"explore_search":         {"en": "Search", "fr": "Rechercher"},
+	"explore_results":        {"en": "teachers found", "fr": "enseignants trouvés"},
+	"explore_classrooms":     {"en": "classrooms", "fr": "classes"},
+	"explore_empty":          {"en": "No teachers found", "fr": "Aucun enseignant trouvé"},
+	"explore_empty_sub":      {"en": "Try adjusting your filters", "fr": "Essayez de modifier vos filtres"},
+	"explore_back":           {"en": "← Back to Explore", "fr": "← Retour à l'exploration"},
+	"explore_algeria":        {"en": "Algeria", "fr": "Algérie"},
+	"explore_france":         {"en": "France", "fr": "France"},
+	"explore_subjects_taught": {"en": "Subjects Taught", "fr": "Matières enseignées"},
+	"explore_levels_taught":  {"en": "Levels Taught", "fr": "Niveaux enseignés"},
+	"explore_classrooms_title": {"en": "Classrooms", "fr": "Classes"},
+	"explore_join_cta":       {"en": "Request to Join", "fr": "Demander à rejoindre"},
+	"explore_join_heading":   {"en": "Join Request", "fr": "Demande d'inscription"},
+	"explore_join_name":      {"en": "Full Name", "fr": "Nom complet"},
+	"explore_join_name_ph":   {"en": "Your full name", "fr": "Votre nom complet"},
+	"explore_join_email":     {"en": "Email", "fr": "E-mail"},
+	"explore_join_email_ph":  {"en": "your@email.com", "fr": "votre@email.com"},
+	"explore_join_phone":     {"en": "Phone (optional)", "fr": "Téléphone (optionnel)"},
+	"explore_join_phone_ph":  {"en": "+213...", "fr": "+213..."},
+	"explore_join_classroom": {"en": "Preferred Classroom", "fr": "Classe souhaitée"},
+	"explore_join_classroom_none": {"en": "No preference — teacher will assign", "fr": "Pas de préférence — l'enseignant assignera"},
+	"explore_join_level":     {"en": "Your Level", "fr": "Votre niveau"},
+	"explore_join_message":   {"en": "Message (optional)", "fr": "Message (optionnel)"},
+	"explore_join_message_ph": {"en": "Introduce yourself...", "fr": "Présentez-vous..."},
+	"explore_join_submit":    {"en": "Send Request", "fr": "Envoyer la demande"},
+	"explore_join_success_title": {"en": "Request Sent!", "fr": "Demande envoyée !"},
+	"explore_join_success_text":  {"en": "Your join request has been sent to the teacher. You will receive an email when they review your request.", "fr": "Votre demande a été envoyée à l'enseignant. Vous recevrez un e-mail lorsqu'il examinera votre demande."},
+	"explore_join_success_back":  {"en": "← Back to teacher", "fr": "← Retour à l'enseignant"},
+
+	// ─────────────────────────────────────────────────
+	// TEACHER PROFILE SETTINGS
+	// ─────────────────────────────────────────────────
+	"nav_profile":         {"en": "Profile", "fr": "Profil"},
+	"nav_requests":        {"en": "Requests", "fr": "Demandes"},
+	"profile_heading":     {"en": "Public Profile", "fr": "Profil public"},
+	"profile_subheading":  {"en": "Control how students find you on Explore", "fr": "Contrôlez comment les élèves vous trouvent sur Explorer"},
+	"profile_public_toggle": {"en": "Visible on Explore", "fr": "Visible sur Explorer"},
+	"profile_public_desc": {"en": "When enabled, students can find you and request to join your classrooms", "fr": "Lorsque activé, les élèves peuvent vous trouver et demander à rejoindre vos classes"},
+	"profile_bio":         {"en": "Bio", "fr": "Biographie"},
+	"profile_bio_ph":      {"en": "Tell students about yourself, your teaching style, experience...", "fr": "Parlez de vous, votre style d'enseignement, votre expérience..."},
+	"profile_subjects":    {"en": "Subjects You Teach", "fr": "Matières que vous enseignez"},
+	"profile_levels":      {"en": "Levels You Teach", "fr": "Niveaux que vous enseignez"},
+	"profile_save":        {"en": "Save Profile", "fr": "Enregistrer le profil"},
+	"profile_saved":       {"en": "Profile saved successfully!", "fr": "Profil enregistré avec succès !"},
+	"profile_preview":     {"en": "Preview your public profile", "fr": "Aperçu de votre profil public"},
+
+	// ─────────────────────────────────────────────────
+	// JOIN REQUESTS (teacher side)
+	// ─────────────────────────────────────────────────
+	"requests_heading":        {"en": "Join Requests", "fr": "Demandes d'inscription"},
+	"requests_subheading":     {"en": "Students who want to join your classrooms", "fr": "Élèves souhaitant rejoindre vos classes"},
+	"requests_select_class":   {"en": "Select classroom...", "fr": "Sélectionnez une classe..."},
+	"requests_approve":        {"en": "Approve", "fr": "Accepter"},
+	"requests_reject":         {"en": "Reject", "fr": "Refuser"},
+	"requests_reject_confirm": {"en": "Reject this request?", "fr": "Refuser cette demande ?"},
+	"requests_approved":       {"en": "Approved", "fr": "Acceptée"},
+	"requests_rejected":       {"en": "Rejected", "fr": "Refusée"},
+	"requests_empty":          {"en": "No join requests yet", "fr": "Aucune demande pour le moment"},
+	"requests_empty_sub":      {"en": "When students find you on Explore, their requests will appear here", "fr": "Lorsque des élèves vous trouveront sur Explorer, leurs demandes apparaîtront ici"},
+	"footer_cgu":              {"en": "Terms & Privacy", "fr": "CGU & Confidentialité"},
 }
 
 // T returns a translated string for the given key and language.

@@ -1,0 +1,77 @@
+{{template "explore_head" .}}
+
+<div style="max-width:36rem;margin:0 auto;">
+    <!-- Back -->
+    <a href="/explore/teacher/{{.Teacher.ID}}" style="display:inline-flex;align-items:center;gap:4px;font-size:0.8125rem;color:#8b8ba3;text-decoration:none;margin-bottom:1.5rem;">
+        <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span> {{t .Lang "back"}}
+    </a>
+
+    <div class="card p-6">
+        <div style="text-align:center;margin-bottom:1.5rem;">
+            <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;font-weight:700;margin:0 auto 0.75rem;">
+                {{printf "%.1s" .Teacher.SchoolName}}
+            </div>
+            <h1 style="font-size:1.25rem;font-weight:800;color:#1a1a2e;margin:0;">{{t .Lang "explore_join_heading"}}</h1>
+            <p style="font-size:0.875rem;color:#8b8ba3;margin-top:4px;">{{.Teacher.SchoolName}}</p>
+        </div>
+
+        <form method="POST" action="/explore/teacher/{{.Teacher.ID}}/join" style="display:flex;flex-direction:column;gap:1rem;">
+            {{csrfField $.CSRFToken}}
+
+            <!-- Full Name -->
+            <div>
+                <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_join_name"}} *</label>
+                <input type="text" name="full_name" required class="input" placeholder="{{t .Lang "explore_join_name_ph"}}">
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_join_email"}} *</label>
+                <input type="email" name="email" required class="input" placeholder="{{t .Lang "explore_join_email_ph"}}">
+            </div>
+
+            <!-- Phone -->
+            <div>
+                <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_join_phone"}}</label>
+                <input type="tel" name="phone" class="input" placeholder="{{t .Lang "explore_join_phone_ph"}}">
+            </div>
+
+            <!-- Preferred classroom -->
+            {{if .Classrooms}}
+            <div>
+                <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_join_classroom"}}</label>
+                <select name="classroom_id" class="input">
+                    <option value="">{{t .Lang "explore_join_classroom_none"}}</option>
+                    {{range .Classrooms}}
+                    <option value="{{.ID}}">{{.Name}}{{if .Subject}} — {{.Subject}}{{end}}{{if .Level}} ({{.Level}}){{end}}</option>
+                    {{end}}
+                </select>
+            </div>
+            {{end}}
+
+            <!-- Level -->
+            <div>
+                <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_join_level"}}</label>
+                <select name="level" class="input">
+                    <option value="">—</option>
+                    {{range .Levels}}
+                    <option value="{{.Key}}">{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+                    {{end}}
+                </select>
+            </div>
+
+            <!-- Message -->
+            <div>
+                <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_join_message"}}</label>
+                <textarea name="message" class="input" rows="3" style="resize:vertical;" placeholder="{{t .Lang "explore_join_message_ph"}}"></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary" style="padding:12px 24px;font-size:0.9375rem;margin-top:0.5rem;">
+                <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">send</span>
+                {{t .Lang "explore_join_submit"}}
+            </button>
+        </form>
+    </div>
+</div>
+
+{{template "explore_foot" .}}

@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"teachhub/geo"
 	"teachhub/handlers"
 	"teachhub/i18n"
 	"teachhub/middleware"
@@ -87,6 +88,10 @@ func main() {
 
 	// Store
 	s := store.New(pool)
+
+	// GeoLite2 IP geolocation (optional — gracefully degrades)
+	geo.Init("GeoLite2-Country.mmdb")
+	defer geo.Close()
 
 	// Ensure admin account
 	hashed, _ := bcrypt.GenerateFromPassword([]byte(adminPass), bcrypt.DefaultCost)
@@ -217,6 +222,18 @@ func main() {
 			}
 			return fmt.Sprintf("%d", i+1)
 		},
+		"subjectInfo": func(key string) geo.Subject {
+			m := geo.SubjectMap()
+			return m[key]
+		},
+		"contains": func(slice []string, val string) bool {
+			for _, s := range slice {
+				if s == val {
+					return true
+				}
+			}
+			return false
+		},
 	}
 
 	tmpl := template.New("").Funcs(funcMap)
@@ -226,6 +243,7 @@ func main() {
 		"templates/admin/*.html",
 		"templates/student/*.html",
 		"templates/platform/*.html",
+		"templates/explore/*.html",
 		"templates/landing.html",
 		"templates/parent_report.html",
 		"templates/cgu.html",
@@ -291,6 +309,17 @@ func main() {
 	// ─── CGU / Privacy ──────────────────────────────────
 	r.GET("/cgu", h.CGUPage)
 
+	// ─── Explore (public teacher directory) ─────────────
+	r.GET("/explore", h.ExplorePage)
+	r.GET("/explore/teacher/:id", h.TeacherPublicProfile)
+	r.GET("/explore/teacher/:id/join", h.JoinRequestPage)
+	r.POST("/explore/teacher/:id/join", h.JoinRequestSubmit)
+	r.GET("/explore/teacher/:id/join/success", h.JoinRequestSuccess)
+
+	// ─── API (public, for AJAX) ─────────────────────────
+	r.GET("/api/levels", h.APILevelsForCountry)
+	r.GET("/api/regions", h.APIRegionsForCountry)
+
 	// ─── Platform Admin Routes ──────────────────────────
 	r.GET(platformPath+"/login", h.PlatformLoginPage)
 	r.POST(platformPath+"/login", middleware.RateLimit(loginRL), h.PlatformLogin)
@@ -352,6 +381,13 @@ func main() {
 	admin := r.Group("/admin", middleware.AdminRequired(), middleware.AdminSubscriptionCheck(s))
 	{
 		admin.GET("", h.AdminDashboard)
+
+		// Profile & Join Requests
+		admin.GET("/profile", h.AdminProfilePage)
+		admin.POST("/profile", h.AdminProfileSave)
+		admin.GET("/requests", h.AdminJoinRequests)
+		admin.POST("/requests/:reqId/approve", h.AdminApproveRequest)
+		admin.POST("/requests/:reqId/reject", h.AdminRejectRequest)
 
 		// Classrooms
 		admin.POST("/classroom", h.CreateClassroom)

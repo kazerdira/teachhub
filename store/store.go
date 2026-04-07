@@ -37,6 +37,13 @@ type Admin struct {
 	PendingPassword    *string
 	LastLoginAt        *time.Time
 	LastLoginIP        string
+	// Profile / Explore
+	Bio           string
+	Subjects      []string
+	Levels        []string
+	Country       string
+	Region        string
+	PublicProfile bool
 }
 
 type TeacherListItem struct {
@@ -85,11 +92,29 @@ type Payment struct {
 	RecordedAt time.Time
 }
 
+type JoinRequest struct {
+	ID          int
+	TeacherID   int
+	ClassroomID *int
+	FullName    string
+	Email       string
+	Phone       string
+	Level       string
+	Message     string
+	Status      string // pending, approved, rejected
+	CreatedAt   time.Time
+	ReviewedAt  *time.Time
+	// joined for display
+	TeacherName string
+}
+
 type Classroom struct {
 	ID         int
 	Name       string
 	JoinCode   string
 	TeacherPic string
+	Subject    string
+	Level      string
 	CreatedAt  time.Time
 	// computed
 	StudentCount  int
@@ -232,12 +257,14 @@ func (s *Store) GetAdmin(ctx context.Context, username string) (*Admin, error) {
 	err := s.DB.QueryRow(ctx,
 		`SELECT id, username, password, email, COALESCE(phone,''), school_name, subscription_status,
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
-		        last_login_at, COALESCE(last_login_ip,'')
+		        last_login_at, COALESCE(last_login_ip,''),
+		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false)
 		 FROM admin WHERE username=$1`, username).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
-			&a.LastLoginAt, &a.LastLoginIP)
+			&a.LastLoginAt, &a.LastLoginIP,
+			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +282,7 @@ func (s *Store) CreateAdmin(ctx context.Context, username, hashedPassword string
 
 func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT c.id, c.name, c.join_code, c.teacher_pic, c.created_at,
+		SELECT c.id, c.name, c.join_code, c.teacher_pic, COALESCE(c.subject,''), COALESCE(c.level,''), c.created_at,
 			(SELECT COUNT(*) FROM classroom_student WHERE classroom_id=c.id AND status='approved') AS student_count,
 			(SELECT COUNT(*) FROM resource WHERE classroom_id=c.id) AS resource_count,
 			(SELECT COUNT(*) FROM quiz WHERE classroom_id=c.id) AS quiz_count,
@@ -268,7 +295,7 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 	var list []Classroom
 	for rows.Next() {
 		var c Classroom
-		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -278,8 +305,8 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 
 func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, created_at FROM classroom WHERE id=$1`, id).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE id=$1`, id).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -288,8 +315,8 @@ func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 
 func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, created_at FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -298,17 +325,17 @@ func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Cla
 
 func (s *Store) GetClassroomByCode(ctx context.Context, code string) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, created_at FROM classroom WHERE join_code=$1`, code).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE join_code=$1`, code).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
-func (s *Store) CreateClassroom(ctx context.Context, name string, adminID int) (int, error) {
+func (s *Store) CreateClassroom(ctx context.Context, name, subject, level string, adminID int) (int, error) {
 	var id int
-	err := s.DB.QueryRow(ctx, `INSERT INTO classroom (name, admin_id) VALUES ($1, $2) RETURNING id`, name, adminID).Scan(&id)
+	err := s.DB.QueryRow(ctx, `INSERT INTO classroom (name, subject, level, admin_id) VALUES ($1, $2, $3, $4) RETURNING id`, name, subject, level, adminID).Scan(&id)
 	return id, err
 }
 
@@ -2327,12 +2354,14 @@ func (s *Store) GetAdminByID(ctx context.Context, id int) (*Admin, error) {
 	err := s.DB.QueryRow(ctx,
 		`SELECT id, username, password, email, COALESCE(phone,''), school_name, subscription_status,
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
-		        last_login_at, COALESCE(last_login_ip,'')
+		        last_login_at, COALESCE(last_login_ip,''),
+		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false)
 		 FROM admin WHERE id=$1`, id).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
-			&a.LastLoginAt, &a.LastLoginIP)
+			&a.LastLoginAt, &a.LastLoginIP,
+			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -2635,4 +2664,217 @@ func (s *Store) CountApplicationsByStatus(ctx context.Context) (pending, approve
 		}
 	}
 	return
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Teacher Profile & Explore
+// ═══════════════════════════════════════════════════════════════
+
+func (s *Store) UpdateTeacherProfile(ctx context.Context, adminID int, bio string, subjects, levels []string, country, region string, publicProfile bool) error {
+	_, err := s.DB.Exec(ctx,
+		`UPDATE admin SET bio=$1, subjects=$2, levels=$3, country=$4, region=$5, public_profile=$6
+		 WHERE id=$7`,
+		bio, subjects, levels, country, region, publicProfile, adminID)
+	return err
+}
+
+// PublicTeacher is a read-only view returned by the explore page.
+type PublicTeacher struct {
+	ID         int
+	SchoolName string
+	Bio        string
+	Subjects   []string
+	Levels     []string
+	Country    string
+	Region     string
+	// aggregate stats
+	ClassroomCount int
+	StudentCount   int
+}
+
+func (s *Store) ListPublicTeachers(ctx context.Context, country, region, subject, level string) ([]PublicTeacher, error) {
+	q := `SELECT a.id, a.school_name, COALESCE(a.bio,''), COALESCE(a.subjects,'{}'), COALESCE(a.levels,'{}'),
+	             COALESCE(a.country,''), COALESCE(a.region,''),
+	             (SELECT COUNT(*) FROM classroom c WHERE c.admin_id=a.id) AS classroom_count,
+	             (SELECT COUNT(*) FROM student st JOIN classroom c ON c.id=st.classroom_id WHERE c.admin_id=a.id AND st.status='approved') AS student_count
+	      FROM admin a
+	      WHERE a.public_profile=true AND a.subscription_status='active'`
+	args := []interface{}{}
+	n := 0
+	if country != "" {
+		n++
+		q += fmt.Sprintf(" AND a.country=$%d", n)
+		args = append(args, country)
+	}
+	if region != "" {
+		n++
+		q += fmt.Sprintf(" AND a.region=$%d", n)
+		args = append(args, region)
+	}
+	if subject != "" {
+		n++
+		q += fmt.Sprintf(" AND $%d = ANY(a.subjects)", n)
+		args = append(args, subject)
+	}
+	if level != "" {
+		n++
+		q += fmt.Sprintf(" AND $%d = ANY(a.levels)", n)
+		args = append(args, level)
+	}
+	q += " ORDER BY student_count DESC, a.school_name"
+	rows, err := s.DB.Query(ctx, q, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []PublicTeacher
+	for rows.Next() {
+		var t PublicTeacher
+		if err := rows.Scan(&t.ID, &t.SchoolName, &t.Bio, &t.Subjects, &t.Levels,
+			&t.Country, &t.Region, &t.ClassroomCount, &t.StudentCount); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, nil
+}
+
+func (s *Store) GetPublicTeacher(ctx context.Context, id int) (*PublicTeacher, error) {
+	t := &PublicTeacher{}
+	err := s.DB.QueryRow(ctx,
+		`SELECT a.id, a.school_name, COALESCE(a.bio,''), COALESCE(a.subjects,'{}'), COALESCE(a.levels,'{}'),
+		        COALESCE(a.country,''), COALESCE(a.region,''),
+		        (SELECT COUNT(*) FROM classroom c WHERE c.admin_id=a.id) AS classroom_count,
+		        (SELECT COUNT(*) FROM student st JOIN classroom c ON c.id=st.classroom_id WHERE c.admin_id=a.id AND st.status='approved') AS student_count
+		 FROM admin a
+		 WHERE a.id=$1 AND a.public_profile=true AND a.subscription_status='active'`, id).
+		Scan(&t.ID, &t.SchoolName, &t.Bio, &t.Subjects, &t.Levels,
+			&t.Country, &t.Region, &t.ClassroomCount, &t.StudentCount)
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+// PublicClassroom — a classroom shown on a teacher's public profile.
+type PublicClassroom struct {
+	ID           int
+	Name         string
+	Subject      string
+	Level        string
+	StudentCount int
+}
+
+func (s *Store) ListPublicClassrooms(ctx context.Context, teacherID int) ([]PublicClassroom, error) {
+	rows, err := s.DB.Query(ctx,
+		`SELECT c.id, c.name, COALESCE(c.subject,''), COALESCE(c.level,''),
+		        (SELECT COUNT(*) FROM student s WHERE s.classroom_id=c.id AND s.status='approved')
+		 FROM classroom c WHERE c.admin_id=$1 ORDER BY c.name`, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []PublicClassroom
+	for rows.Next() {
+		var c PublicClassroom
+		if err := rows.Scan(&c.ID, &c.Name, &c.Subject, &c.Level, &c.StudentCount); err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	return out, nil
+}
+
+// ─── Join Requests ───────────────────────────────────────
+
+func (s *Store) CreateJoinRequest(ctx context.Context, teacherID int, classroomID *int, fullName, email, phone, level, message string) error {
+	_, err := s.DB.Exec(ctx,
+		`INSERT INTO join_request (teacher_id, classroom_id, full_name, email, phone, level, message)
+		 VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+		teacherID, classroomID, fullName, email, phone, level, message)
+	return err
+}
+
+func (s *Store) ListJoinRequestsForTeacher(ctx context.Context, teacherID int) ([]JoinRequest, error) {
+	rows, err := s.DB.Query(ctx,
+		`SELECT id, teacher_id, classroom_id, full_name, email, COALESCE(phone,''), level, COALESCE(message,''),
+		        status, created_at, reviewed_at
+		 FROM join_request WHERE teacher_id=$1 ORDER BY created_at DESC`, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []JoinRequest
+	for rows.Next() {
+		var r JoinRequest
+		if err := rows.Scan(&r.ID, &r.TeacherID, &r.ClassroomID, &r.FullName, &r.Email, &r.Phone,
+			&r.Level, &r.Message, &r.Status, &r.CreatedAt, &r.ReviewedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, nil
+}
+
+func (s *Store) CountPendingJoinRequests(ctx context.Context, teacherID int) int {
+	var n int
+	s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM join_request WHERE teacher_id=$1 AND status='pending'`, teacherID).Scan(&n)
+	return n
+}
+
+func (s *Store) ApproveJoinRequest(ctx context.Context, requestID, teacherID, classroomID int) error {
+	// Mark request as approved
+	tag, err := s.DB.Exec(ctx,
+		`UPDATE join_request SET status='approved', reviewed_at=NOW(), classroom_id=$3
+		 WHERE id=$1 AND teacher_id=$2 AND status='pending'`,
+		requestID, teacherID, classroomID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("request not found or already reviewed")
+	}
+	// Get request details to create student
+	var jr JoinRequest
+	err = s.DB.QueryRow(ctx,
+		`SELECT full_name, email, phone, level FROM join_request WHERE id=$1`, requestID).
+		Scan(&jr.FullName, &jr.Email, &jr.Phone, &jr.Level)
+	if err != nil {
+		return err
+	}
+	// Create student in classroom with status approved
+	_, err = s.DB.Exec(ctx,
+		`INSERT INTO student (classroom_id, full_name, email, phone, status)
+		 VALUES ($1,$2,$3,$4,'approved')
+		 ON CONFLICT DO NOTHING`,
+		classroomID, jr.FullName, jr.Email, jr.Phone)
+	return err
+}
+
+func (s *Store) RejectJoinRequest(ctx context.Context, requestID, teacherID int) error {
+	tag, err := s.DB.Exec(ctx,
+		`UPDATE join_request SET status='rejected', reviewed_at=NOW()
+		 WHERE id=$1 AND teacher_id=$2 AND status='pending'`,
+		requestID, teacherID)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("request not found or already reviewed")
+	}
+	return nil
+}
+
+func (s *Store) GetJoinRequest(ctx context.Context, id int) (*JoinRequest, error) {
+	r := &JoinRequest{}
+	err := s.DB.QueryRow(ctx,
+		`SELECT id, teacher_id, classroom_id, full_name, email, COALESCE(phone,''), level, COALESCE(message,''),
+		        status, created_at, reviewed_at
+		 FROM join_request WHERE id=$1`, id).
+		Scan(&r.ID, &r.TeacherID, &r.ClassroomID, &r.FullName, &r.Email, &r.Phone,
+			&r.Level, &r.Message, &r.Status, &r.CreatedAt, &r.ReviewedAt)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
 }

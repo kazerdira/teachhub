@@ -7,9 +7,21 @@
     </div>
     <form method="POST" action="/admin/classroom" class="w-full sm:w-auto">
     {{csrfField $.CSRFToken}}
-        <div style="display:flex;align-items:center;gap:0.375rem;padding:5px;background:#fff;border-radius:14px;border:none;box-shadow:0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);transition:all 0.2s">
+        <div style="display:flex;align-items:center;gap:0.375rem;padding:5px;background:#fff;border-radius:14px;border:none;box-shadow:0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);transition:all 0.2s;flex-wrap:wrap;">
             <input type="text" name="name" placeholder="{{t .Lang "dash_placeholder"}}" required
-                style="border:none;outline:none;background:transparent;padding:8px 14px;font-size:0.875rem;color:#1a1a2e;width:100%;min-width:200px;font-family:'Manrope',Inter,system-ui,sans-serif">
+                style="border:none;outline:none;background:transparent;padding:8px 14px;font-size:0.875rem;color:#1a1a2e;width:100%;min-width:160px;font-family:'Manrope',Inter,system-ui,sans-serif;flex:1;">
+            <select name="subject" style="border:none;outline:none;background:transparent;padding:8px 10px;font-size:0.8125rem;color:#8b8ba3;font-family:'Manrope',Inter,system-ui,sans-serif;max-width:140px;cursor:pointer;">
+                <option value="">{{t .Lang "explore_subject"}}</option>
+                {{range .Subjects}}
+                <option value="{{.Key}}">{{.Emoji}} {{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+                {{end}}
+            </select>
+            <select name="level" style="border:none;outline:none;background:transparent;padding:8px 10px;font-size:0.8125rem;color:#8b8ba3;font-family:'Manrope',Inter,system-ui,sans-serif;max-width:140px;cursor:pointer;">
+                <option value="">{{t .Lang "explore_level"}}</option>
+                {{range .Levels}}
+                <option value="{{.Key}}">{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+                {{end}}
+            </select>
             <button type="submit" class="btn-primary" style="padding:8px 20px;font-size:0.8125rem;white-space:nowrap;border-radius:10px;flex-shrink:0">{{t .Lang "dash_create"}}</button>
         </div>
     </form>
@@ -23,7 +35,11 @@
         <div class="flex flex-col h-full">
             <div class="mb-3">
                 <h3 class="font-bold text-gray-900 group-hover:text-indigo-600 transition truncate">{{.Name}}</h3>
-                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:#f4f4f0;padding:3px 10px;border-radius:8px">
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+                    {{if .Subject}}{{$subj := subjectInfo .Subject}}<span style="font-size:11px;color:#6c5ce7;background:rgba(108,92,231,0.06);padding:2px 8px;border-radius:6px;font-weight:600;">{{$subj.Emoji}} {{if eq $.Lang "fr"}}{{$subj.Fr}}{{else}}{{$subj.En}}{{end}}</span>{{end}}
+                    {{if .Level}}<span style="font-size:11px;color:#00b894;background:rgba(0,184,148,0.06);padding:2px 8px;border-radius:6px;font-weight:600;">{{.Level}}</span>{{end}}
+                </div>
+                <div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:#f4f4f0;padding:3px 10px;border-radius:8px">
                     <span class="material-symbols-outlined" style="font-size:13px;color:#9ca3af">vpn_key</span>
                     <span class="font-mono text-xs font-semibold text-indigo-600">{{.JoinCode}}</span>
                 </div>

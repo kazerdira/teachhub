@@ -16,6 +16,12 @@ CREATE TABLE IF NOT EXISTS admin (
     application_id      INT,
     pending_password    TEXT,
     phone               TEXT NOT NULL DEFAULT '',
+    bio                 TEXT NOT NULL DEFAULT '',
+    subjects            TEXT[] NOT NULL DEFAULT '{}',
+    levels              TEXT[] NOT NULL DEFAULT '{}',
+    country             TEXT NOT NULL DEFAULT '',
+    region              TEXT NOT NULL DEFAULT '',
+    public_profile      BOOLEAN NOT NULL DEFAULT false,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -74,6 +80,18 @@ CREATE TABLE IF NOT EXISTS classroom (
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='classroom' AND column_name='teacher_pic') THEN
         ALTER TABLE classroom ADD COLUMN teacher_pic TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+
+-- classroom subject & level (for explore/discovery)
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='classroom' AND column_name='subject') THEN
+        ALTER TABLE classroom ADD COLUMN subject TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='classroom' AND column_name='level') THEN
+        ALTER TABLE classroom ADD COLUMN level TEXT NOT NULL DEFAULT '';
     END IF;
 END $$;
 
@@ -312,3 +330,54 @@ CREATE INDEX IF NOT EXISTS idx_live_attendance_session ON live_attendance(live_s
 CREATE INDEX IF NOT EXISTS idx_live_attendance_student ON live_attendance(student_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempt_quiz_student_finished ON quiz_attempt(quiz_id, student_id, finished_at);
 CREATE INDEX IF NOT EXISTS idx_cs_parent_code ON classroom_student(parent_code);
+
+-- ─── Teacher profile fields (migration-safe) ───────────
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='bio') THEN
+        ALTER TABLE admin ADD COLUMN bio TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='subjects') THEN
+        ALTER TABLE admin ADD COLUMN subjects TEXT[] NOT NULL DEFAULT '{}';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='levels') THEN
+        ALTER TABLE admin ADD COLUMN levels TEXT[] NOT NULL DEFAULT '{}';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='country') THEN
+        ALTER TABLE admin ADD COLUMN country TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='region') THEN
+        ALTER TABLE admin ADD COLUMN region TEXT NOT NULL DEFAULT '';
+    END IF;
+END $$;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='admin' AND column_name='public_profile') THEN
+        ALTER TABLE admin ADD COLUMN public_profile BOOLEAN NOT NULL DEFAULT false;
+    END IF;
+END $$;
+
+-- ─── Join Requests ──────────────────────────────────────
+CREATE TABLE IF NOT EXISTS join_request (
+    id           SERIAL PRIMARY KEY,
+    teacher_id   INT NOT NULL REFERENCES admin(id) ON DELETE CASCADE,
+    classroom_id INT REFERENCES classroom(id) ON DELETE SET NULL,
+    full_name    TEXT NOT NULL,
+    email        TEXT NOT NULL,
+    phone        TEXT NOT NULL DEFAULT '',
+    level        TEXT NOT NULL DEFAULT '',
+    message      TEXT NOT NULL DEFAULT '',
+    status       TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    reviewed_at  TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_join_request_teacher ON join_request(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_join_request_status ON join_request(status);
+CREATE INDEX IF NOT EXISTS idx_admin_public_profile ON admin(public_profile) WHERE public_profile = true;

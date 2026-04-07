@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"teachhub/geo"
 	"teachhub/middleware"
 	"teachhub/store"
 	"time"
@@ -51,6 +52,22 @@ func (h *Handler) render(c *gin.Context, tmplName string, data gin.H) {
 	// CSRF token
 	if t, exists := c.Get("csrf_token"); exists {
 		data["CSRFToken"] = t
+	}
+	// Inject pending join requests count for admin pages
+	if aid := adminID(c); aid > 0 {
+		if _, exists := data["PendingRequests"]; !exists {
+			data["PendingRequests"] = h.Store.CountPendingJoinRequests(c.Request.Context(), aid)
+		}
+	}
+	// Query params map for flash messages etc.
+	if _, exists := data["Query"]; !exists {
+		qm := map[string]string{}
+		for k, v := range c.Request.URL.Query() {
+			if len(v) > 0 {
+				qm[k] = v[0]
+			}
+		}
+		data["Query"] = qm
 	}
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	if err := h.Tmpl.ExecuteTemplate(c.Writer, tmplName, data); err != nil {
@@ -129,8 +146,24 @@ func (h *Handler) AdminLogout(c *gin.Context) {
 // ─── Admin Dashboard ────────────────────────────────────
 
 func (h *Handler) AdminDashboard(c *gin.Context) {
-	classrooms, _ := h.Store.ListClassrooms(c.Request.Context(), adminID(c))
-	h.render(c, "admin_dashboard.html", gin.H{"Classrooms": classrooms})
+	aid := adminID(c)
+	classrooms, _ := h.Store.ListClassrooms(c.Request.Context(), aid)
+	admin, _ := h.Store.GetAdminByID(c.Request.Context(), aid)
+	country := ""
+	if admin != nil && admin.Country != "" {
+		country = admin.Country
+	}
+	if country == "" {
+		country = geo.CountryFromIP(c.ClientIP())
+		if country == "" {
+			country = "DZ"
+		}
+	}
+	h.render(c, "admin_dashboard.html", gin.H{
+		"Classrooms": classrooms,
+		"Subjects":   geo.AllSubjects,
+		"Levels":     geo.LevelsForCountry(country),
+	})
 }
 
 // ─── Classroom CRUD ─────────────────────────────────────
@@ -141,7 +174,9 @@ func (h *Handler) CreateClassroom(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin")
 		return
 	}
-	h.Store.CreateClassroom(c.Request.Context(), name, adminID(c))
+	subject := strings.TrimSpace(c.PostForm("subject"))
+	level := strings.TrimSpace(c.PostForm("level"))
+	h.Store.CreateClassroom(c.Request.Context(), name, subject, level, adminID(c))
 	c.Redirect(http.StatusFound, "/admin")
 }
 
