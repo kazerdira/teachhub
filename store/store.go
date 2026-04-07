@@ -439,6 +439,20 @@ func (s *Store) IsStudentInClassroom(ctx context.Context, studentID, classroomID
 	return exists, err
 }
 
+func (s *Store) FindStudentByEmailInClassroom(ctx context.Context, email string, classroomID int) (int, string, error) {
+	var studentID int
+	var status string
+	err := s.DB.QueryRow(ctx,
+		`SELECT s.id, cs.status FROM student s
+		 JOIN classroom_student cs ON cs.student_id=s.id
+		 WHERE s.email=$1 AND cs.classroom_id=$2`,
+		email, classroomID).Scan(&studentID, &status)
+	if err != nil {
+		return 0, "", err
+	}
+	return studentID, status, nil
+}
+
 func (s *Store) IsStudentMemberOfClassroom(ctx context.Context, studentID, classroomID int) (bool, string, error) {
 	var status string
 	err := s.DB.QueryRow(ctx,

@@ -125,6 +125,20 @@ func (h *Handler) JoinClassroom(c *gin.Context) {
 		return
 	}
 
+	// Check if a student with this email already exists in this classroom
+	// (e.g. created via an approved join request — teacher sent them the link)
+	existingID, existingStatus, err := h.Store.FindStudentByEmailInClassroom(c.Request.Context(), email, classroom.ID)
+	if err == nil && existingID > 0 {
+		middleware.SetStudentSession(c, existingID)
+		h.Store.UpdateStudentLastLogin(c.Request.Context(), existingID, c.ClientIP())
+		if existingStatus == "approved" {
+			c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d", classroom.ID))
+		} else {
+			h.render(c, "student_join.html", gin.H{"Classroom": classroom, "Code": code, "Status": existingStatus})
+		}
+		return
+	}
+
 	// Check allow-list
 	allowed, _ := h.Store.IsEmailAllowed(c.Request.Context(), email, classroom.ID)
 	status := "pending"
