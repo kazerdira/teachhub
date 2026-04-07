@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"teachhub/geo"
+	"teachhub/store"
 
 	"github.com/gin-gonic/gin"
 )
@@ -94,6 +95,7 @@ func (h *Handler) JoinRequestPage(c *gin.Context) {
 		"Classrooms": classrooms,
 		"SubjectMap": geo.SubjectMap(),
 		"Levels":     geo.LevelsForCountry(teacher.Country),
+		"Error":      c.Query("error"),
 	})
 }
 
@@ -124,7 +126,11 @@ func (h *Handler) JoinRequestSubmit(c *gin.Context) {
 		}
 	}
 
-	h.Store.CreateJoinRequest(c.Request.Context(), teacherID, classroomID, fullName, email, phone, level, message)
+	err = h.Store.CreateJoinRequest(c.Request.Context(), teacherID, classroomID, fullName, email, phone, level, message)
+	if err == store.ErrRateLimited {
+		c.Redirect(http.StatusFound, "/explore/teacher/"+strconv.Itoa(teacherID)+"/join?error=rate_limited")
+		return
+	}
 	c.Redirect(http.StatusFound, "/explore/teacher/"+strconv.Itoa(teacherID)+"/join/success")
 }
 

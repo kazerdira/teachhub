@@ -2806,6 +2806,9 @@ func (s *Store) ListPublicClassrooms(ctx context.Context, teacherID int) ([]Publ
 
 // ─── Join Requests ───────────────────────────────────────
 
+// ErrRateLimited is returned when a user exceeds the join request rate limit.
+var ErrRateLimited = fmt.Errorf("rate limited")
+
 func (s *Store) CreateJoinRequest(ctx context.Context, teacherID int, classroomID *int, fullName, email, phone, level, message string) error {
 	// Prevent duplicate: skip if a pending request with same email+teacher exists
 	var exists bool
@@ -2815,6 +2818,16 @@ func (s *Store) CreateJoinRequest(ctx context.Context, teacherID int, classroomI
 	if exists {
 		return nil // silently skip duplicate
 	}
+
+	// Rate limit: max 3 requests per email per 24h
+	var count int
+	s.DB.QueryRow(ctx,
+		`SELECT COUNT(*) FROM join_request WHERE email=$1 AND created_at > NOW() - INTERVAL '24 hours'`,
+		email).Scan(&count)
+	if count >= 3 {
+		return ErrRateLimited
+	}
+
 	_, err := s.DB.Exec(ctx,
 		`INSERT INTO join_request (teacher_id, classroom_id, full_name, email, phone, level, message)
 		 VALUES ($1,$2,$3,$4,$5,$6,$7)`,
