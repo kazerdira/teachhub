@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TeachHub - Mathématiques 3AS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#5516be",
+                        "primary-container": "#008558",
+                        "secondary": "#4648d4",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#6063ee",
+                        "tertiary-fixed": "#e9ddff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e3e2df",
+                        "outline-variant": "#bccabf",
+                        "surface-dim": "#dbdad6",
+                        "on-primary": "#ffffff",
+                        "background": "#faf9f5",
+                        "primary": "#006a44",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#8455ef",
+                        "inverse-on-surface": "#f2f1ed",
+                        "on-surface": "#1b1c1a",
+                        "surface-tint": "#006c46",
+                        "on-secondary-fixed-variant": "#2f2ebe",
+                        "on-primary-fixed": "#002112",
+                        "surface-container": "#efeeea",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#3d4a41",
+                        "surface-bright": "#faf9f5",
+                        "inverse-surface": "#2f312e",
+                        "surface-container-highest": "#e3e2df",
+                        "surface-container-low": "#f4f4f0",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed": "#07006c",
+                        "on-tertiary-fixed": "#23005c",
+                        "on-secondary-container": "#fffbff",
+                        "on-primary-container": "#f6fff6",
+                        "on-primary-fixed-variant": "#005234",
+                        "error-container": "#ffdad6",
+                        "surface": "#faf9f5",
+                        "primary-fixed-dim": "#5ddda1",
+                        "on-background": "#1b1c1a",
+                        "primary-fixed": "#7bfabb",
+                        "outline": "#6d7a71",
+                        "surface-container-high": "#e9e8e4",
+                        "inverse-primary": "#5ddda1",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#c0c1ff",
+                        "on-tertiary-container": "#fffbff",
+                        "tertiary": "#6b38d4",
+                        "secondary-fixed": "#e1e0ff",
+                        "tertiary-fixed-dim": "#d0bcff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Manrope', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopNavBar (JSON Derived) -->
+<header class="bg-[#faf9f5] dark:bg-stone-900 flex justify-between items-center w-full px-6 py-4 max-w-full mx-auto fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-[#00A36C]">TeachHub</span>
+<div class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96 group focus-within:ring-2 ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-stone-400 mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full font-body" placeholder="Rechercher dans le cours..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-stone-500 dark:text-stone-400 font-medium hover:text-[#008558] transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-stone-500 dark:text-stone-400 font-medium hover:text-[#008558] transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full overflow-hidden border-2 border-primary-container/20">
+<img alt="Student avatar" class="w-full h-full object-cover" data-alt="Close-up portrait of a friendly young student with a warm smile, wearing a casual sweater, studio lighting, soft cream background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpKMrjFKSunLCZ2sSbwMWYemlqPfmdpF8Z02eoRm7DsI2F5zB6D_myKk216rI-b_9gOX-UfCEe7p17ZmqSRLTkYdnxU-IGVtRWXTvm8c_GxTXCiYeH_qKL1QyvU7DBHoxtiS5mZz5lkBQ-PICLWtXgHbGfVOwt9TtRN4kdO2Dy4DUAQ8AU-KwMsvNJJgzc3l2UGkru_ORPW4RkiOw6aK-rDaI20xo-mn6CvRrCe_gYpxmwV8x4jmrCGRxhslkwrJ9ez8g3S7jBRw"/>
+</div>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-7xl mx-auto">
+<!-- Classroom Header -->
+<section class="mb-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-primary/10 text-primary text-xs font-bold px-3 py-1 rounded-full tracking-wider">MATH-3AS-B</span>
+<span class="text-stone-400 flex items-center gap-1 text-sm font-medium">
+<span class="material-symbols-outlined text-sm">group</span> 32 Étudiants
+                        </span>
+</div>
+<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface">Mathématiques 3AS</h1>
+<p class="text-stone-500 mt-2 font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">person</span> M. Benali
+                    </p>
+</div>
+<!-- Live Session Banner (Asymmetric Component) -->
+<div class="bg-surface-container-lowest p-1 rounded-full shadow-sm flex items-center pr-1 pl-4 gap-4 animate-pulse-slow">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<span class="text-sm font-bold text-on-surface">Session en direct</span>
+</div>
+<button class="bg-primary text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+                        Join Now
+                    </button>
+</div>
+</div>
+</section>
+<!-- Tab Navigation (JSON & Prompt Specific) -->
+<nav class="flex items-center gap-8 mb-10 overflow-x-auto pb-2 scrollbar-hide">
+<button class="text-[#00A36C] font-semibold border-b-2 border-[#00A36C] pb-1 whitespace-nowrap">Resources</button>
+<button class="text-stone-500 dark:text-stone-400 font-medium hover:text-[#008558] transition-colors whitespace-nowrap">Assignments</button>
+<button class="text-stone-500 dark:text-stone-400 font-medium hover:text-[#008558] transition-colors whitespace-nowrap">Quizzes</button>
+<button class="text-stone-500 dark:text-stone-400 font-medium hover:text-[#008558] transition-colors whitespace-nowrap">My Progress</button>
+</nav>
+<!-- Grid Layout for Content -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Main Resources Column -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Hero Resource (Bento Style) -->
+<div class="relative h-64 rounded-lg overflow-hidden group cursor-pointer bg-stone-900">
+<img class="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" data-alt="Abstract mathematical visualizations of fractal geometry and complex grids on a dark sophisticated background with glowing emerald accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz-_qpR6X5tKai6Z8P6VDYYOSw7RWC7u5SWGuogA1QCyaUmQMMI4iAz_yNDvjULH5MiWAtlQcHi_DyLK10UAiyszVY6Y6bJwmeK-xrCWnPhlnxtvD3dzB5cleZki9YoRYXZSo6zQe8_HA_s2XtmSaGWzanjOxLR-RszDow_V882dSS4ElTMZ_ej6cSpyiyO6KjvwqUsRiq4qHVXsaJD0WNTx-foxnN4qBVbiYAAoceaHQSPneY8d8z1dzXN0dCVsdzyQNwSzn0jg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-8 flex flex-col justify-end">
+<span class="bg-primary-container text-white text-[10px] uppercase tracking-widest font-bold px-2 py-1 rounded w-fit mb-3">Nouveau</span>
+<h2 class="text-3xl font-bold text-white mb-2">Les Matrices - Explication</h2>
+<div class="flex items-center gap-4 text-stone-300 text-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">play_circle</span> 12:45 min</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">visibility</span> 128 vues</span>
+</div>
+</div>
+</div>
+<!-- Resources List (Editorial Style) -->
+<div class="space-y-4">
+<h3 class="text-xl font-bold px-2">Liste des ressources</h3>
+<!-- PDF Item -->
+<div class="flex items-center gap-4 p-5 bg-surface-container-lowest rounded-lg hover:shadow-md transition-shadow group">
+<div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-on-surface">Algèbre Linéaire - Cours 01</h4>
+<p class="text-sm text-stone-500">PDF • Category: Cours</p>
+</div>
+<button class="p-2 rounded-full bg-surface-container-low text-stone-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+<!-- Image/Exercise Item -->
+<div class="flex items-center gap-4 p-5 bg-surface-container-low rounded-lg hover:shadow-md transition-shadow group">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="image">image</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-on-surface">Graphiques de fonctions</h4>
+<p class="text-sm text-stone-500">Image • Category: Exercices</p>
+</div>
+<button class="p-2 rounded-full bg-surface-container-low text-stone-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined">open_in_new</span>
+</button>
+</div>
+<!-- Link Item -->
+<div class="flex items-center gap-4 p-5 bg-surface-container-lowest rounded-lg hover:shadow-md transition-shadow group border-l-4 border-secondary">
+<div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="link">link</span>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-on-surface">Calculatrice Scientifique</h4>
+<p class="text-sm text-stone-500">Link • Category: Outils</p>
+</div>
+<span class="text-xs font-bold text-secondary bg-secondary/5 px-2 py-1 rounded">EXTERNE</span>
+</div>
+</div>
+</div>
+<!-- Sidebar / Progress Column -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Progress Card -->
+<div class="bg-surface-container-lowest p-6 rounded-lg shadow-[0px_20px_40px_rgba(27,28,26,0.04)]">
+<h3 class="text-lg font-bold mb-6">Votre Progression</h3>
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm font-medium text-stone-500">Contenu complété</span>
+<span class="text-sm font-bold text-primary">65%</span>
+</div>
+<div class="w-full h-3 bg-primary-fixed-dim/20 rounded-full mb-8">
+<div class="h-full bg-primary rounded-full" style="width: 65%"></div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center text-xs">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<span class="text-sm font-medium">12/18 Leçons terminées</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-stone-400 flex items-center justify-center text-xs">
+<span class="material-symbols-outlined text-sm">schedule</span>
+</div>
+<span class="text-sm font-medium">2 Devoirs en attente</span>
+</div>
+</div>
+</div>
+<!-- Teacher Note -->
+<div class="bg-secondary-container/10 p-6 rounded-lg border-l-4 border-secondary relative overflow-hidden">
+<span class="material-symbols-outlined absolute -right-2 -top-2 text-secondary/10 text-7xl rotate-12">format_quote</span>
+<h4 class="font-bold text-secondary mb-2">Note du Curateur</h4>
+<p class="text-sm text-on-surface/80 leading-relaxed font-body italic">
+                        "Pour le cours sur les Matrices, concentrez-vous sur la règle de Sarrus avant le prochain direct de mercredi."
+                    </p>
+</div>
+<!-- Calendar Widget -->
+<div class="p-6 bg-surface-container-low rounded-lg">
+<h3 class="text-sm font-bold text-stone-400 uppercase tracking-widest mb-4">Événements à venir</h3>
+<div class="flex gap-4">
+<div class="bg-white flex flex-col items-center justify-center w-12 h-14 rounded shadow-sm shrink-0">
+<span class="text-[10px] font-bold text-error">OCT</span>
+<span class="text-lg font-black">24</span>
+</div>
+<div>
+<h5 class="text-sm font-bold">Examen Mi-Semestre</h5>
+<p class="text-xs text-stone-500">09:00 • Salle de Conférence B</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (JSON Derived) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/40 backdrop-blur-xl dark:bg-stone-900/40 rounded-t-3xl shadow-[0px_-10px_30px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col items-center justify-center text-stone-400 hover:bg-stone-100/50 rounded-full px-5 py-2 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[11px] font-bold font-label">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#00A36C]/10 text-[#00A36C] rounded-full px-5 py-2 transition-all scale-110 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="assignment" style="font-variation-settings: 'FILL' 1;">assignment</span>
+<span class="text-[11px] font-bold font-label">Assignments</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 hover:bg-stone-100/50 rounded-full px-5 py-2 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="quiz">quiz</span>
+<span class="text-[11px] font-bold font-label">Quizzes</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 hover:bg-stone-100/50 rounded-full px-5 py-2 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[11px] font-bold font-label">Progress</span>
+</div>
+</nav>
+<!-- FAB (Suppressed based on context rule for Details/Focused screens, but included if treated as 'Home' for this course) -->
+<button class="fixed bottom-28 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-xl shadow-primary/40 flex items-center justify-center hover:scale-110 transition-transform active:scale-95">
+<span class="material-symbols-outlined">question_answer</span>
+</button>
+</body></html>

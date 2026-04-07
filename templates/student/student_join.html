@@ -17,14 +17,14 @@
     </div>
     {{else if eq .Status "pending"}}
     <div class="card p-8 border-yellow-200 bg-yellow-50/50 text-center">
-        <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">⏳</div>
+        <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4"><span class="material-symbols-outlined" style="font-size:32px">hourglass_top</span></div>
         <h2 class="text-xl font-semibold text-gray-900 mb-2">{{t .Lang "pending_heading"}}</h2>
         <p class="text-gray-600 text-sm mb-6">{{t .Lang "pending_text"}}</p>
         <a href="/" class="btn-primary inline-block px-6 py-2">{{t .Lang "go_to_dashboard"}}</a>
     </div>
     {{else if eq .Status "rejected"}}
     <div class="card p-8 border-red-200 bg-red-50/50 text-center">
-        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">❌</div>
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><span class="material-symbols-outlined" style="font-size:32px">cancel</span></div>
         <h2 class="text-xl font-semibold text-gray-900 mb-2">{{t .Lang "rejected_heading"}}</h2>
         <p class="text-gray-600 text-sm mb-6">{{t .Lang "rejected_text"}}</p>
         <a href="/" class="text-indigo-600 hover:underline text-sm font-medium">{{t .Lang "back_to_home"}}</a>

@@ -15,13 +15,16 @@
     <link rel="stylesheet" href="/static/fonts/inter.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
     <style>
-        *, *::before, *::after { font-family: 'DM Sans', Inter, system-ui, sans-serif; }
+        *, *::before, *::after { font-family: 'Manrope', Inter, system-ui, sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 20px; vertical-align: middle; }
         .tab-active { border-bottom: 2px solid #6c5ce7; color: #6c5ce7; font-weight: 600; }
-        .card { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .card { background: #fff; border: none; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
         @media (hover: hover) {
-          .card:hover { border-color: rgba(108,92,231,0.2); box-shadow: 0 12px 40px -8px rgba(108,92,231,0.1), 0 4px 12px -4px rgba(0,0,0,0.04); transform: translateY(-3px); }
+          .card:hover { box-shadow: 0 20px 40px -8px rgba(27,28,26,0.08), 0 8px 16px -4px rgba(108,92,231,0.06); transform: translateY(-3px); }
           .card-accent::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6c5ce7, #a29bfe, #fd79a8); border-radius: 16px 16px 0 0; opacity: 0; transition: opacity 0.25s; }
           .card-accent:hover::before { opacity: 1; }
         }
@@ -38,7 +41,7 @@
         .seg-indicator { position: absolute; top: 4px; height: calc(100% - 8px); background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04); transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1); z-index: 0; }
         @media (hover: hover) { .seg-tab:not(.seg-tab-active):hover { color: #1a1a2e; } }
         .ql-toolbar.ql-snow{border-radius:12px 12px 0 0;border-color:rgba(0,0,0,0.08);background:rgba(0,0,0,0.02);padding:6px 8px}
-        .ql-container.ql-snow{border-radius:0 0 12px 12px;border-color:rgba(0,0,0,0.08);font-family:'DM Sans',Inter,system-ui,sans-serif;font-size:.875rem}
+        .ql-container.ql-snow{border-radius:0 0 12px 12px;border-color:rgba(0,0,0,0.08);font-family:'Manrope',Inter,system-ui,sans-serif;font-size:.875rem}
         .ql-editor{min-height:80px;padding:10px 14px}
         .ql-editor:focus{box-shadow:0 0 0 3px rgba(108,92,231,.1)}
         .ql-snow .ql-tooltip{z-index:10001}
@@ -76,7 +79,7 @@
         .glow-orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
     </style>
 </head>
-<body style="display:flex;flex-direction:column;min-height:100vh;background:#faf9f7;font-family:'DM Sans',Inter,system-ui,sans-serif;position:relative;overflow-x:hidden;">
+<body style="display:flex;flex-direction:column;min-height:100vh;background:#faf9f5;font-family:'Manrope',Inter,system-ui,sans-serif;position:relative;overflow-x:hidden;">
     <!-- Ambient glow orbs -->
     <div class="glow-orb" style="top:-150px;left:15%;width:500px;height:500px;background:#6c5ce7;opacity:0.04;"></div>
     <div class="glow-orb" style="top:40%;right:-100px;width:400px;height:400px;background:#e17055;opacity:0.03;"></div>

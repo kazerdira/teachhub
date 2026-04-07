@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TeachHub Parent Report</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-tertiary-fixed-variant": "#5516be",
+                "primary-container": "#008558",
+                "secondary": "#4648d4",
+                "on-secondary": "#ffffff",
+                "secondary-container": "#6063ee",
+                "tertiary-fixed": "#e9ddff",
+                "surface-container-lowest": "#ffffff",
+                "surface-variant": "#e3e2df",
+                "outline-variant": "#bccabf",
+                "surface-dim": "#dbdad6",
+                "on-primary": "#ffffff",
+                "background": "#faf9f5",
+                "primary": "#006a44",
+                "on-error": "#ffffff",
+                "tertiary-container": "#8455ef",
+                "inverse-on-surface": "#f2f1ed",
+                "on-surface": "#1b1c1a",
+                "surface-tint": "#006c46",
+                "on-secondary-fixed-variant": "#2f2ebe",
+                "on-primary-fixed": "#002112",
+                "surface-container": "#efeeea",
+                "error": "#ba1a1a",
+                "on-surface-variant": "#3d4a41",
+                "surface-bright": "#faf9f5",
+                "inverse-surface": "#2f312e",
+                "surface-container-highest": "#e3e2df",
+                "surface-container-low": "#f4f4f0",
+                "on-error-container": "#93000a",
+                "on-secondary-fixed": "#07006c",
+                "on-tertiary-fixed": "#23005c",
+                "on-secondary-container": "#fffbff",
+                "on-primary-container": "#f6fff6",
+                "on-primary-fixed-variant": "#005234",
+                "error-container": "#ffdad6",
+                "surface": "#faf9f5",
+                "primary-fixed-dim": "#5ddda1",
+                "on-background": "#1b1c1a",
+                "primary-fixed": "#7bfabb",
+                "outline": "#6d7a71",
+                "surface-container-high": "#e9e8e4",
+                "inverse-primary": "#5ddda1",
+                "on-tertiary": "#ffffff",
+                "secondary-fixed-dim": "#c0c1ff",
+                "on-tertiary-container": "#fffbff",
+                "tertiary": "#6b38d4",
+                "secondary-fixed": "#e1e0ff",
+                "tertiary-fixed-dim": "#d0bcff"
+            },
+            "borderRadius": {
+                "DEFAULT": "1rem",
+                "lg": "2rem",
+                "xl": "3rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #faf9f5; color: #1b1c1a; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24">
+<!-- TopNavBar -->
+<header class="bg-[#faf9f5] dark:bg-stone-900 flex justify-between items-center w-full px-6 py-4 max-w-full mx-auto docked full-width top-0 z-50 sticky">
+<div class="flex items-center gap-4">
+<span class="text-2xl font-bold tracking-tighter text-[#00A36C]">TeachHub</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-stone-500 hover:text-[#008558] transition-colors cursor-pointer" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-stone-500 hover:text-[#008558] transition-colors cursor-pointer" data-icon="settings">settings</span>
+<img alt="Student avatar" class="w-10 h-10 rounded-full border-2 border-primary-container object-cover" data-alt="Close up portrait of a smiling young student with braided hair in a bright, modern learning environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQCVOV6O9V5uz9d9AVZ_LW3M_iPw8NlJVxyHzTPVsocdsGb6hHaLDvZqwNbrPgoKoZO2RQOsS1nqeZpulaU98c4As9fAkdxFKEnMpmmzQ1GtQcIQBIgnEefL45230Oawvsa-fyC__vWKVpAk_Rh_GTPe7DV6K6-72Wg-52v6IvOSzD66-Ve-7k92le22W9NXyOD6nHBgCdtSM3B3ERBdwJplXSxoLNnMeouIxIZxjo0JAeGef84YZb7bw9h2oaZw4t_1o9FiCjZw"/>
+</div>
+</header>
+<main class="px-6 space-y-8 mt-4 max-w-2xl mx-auto">
+<!-- Hero Banner: Intentional Asymmetry & Tonal Depth -->
+<section class="relative overflow-hidden rounded-lg bg-gradient-to-br from-primary to-primary-container p-8 text-on-primary">
+<div class="relative z-10">
+<p class="font-label text-sm font-bold uppercase tracking-widest opacity-80 mb-2">Academic Status</p>
+<h1 class="text-3xl font-extrabold tracking-tight mb-4 leading-tight">Amira B. is doing well!</h1>
+<div class="flex items-center gap-2 bg-white/10 backdrop-blur-md self-start inline-flex px-4 py-2 rounded-full">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="text-sm font-semibold">Top 5% of Class</span>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="absolute -right-8 -bottom-8 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+</section>
+<!-- Top Stats: Bento Grid Style -->
+<section class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col justify-between h-32 border-none">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary" data-icon="quiz">quiz</span>
+<span class="text-xs font-bold text-stone-400">QUIZ AVG</span>
+</div>
+<div>
+<p class="text-2xl font-extrabold text-on-surface">16.5/20</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary" data-icon="assignment">assignment</span>
+<span class="text-xs font-bold text-stone-400">ASSIGNMENTS</span>
+</div>
+<div>
+<p class="text-2xl font-extrabold text-on-surface">85%</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col justify-between h-32">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-tertiary-container" data-icon="calendar_today">calendar_today</span>
+<span class="text-xs font-bold text-stone-400">ATTENDANCE</span>
+</div>
+<div>
+<p class="text-2xl font-extrabold text-on-surface">98%</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-lg flex flex-col justify-between h-32 ring-2 ring-primary/10">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-[#00A36C]" data-icon="trending_up">trending_up</span>
+<span class="text-xs font-bold text-stone-400 uppercase">Overall</span>
+</div>
+<div>
+<p class="text-2xl font-extrabold text-[#00A36C]">92%</p>
+<p class="text-[10px] font-bold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">arrow_upward</span>
+                        Above class
+                    </p>
+</div>
+</div>
+</section>
+<!-- Teacher Note: Curator's Note Pattern -->
+<section class="bg-secondary-container/10 border-l-4 border-secondary p-6 rounded-r-lg">
+<div class="flex items-center gap-3 mb-3">
+<img alt="Teacher profile with Pro badge" class="w-12 h-12 rounded-full object-cover" data-alt="Professional teacher headshot with soft lighting in a library or academic setting, warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmLpzRv1xrwnBheMG6tFgQN5GhC8sqgrsQH-m066pcZRbjmec3o4J7OvmQWG7g5_if3d1zRUDoBnm_AATh3GIKqBTePzQmApvBX9p1uMgN8Zis2C_W6VMlshvhAUrBTHZ-z3KAnvI4c1dotIJVkso6IZtS0eKMpX0H-dUWka4PgrHUKLPhnSPG5u_CI2WSZ3MSIaUn91VHCWousST5wIN91Tk5LjOjwjX5MO4tzRUq7ORriPp3Syc9_PpXZaFkPg2l_cS7hpxRHQ"/>
+<div>
+<p class="text-sm font-bold text-on-surface">Mrs. Thompson</p>
+<p class="text-[11px] text-stone-500 uppercase font-bold tracking-tight">Lead Mathematics Instructor</p>
+</div>
+</div>
+<p class="text-on-surface leading-relaxed italic">
+                "Amira is participating well in class. Great progress in Calculus! She consistently helps her peers during group work sessions."
+            </p>
+</section>
+<!-- Recent Quiz Scores: Compact Editorial Table -->
+<section class="space-y-4">
+<div class="flex justify-between items-end">
+<h2 class="text-xl font-extrabold tracking-tight text-on-surface">Recent Quiz Scores</h2>
+<button class="text-primary text-xs font-bold uppercase tracking-widest">View All</button>
+</div>
+<div class="bg-surface-container-low rounded-lg overflow-hidden">
+<div class="p-5 space-y-4">
+<div class="flex items-center justify-between pb-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary font-bold">C</div>
+<div>
+<p class="text-sm font-bold">Calculus: Limits</p>
+<p class="text-[11px] text-stone-400 font-medium">Sept 12, 2023</p>
+</div>
+</div>
+<p class="font-extrabold text-on-surface">19/20</p>
+</div>
+<!-- No-line rule: separating with padding/space -->
+<div class="flex items-center justify-between pb-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-secondary font-bold">A</div>
+<div>
+<p class="text-sm font-bold">Algebraic Functions</p>
+<p class="text-[11px] text-stone-400 font-medium">Sept 08, 2023</p>
+</div>
+</div>
+<p class="font-extrabold text-on-surface">17/20</p>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-tertiary font-bold">G</div>
+<div>
+<p class="text-sm font-bold">Geometry Basics</p>
+<p class="text-[11px] text-stone-400 font-medium">Aug 29, 2023</p>
+</div>
+</div>
+<p class="font-extrabold text-on-surface">14/20</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Growth Graph Placeholder -->
+<section class="bg-white p-6 rounded-lg border border-outline-variant/10">
+<h3 class="text-sm font-bold text-stone-400 uppercase tracking-widest mb-6">Learning Curve</h3>
+<div class="h-48 w-full flex items-end gap-2 px-2">
+<div class="w-1/6 bg-primary/10 h-1/2 rounded-t-lg transition-all hover:bg-primary/20"></div>
+<div class="w-1/6 bg-primary/10 h-2/3 rounded-t-lg transition-all hover:bg-primary/20"></div>
+<div class="w-1/6 bg-primary/20 h-1/2 rounded-t-lg transition-all hover:bg-primary/30"></div>
+<div class="w-1/6 bg-primary/30 h-3/4 rounded-t-lg transition-all hover:bg-primary/40"></div>
+<div class="w-1/6 bg-primary/40 h-4/5 rounded-t-lg transition-all hover:bg-primary/50"></div>
+<div class="w-1/6 bg-primary h-full rounded-t-lg shadow-lg shadow-primary/20"></div>
+</div>
+<div class="flex justify-between mt-4 text-[10px] font-bold text-stone-400 px-1">
+<span>WEEK 1</span>
+<span>WEEK 2</span>
+<span>WEEK 3</span>
+<span>WEEK 4</span>
+<span>WEEK 5</span>
+<span class="text-primary">NOW</span>
+</div>
+</section>
+<!-- Footer -->
+<footer class="py-12 text-center">
+<p class="text-stone-400 text-xs font-medium">Powered by <span class="text-primary font-bold">TeachHub</span></p>
+<p class="text-stone-400 text-[10px] mt-1 opacity-60">Verified Institutional Data • 2023</p>
+</footer>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/40 backdrop-blur-xl dark:bg-stone-900/40 rounded-t-3xl shadow-[0px_-10px_30px_rgba(0,0,0,0.04)]">
+<div class="flex flex-col items-center justify-center text-stone-400 hover:bg-stone-100/50 transition-all cursor-pointer px-4 py-1 rounded-full">
+<span class="material-symbols-outlined text-xl" data-icon="home">home</span>
+<span class="font-label font-bold text-[11px] mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 hover:bg-stone-100/50 transition-all cursor-pointer px-4 py-1 rounded-full">
+<span class="material-symbols-outlined text-xl" data-icon="assignment">assignment</span>
+<span class="font-label font-bold text-[11px] mt-1">Assignments</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 hover:bg-stone-100/50 transition-all cursor-pointer px-4 py-1 rounded-full">
+<span class="material-symbols-outlined text-xl" data-icon="quiz">quiz</span>
+<span class="font-label font-bold text-[11px] mt-1">Quizzes</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#00A36C]/10 text-[#00A36C] rounded-full px-5 py-2 scale-110 shadow-sm">
+<span class="material-symbols-outlined text-xl" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-label font-bold text-[11px] mt-1">Progress</span>
+</div>
+</nav>
+</body></html>

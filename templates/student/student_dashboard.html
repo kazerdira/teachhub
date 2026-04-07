@@ -396,14 +396,14 @@
     <div class="card p-4 border-l-4 border-l-purple-400">
         <div class="text-sm text-gray-700 leading-relaxed qc-display">{{safeContent .Content}}</div>
         <p class="text-[10px] text-gray-400 mt-2 flex items-center gap-1">
-            <span>🗓</span> {{.CreatedAt.Format "January 2, 2006 at 3:04 PM"}}
+            <span class="material-symbols-outlined" style="font-size:12px">calendar_today</span> {{.CreatedAt.Format "January 2, 2006 at 3:04 PM"}}
         </p>
     </div>
     {{end}}
 </div>
 {{else}}
 <div class="card p-8 text-center bg-gray-50 border-dashed">
-    <div class="text-2xl mb-2">📝</div>
+    <div class="text-2xl mb-2"><span class="material-symbols-outlined" style="font-size:28px;color:#9ca3af">edit_note</span></div>
     <p class="text-gray-500">{{t .Lang "no_teacher_notes"}}</p>
     <p class="text-sm text-gray-400 mt-1">{{t .Lang "no_notes_desc"}}</p>
 </div>

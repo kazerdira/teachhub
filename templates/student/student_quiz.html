@@ -59,7 +59,7 @@
                     {{if eq .QuestionType "file_upload"}}
                         {{$fa := fileMapGet $a.FileAnswers (printf "%d" .ID)}}
                         {{if $fa}}
-                        <p class="text-sm text-indigo-600">📎 {{mapGet $fa "file_name"}}</p>
+                        <p class="text-sm text-indigo-600 flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:16px">attach_file</span> {{mapGet $fa "file_name"}}</p>
                         {{else}}
                         <p class="text-sm text-gray-400 italic">{{t $.Lang "no_file_uploaded"}}</p>
                         {{end}}
