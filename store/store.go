@@ -2696,7 +2696,7 @@ func (s *Store) ListPublicTeachers(ctx context.Context, country, region, subject
 	q := `SELECT a.id, a.school_name, COALESCE(a.bio,''), COALESCE(a.subjects,'{}'), COALESCE(a.levels,'{}'),
 	             COALESCE(a.country,''), COALESCE(a.region,''),
 	             (SELECT COUNT(*) FROM classroom c WHERE c.admin_id=a.id) AS classroom_count,
-	             (SELECT COUNT(*) FROM student st JOIN classroom c ON c.id=st.classroom_id WHERE c.admin_id=a.id AND st.status='approved') AS student_count
+	             (SELECT COUNT(*) FROM classroom_student cs JOIN classroom c ON c.id=cs.classroom_id WHERE c.admin_id=a.id AND cs.status='approved') AS student_count
 	      FROM admin a
 	      WHERE a.public_profile=true AND a.subscription_status='active'`
 	args := []interface{}{}
@@ -2745,7 +2745,7 @@ func (s *Store) GetPublicTeacher(ctx context.Context, id int) (*PublicTeacher, e
 		`SELECT a.id, a.school_name, COALESCE(a.bio,''), COALESCE(a.subjects,'{}'), COALESCE(a.levels,'{}'),
 		        COALESCE(a.country,''), COALESCE(a.region,''),
 		        (SELECT COUNT(*) FROM classroom c WHERE c.admin_id=a.id) AS classroom_count,
-		        (SELECT COUNT(*) FROM student st JOIN classroom c ON c.id=st.classroom_id WHERE c.admin_id=a.id AND st.status='approved') AS student_count
+		        (SELECT COUNT(*) FROM classroom_student cs JOIN classroom c ON c.id=cs.classroom_id WHERE c.admin_id=a.id AND cs.status='approved') AS student_count
 		 FROM admin a
 		 WHERE a.id=$1 AND a.public_profile=true AND a.subscription_status='active'`, id).
 		Scan(&t.ID, &t.SchoolName, &t.Bio, &t.Subjects, &t.Levels,
