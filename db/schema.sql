@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS admin (
     created_by_platform BOOLEAN NOT NULL DEFAULT false,
     application_id      INT,
     pending_password    TEXT,
+    phone               TEXT NOT NULL DEFAULT '',
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

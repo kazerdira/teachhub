@@ -27,6 +27,7 @@ type Admin struct {
 	Username           string
 	Password           string
 	Email              string
+	Phone              string
 	SchoolName         string
 	SubscriptionStatus string // active, expired, suspended
 	SubscriptionStart  *time.Time
@@ -229,11 +230,11 @@ type LiveSession struct {
 func (s *Store) GetAdmin(ctx context.Context, username string) (*Admin, error) {
 	a := &Admin{}
 	err := s.DB.QueryRow(ctx,
-		`SELECT id, username, password, email, school_name, subscription_status,
+		`SELECT id, username, password, email, COALESCE(phone,''), school_name, subscription_status,
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
 		        last_login_at, COALESCE(last_login_ip,'')
 		 FROM admin WHERE username=$1`, username).
-		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.SchoolName,
+		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
 			&a.LastLoginAt, &a.LastLoginIP)
@@ -2324,11 +2325,11 @@ func (s *Store) GetPlatformAdminByID(ctx context.Context, id int) (*PlatformAdmi
 func (s *Store) GetAdminByID(ctx context.Context, id int) (*Admin, error) {
 	a := &Admin{}
 	err := s.DB.QueryRow(ctx,
-		`SELECT id, username, password, email, school_name, subscription_status,
+		`SELECT id, username, password, email, COALESCE(phone,''), school_name, subscription_status,
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
 		        last_login_at, COALESCE(last_login_ip,'')
 		 FROM admin WHERE id=$1`, id).
-		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.SchoolName,
+		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
 			&a.LastLoginAt, &a.LastLoginIP)
@@ -2338,12 +2339,12 @@ func (s *Store) GetAdminByID(ctx context.Context, id int) (*Admin, error) {
 	return a, nil
 }
 
-func (s *Store) CreateTeacherFromApplication(ctx context.Context, username, hashedPassword, plaintextPassword, email, schoolName string, applicationID int) (int, error) {
+func (s *Store) CreateTeacherFromApplication(ctx context.Context, username, hashedPassword, plaintextPassword, email, phone, schoolName string, applicationID int) (int, error) {
 	var id int
 	err := s.DB.QueryRow(ctx,
-		`INSERT INTO admin (username, password, pending_password, email, school_name, subscription_status, subscription_start, created_by_platform, application_id)
-		 VALUES ($1, $2, $3, $4, $5, 'active', NOW(), true, $6) RETURNING id`,
-		username, hashedPassword, plaintextPassword, email, schoolName, applicationID).Scan(&id)
+		`INSERT INTO admin (username, password, pending_password, email, phone, school_name, subscription_status, subscription_start, created_by_platform, application_id)
+		 VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW(), true, $7) RETURNING id`,
+		username, hashedPassword, plaintextPassword, email, phone, schoolName, applicationID).Scan(&id)
 	return id, err
 }
 

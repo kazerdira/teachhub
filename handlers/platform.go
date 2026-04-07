@@ -220,11 +220,11 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 		}
 
 		// Create teacher account
-		_, err = h.Store.CreateTeacherFromApplication(ctx, username, string(hashed), password, app.Email, app.SchoolName, id)
+		_, err = h.Store.CreateTeacherFromApplication(ctx, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
 		if err != nil {
 			// Username conflict — append number
 			username = fmt.Sprintf("%s%d", username, id)
-			_, err = h.Store.CreateTeacherFromApplication(ctx, username, string(hashed), password, app.Email, app.SchoolName, id)
+			_, err = h.Store.CreateTeacherFromApplication(ctx, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
 			if err != nil {
 				c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=create"))
 				return

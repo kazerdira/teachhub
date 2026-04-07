@@ -50,7 +50,7 @@
                 </div>
                 <div class="flex-1">
                     <h1 class="text-xl font-bold">{{.Teacher.Username}}</h1>
-                    <div class="text-slate-400 text-sm mt-0.5">{{.Teacher.Email}} {{if .Teacher.SchoolName}}· {{.Teacher.SchoolName}}{{end}}</div>
+                    <div class="text-slate-400 text-sm mt-0.5">{{.Teacher.Email}} {{if .Teacher.Phone}}· <a href="tel:{{.Teacher.Phone}}" class="text-purple-400 hover:text-purple-300 transition">📞 {{.Teacher.Phone}}</a>{{end}} {{if .Teacher.SchoolName}}· {{.Teacher.SchoolName}}{{end}}</div>
                 </div>
                 <div>
                     {{if eq .Teacher.SubscriptionStatus "active"}}
