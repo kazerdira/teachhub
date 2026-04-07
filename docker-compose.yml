@@ -51,6 +51,7 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     volumes:
       - uploads:/app/uploads
+      - ./GeoLite2-Country.mmdb:/app/GeoLite2-Country.mmdb:ro
     expose:
       - "8080"
     healthcheck:
