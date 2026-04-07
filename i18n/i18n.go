@@ -1118,7 +1118,7 @@ var Translations = map[string]map[string]string{
 	"explore_join_email":     {"en": "Email", "fr": "E-mail"},
 	"explore_join_email_ph":  {"en": "your@email.com", "fr": "votre@email.com"},
 	"explore_join_phone":     {"en": "Phone (optional)", "fr": "Téléphone (optionnel)"},
-	"explore_join_phone_ph":  {"en": "+213...", "fr": "+213..."},
+	"explore_join_phone_ph":  {"en": "+213 / +33...", "fr": "+213 / +33..."},
 	"explore_join_classroom": {"en": "Preferred Classroom", "fr": "Classe souhaitée"},
 	"explore_join_classroom_none": {"en": "No preference — teacher will assign", "fr": "Pas de préférence — l'enseignant assignera"},
 	"explore_join_level":     {"en": "Your Level", "fr": "Votre niveau"},

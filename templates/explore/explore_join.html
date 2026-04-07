@@ -33,7 +33,7 @@
             <!-- Phone -->
             <div>
                 <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_join_phone"}}</label>
-                <input type="tel" name="phone" class="input" placeholder="{{t .Lang "explore_join_phone_ph"}}">
+                <input type="tel" name="phone" class="input" placeholder="{{if eq .Teacher.Country "FR"}}+33...{{else}}+213...{{end}}">
             </div>
 
             <!-- Preferred classroom -->
