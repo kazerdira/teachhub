@@ -312,21 +312,46 @@ func (h *Handler) PlatformTeacherDetail(c *gin.Context) {
 		return
 	}
 
-	classrooms, students, quizzes, resources, _ := h.Store.GetTeacherStats(ctx, id)
+	classroomCount, students, quizzes, resources, _ := h.Store.GetTeacherStats(ctx, id)
 	payments, _ := h.Store.ListPaymentsByTeacher(ctx, id)
 	totalPaid, paymentCount, _ := h.Store.GetTeacherTotalPayments(ctx, id)
 
+	// Fetch full classroom details for the owner panel
+	classroomList, _ := h.Store.ListClassrooms(ctx, id)
+	type ClassroomDetail struct {
+		Classroom   interface{}
+		Students    interface{}
+		Resources   interface{}
+		Assignments interface{}
+		Quizzes     interface{}
+	}
+	var classroomDetails []ClassroomDetail
+	for _, cl := range classroomList {
+		stu, _ := h.Store.ListClassroomStudents(ctx, cl.ID)
+		res, _ := h.Store.ListResources(ctx, cl.ID)
+		asgn, _ := h.Store.ListAssignments(ctx, cl.ID)
+		qz, _ := h.Store.ListQuizzes(ctx, cl.ID)
+		classroomDetails = append(classroomDetails, ClassroomDetail{
+			Classroom:   cl,
+			Students:    stu,
+			Resources:   res,
+			Assignments: asgn,
+			Quizzes:     qz,
+		})
+	}
+
 	h.platformRender(c, "platform_teacher_detail.html", gin.H{
-		"Teacher":      teacher,
-		"Classrooms":   classrooms,
-		"Students":     students,
-		"Quizzes":      quizzes,
-		"Resources":    resources,
-		"Payments":     payments,
-		"TotalPaid":    totalPaid,
-		"PaymentCount": paymentCount,
-		"Saved":        c.Query("saved"),
-		"HasPendingPW": teacher.PendingPassword != nil,
+		"Teacher":          teacher,
+		"Classrooms":       classroomCount,
+		"Students":         students,
+		"Quizzes":          quizzes,
+		"Resources":        resources,
+		"ClassroomDetails": classroomDetails,
+		"Payments":         payments,
+		"TotalPaid":        totalPaid,
+		"PaymentCount":     paymentCount,
+		"Saved":            c.Query("saved"),
+		"HasPendingPW":     teacher.PendingPassword != nil,
 	})
 }
 

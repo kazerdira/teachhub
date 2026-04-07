@@ -128,6 +128,177 @@
             </div>
         </div>
 
+        <!-- ═══ Classrooms Deep Dive ═══ -->
+        {{if .ClassroomDetails}}
+        <div class="mb-6">
+            <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">📂 Classrooms <span class="text-slate-500 font-normal text-sm">({{.Classrooms}})</span></h2>
+
+            {{range $i, $cd := .ClassroomDetails}}
+            <div class="card mb-4 overflow-hidden">
+                <!-- Classroom header — clickable to toggle -->
+                <button onclick="document.getElementById('cr-{{$i}}').classList.toggle('hidden')" class="w-full text-left px-5 py-4 flex items-center gap-3 hover:bg-white/5 transition">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-lg font-bold text-purple-300 flex-shrink-0">
+                        {{printf "%.1s" $cd.Classroom.Name}}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-white truncate">{{$cd.Classroom.Name}}</div>
+                        <div class="text-slate-500 text-xs mt-0.5">
+                            Code: <span class="font-mono text-purple-400">{{$cd.Classroom.JoinCode}}</span>
+                            · Created {{$cd.Classroom.CreatedAt.Format "02 Jan 2006"}}
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs text-slate-400 flex-shrink-0">
+                        <span title="Students">👤 {{$cd.Classroom.StudentCount}}</span>
+                        <span title="Resources">📄 {{$cd.Classroom.ResourceCount}}</span>
+                        <span title="Quizzes">❓ {{$cd.Classroom.QuizCount}}</span>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-500 ml-2 flex-shrink-0 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                </button>
+
+                <!-- Collapsible content -->
+                <div id="cr-{{$i}}" class="hidden border-t border-white/10">
+                    <div class="px-5 py-4 space-y-5">
+
+                        <!-- ── Students ── -->
+                        <div>
+                            <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-1.5">👤 Students <span class="text-slate-600 font-normal">({{len $cd.Students}})</span></h3>
+                            {{if $cd.Students}}
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="text-slate-500 text-xs uppercase tracking-wider border-b border-white/10">
+                                            <th class="text-left pb-2 pr-3">Name</th>
+                                            <th class="text-left pb-2 pr-3">Email</th>
+                                            <th class="text-left pb-2 pr-3">Phone</th>
+                                            <th class="text-left pb-2">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range $cd.Students}}
+                                        <tr class="border-b border-white/5">
+                                            <td class="py-2 pr-3 text-white">{{.Name}}</td>
+                                            <td class="py-2 pr-3 text-slate-400 text-xs">{{if .Email}}{{.Email}}{{else}}—{{end}}</td>
+                                            <td class="py-2 pr-3 text-slate-400 text-xs">{{if .Phone}}<a href="tel:{{.Phone}}" class="text-purple-400 hover:text-purple-300">{{.Phone}}</a>{{else}}—{{end}}</td>
+                                            <td class="py-2">
+                                                {{if eq .MemberStatus "approved"}}<span class="text-emerald-400 text-xs">✅ Approved</span>
+                                                {{else if eq .MemberStatus "pending"}}<span class="text-amber-400 text-xs">⏳ Pending</span>
+                                                {{else}}<span class="text-red-400 text-xs">❌ {{.MemberStatus}}</span>{{end}}
+                                            </td>
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{else}}
+                            <div class="text-slate-600 text-xs italic">No students yet</div>
+                            {{end}}
+                        </div>
+
+                        <!-- ── Resources / Files ── -->
+                        <div>
+                            <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-1.5">📄 Resources <span class="text-slate-600 font-normal">({{len $cd.Resources}})</span></h3>
+                            {{if $cd.Resources}}
+                            <div class="space-y-1.5">
+                                {{range $cd.Resources}}
+                                <div class="flex items-center gap-2 text-sm py-1.5 px-3 rounded-lg bg-white/3 hover:bg-white/5 transition">
+                                    {{if .FilePath}}
+                                        {{if eq .FileType "pdf"}}📕{{else if eq .FileType "image"}}🖼️{{else if eq .FileType "video"}}🎬{{else if eq .FileType "audio"}}🎵{{else}}📎{{end}}
+                                    {{else if .ExternalURL}}🔗{{else}}📄{{end}}
+                                    <div class="flex-1 min-w-0">
+                                        <span class="text-white truncate block">{{.Title}}</span>
+                                        <span class="text-slate-600 text-xs">{{.CategoryName}} · {{.CreatedAt.Format "02 Jan 2006"}}</span>
+                                    </div>
+                                    {{if .FilePath}}
+                                    <span class="text-slate-600 text-xs">{{if .FileSize}}{{fileSizeMB .FileSize}} MB{{end}}</span>
+                                    {{else if .ExternalURL}}
+                                    <a href="{{.ExternalURL}}" target="_blank" class="text-purple-400 hover:text-purple-300 text-xs">Open ↗</a>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                            {{else}}
+                            <div class="text-slate-600 text-xs italic">No resources uploaded</div>
+                            {{end}}
+                        </div>
+
+                        <!-- ── Assignments ── -->
+                        <div>
+                            <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-1.5">📝 Assignments <span class="text-slate-600 font-normal">({{len $cd.Assignments}})</span></h3>
+                            {{if $cd.Assignments}}
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="text-slate-500 text-xs uppercase tracking-wider border-b border-white/10">
+                                            <th class="text-left pb-2 pr-3">Title</th>
+                                            <th class="text-left pb-2 pr-3">Type</th>
+                                            <th class="text-left pb-2 pr-3">Deadline</th>
+                                            <th class="text-left pb-2 pr-3">Submissions</th>
+                                            <th class="text-left pb-2">Graded</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range $cd.Assignments}}
+                                        <tr class="border-b border-white/5">
+                                            <td class="py-2 pr-3 text-white">{{.Title}}{{if .FilePath}} 📎{{end}}</td>
+                                            <td class="py-2 pr-3 text-slate-400 text-xs">
+                                                {{if eq .ResponseType "file"}}📁 File{{else if eq .ResponseType "text"}}✏️ Text{{else}}📁+✏️ Both{{end}}
+                                            </td>
+                                            <td class="py-2 pr-3 text-slate-400 text-xs">{{if .Deadline}}{{.Deadline.Format "02 Jan 2006"}}{{else}}—{{end}}</td>
+                                            <td class="py-2 pr-3 text-blue-400 text-xs">{{.SubmissionCount}}</td>
+                                            <td class="py-2 text-emerald-400 text-xs">{{.GradedCount}}/{{.SubmissionCount}}</td>
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{else}}
+                            <div class="text-slate-600 text-xs italic">No assignments</div>
+                            {{end}}
+                        </div>
+
+                        <!-- ── Quizzes ── -->
+                        <div>
+                            <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-1.5">❓ Quizzes <span class="text-slate-600 font-normal">({{len $cd.Quizzes}})</span></h3>
+                            {{if $cd.Quizzes}}
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="text-slate-500 text-xs uppercase tracking-wider border-b border-white/10">
+                                            <th class="text-left pb-2 pr-3">Title</th>
+                                            <th class="text-left pb-2 pr-3">Status</th>
+                                            <th class="text-left pb-2 pr-3">Questions</th>
+                                            <th class="text-left pb-2 pr-3">Attempts</th>
+                                            <th class="text-left pb-2">Time Limit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range $cd.Quizzes}}
+                                        <tr class="border-b border-white/5">
+                                            <td class="py-2 pr-3 text-white">{{.Title}}</td>
+                                            <td class="py-2 pr-3">
+                                                {{if .Published}}<span class="text-emerald-400 text-xs">🟢 Published</span>
+                                                {{else}}<span class="text-slate-500 text-xs">⚫ Draft</span>{{end}}
+                                            </td>
+                                            <td class="py-2 pr-3 text-slate-400 text-xs">{{.QuestionCount}} Q</td>
+                                            <td class="py-2 pr-3 text-blue-400 text-xs">{{.AttemptCount}} students</td>
+                                            <td class="py-2 text-slate-400 text-xs">{{if .TimeLimitMinutes}}{{.TimeLimitMinutes}} min{{else}}—{{end}}</td>
+                                        </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{else}}
+                            <div class="text-slate-600 text-xs italic">No quizzes</div>
+                            {{end}}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <!-- Subscription Management -->
             <div class="card p-6">
