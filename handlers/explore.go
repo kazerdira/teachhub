@@ -51,10 +51,6 @@ func (h *Handler) ExplorePage(c *gin.Context) {
 		"Levels":     geo.LevelsForCountry(country),
 		"Regions":    geo.RegionsForCountry(country),
 		"RegionLabel": geo.RegionLabel(country, lang),
-		"Countries":  []struct{ Code, En, Fr string }{
-			{"DZ", "Algeria", "Algérie"},
-			{"FR", "France", "France"},
-		},
 	})
 }
 
@@ -172,10 +168,6 @@ func (h *Handler) AdminProfilePage(c *gin.Context) {
 		"Regions":     geo.RegionsForCountry(country),
 		"RegionLabel": geo.RegionLabel(country, lang),
 		"Country":     country,
-		"Countries": []struct{ Code, En, Fr string }{
-			{"DZ", "Algeria", "Algérie"},
-			{"FR", "France", "France"},
-		},
 	})
 }
 

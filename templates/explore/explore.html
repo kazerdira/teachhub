@@ -8,16 +8,8 @@
 
 <!-- Filters -->
 <form method="GET" action="/explore" style="background:#fff;border-radius:16px;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-bottom:2rem;">
+    <input type="hidden" name="country" value="{{.Country}}">
     <div class="grid gap-3" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
-        <!-- Country -->
-        <div>
-            <label style="font-size:11px;font-weight:600;color:#8b8ba3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">{{t .Lang "explore_country"}}</label>
-            <select name="country" class="input" onchange="this.form.submit()">
-                {{range .Countries}}
-                <option value="{{.Code}}" {{if eq .Code $.Country}}selected{{end}}>{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
-                {{end}}
-            </select>
-        </div>
         <!-- Region -->
         <div>
             <label style="font-size:11px;font-weight:600;color:#8b8ba3;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">{{.RegionLabel}}</label>

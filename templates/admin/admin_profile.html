@@ -39,15 +39,8 @@
             </label>
         </div>
 
-        <!-- Country -->
-        <div style="margin-bottom:1rem;">
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:4px;">{{t .Lang "explore_country"}}</label>
-            <select name="country" id="profileCountry" class="input" onchange="updateProfileCountry(this.value)">
-                {{range .Countries}}
-                <option value="{{.Code}}" {{if eq .Code $.Country}}selected{{end}}>{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
-                {{end}}
-            </select>
-        </div>
+        <!-- Country (auto-detected) -->
+        <input type="hidden" name="country" id="profileCountry" value="{{.Country}}">
 
         <!-- Region -->
         <div style="margin-bottom:1rem;">
