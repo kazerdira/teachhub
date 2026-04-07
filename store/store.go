@@ -2793,6 +2793,14 @@ func (s *Store) ListPublicClassrooms(ctx context.Context, teacherID int) ([]Publ
 // ─── Join Requests ───────────────────────────────────────
 
 func (s *Store) CreateJoinRequest(ctx context.Context, teacherID int, classroomID *int, fullName, email, phone, level, message string) error {
+	// Prevent duplicate: skip if a pending request with same email+teacher exists
+	var exists bool
+	s.DB.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM join_request WHERE teacher_id=$1 AND email=$2 AND status='pending')`,
+		teacherID, email).Scan(&exists)
+	if exists {
+		return nil // silently skip duplicate
+	}
 	_, err := s.DB.Exec(ctx,
 		`INSERT INTO join_request (teacher_id, classroom_id, full_name, email, phone, level, message)
 		 VALUES ($1,$2,$3,$4,$5,$6,$7)`,

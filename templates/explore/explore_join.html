@@ -66,7 +66,7 @@
                 <textarea name="message" class="input" rows="3" style="resize:vertical;" placeholder="{{t .Lang "explore_join_message_ph"}}"></textarea>
             </div>
 
-            <button type="submit" class="btn-primary" style="padding:12px 24px;font-size:0.9375rem;margin-top:0.5rem;">
+            <button type="submit" class="btn-primary" style="padding:12px 24px;font-size:0.9375rem;margin-top:0.5rem;" onclick="this.disabled=true;this.form.submit();">
                 <span class="material-symbols-outlined" style="font-size:18px;vertical-align:-3px;">send</span>
                 {{t .Lang "explore_join_submit"}}
             </button>
