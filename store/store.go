@@ -2855,13 +2855,16 @@ func (s *Store) ApproveJoinRequest(ctx context.Context, requestID, teacherID, cl
 	if err != nil {
 		return err
 	}
-	// Create student in classroom with status approved
-	_, err = s.DB.Exec(ctx,
-		`INSERT INTO student (classroom_id, full_name, email, phone, status)
-		 VALUES ($1,$2,$3,$4,'approved')
-		 ON CONFLICT DO NOTHING`,
-		classroomID, jr.FullName, jr.Email, jr.Phone)
-	return err
+	// Check if a student with this email already exists
+	var studentID int
+	err = s.DB.QueryRow(ctx, `SELECT id FROM student WHERE email=$1`, jr.Email).Scan(&studentID)
+	if err != nil {
+		// Student doesn't exist — create new student + join classroom
+		_, err = s.CreateStudentAndJoinWithStatus(ctx, jr.FullName, jr.Email, jr.Phone, classroomID, "approved")
+		return err
+	}
+	// Student exists — just add to classroom
+	return s.CreateStudentAndJoinExistingWithStatus(ctx, studentID, classroomID, "approved")
 }
 
 func (s *Store) RejectJoinRequest(ctx context.Context, requestID, teacherID int) error {
