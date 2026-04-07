@@ -339,6 +339,11 @@ func (s *Store) CreateClassroom(ctx context.Context, name, subject, level string
 	return id, err
 }
 
+func (s *Store) UpdateClassroomTags(ctx context.Context, id, adminID int, subject, level string) error {
+	_, err := s.DB.Exec(ctx, `UPDATE classroom SET subject=$1, level=$2 WHERE id=$3 AND admin_id=$4`, subject, level, id, adminID)
+	return err
+}
+
 func (s *Store) DeleteClassroom(ctx context.Context, id, adminID int) error {
 	_, err := s.DB.Exec(ctx, `DELETE FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID)
 	return err

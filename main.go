@@ -392,6 +392,7 @@ func main() {
 		// Classrooms
 		admin.POST("/classroom", h.CreateClassroom)
 		admin.POST("/classroom/:id/delete", h.DeleteClassroom)
+		admin.POST("/classroom/:id/tags", h.UpdateClassroomTags)
 		admin.POST("/classroom/:id/regenerate-code", h.RegenerateCode)
 		admin.GET("/classroom/:id", h.AdminClassroom)
 		admin.GET("/classroom/:id/analytics", h.AdminAnalytics)

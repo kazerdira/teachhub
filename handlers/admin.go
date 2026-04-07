@@ -180,6 +180,17 @@ func (h *Handler) CreateClassroom(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/admin")
 }
 
+func (h *Handler) UpdateClassroomTags(c *gin.Context) {
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
+	subject := strings.TrimSpace(c.PostForm("subject"))
+	level := strings.TrimSpace(c.PostForm("level"))
+	h.Store.UpdateClassroomTags(c.Request.Context(), classID, adminID(c), subject, level)
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
+}
+
 func (h *Handler) DeleteClassroom(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	h.Store.DeleteClassroom(c.Request.Context(), id, adminID(c))
@@ -221,6 +232,17 @@ func (h *Handler) AdminClassroom(c *gin.Context) {
 
 	tab := c.DefaultQuery("tab", "resources")
 	liveSession, _ := h.Store.GetActiveLiveSession(c.Request.Context(), id)
+	admin, _ := h.Store.GetAdminByID(c.Request.Context(), adminID(c))
+	country := ""
+	if admin != nil && admin.Country != "" {
+		country = admin.Country
+	}
+	if country == "" {
+		country = geo.CountryFromIP(c.ClientIP())
+		if country == "" {
+			country = "DZ"
+		}
+	}
 	h.render(c, "admin_classroom.html", gin.H{
 		"Classroom":       classroom,
 		"Students":        approved,
@@ -233,6 +255,8 @@ func (h *Handler) AdminClassroom(c *gin.Context) {
 		"Tab":             tab,
 		"JoinURL":         fmt.Sprintf("%s/join/%s", h.BaseURL, classroom.JoinCode),
 		"LiveSession":     liveSession,
+		"Subjects":        geo.AllSubjects,
+		"Levels":          geo.LevelsForCountry(country),
 	})
 }
 

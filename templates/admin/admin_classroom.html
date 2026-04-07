@@ -12,6 +12,28 @@
     </form>
 </div>
 
+<!-- Subject & Level Tags -->
+<form method="POST" action="/admin/classroom/{{.Classroom.ID}}/tags" style="margin-bottom:0.75rem;">
+    {{csrfField $.CSRFToken}}
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <select name="subject" class="input" style="max-width:180px;font-size:0.8125rem;padding:6px 10px;">
+            <option value="">{{t .Lang "explore_subject"}}</option>
+            {{range .Subjects}}
+            <option value="{{.Key}}" {{if eq .Key $.Classroom.Subject}}selected{{end}}>{{.Emoji}} {{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+            {{end}}
+        </select>
+        <select name="level" class="input" style="max-width:180px;font-size:0.8125rem;padding:6px 10px;">
+            <option value="">{{t .Lang "explore_level"}}</option>
+            {{range .Levels}}
+            <option value="{{.Key}}" {{if eq .Key $.Classroom.Level}}selected{{end}}>{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+            {{end}}
+        </select>
+        <button type="submit" style="background:#6c5ce7;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;">
+            <span class="material-symbols-outlined" style="font-size:14px;">save</span> {{t .Lang "profile_save"}}
+        </button>
+    </div>
+</form>
+
 <div style="background:#fff;border-radius:14px;padding:0.75rem 1rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);" class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm overflow-hidden">
     <div class="min-w-0">
         <span style="color:#8b8ba3;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;margin-right:4px">link</span>{{t .Lang "join_link"}}</span> <a href="{{.JoinURL}}" style="color:#6c5ce7;font-family:'Manrope',monospace;font-size:0.8125rem;word-break:break-all;" target="_blank">{{.JoinURL}}</a>

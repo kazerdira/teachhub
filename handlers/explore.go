@@ -14,13 +14,10 @@ import (
 // ═══════════════════════════════════════════════════════════════
 
 func (h *Handler) ExplorePage(c *gin.Context) {
-	country := c.Query("country")
+	// Country from cookie first, then IP geolocation — never from URL
+	country, _ := c.Cookie("country")
 	if country == "" {
-		// Try cookie first, then IP geolocation
-		country, _ = c.Cookie("country")
-		if country == "" {
-			country = geo.CountryFromIP(c.ClientIP())
-		}
+		country = geo.CountryFromIP(c.ClientIP())
 	}
 	if country == "" {
 		country = "DZ" // default
