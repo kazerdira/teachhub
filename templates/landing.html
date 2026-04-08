@@ -13,7 +13,7 @@
         .hero-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(120px); opacity: 0.15; pointer-events: none; }
         .feature-card { background: white; border: 1px solid #e5e7eb; border-radius: 1rem; transition: all 0.25s ease; }
         .feature-card:hover { border-color: #c7d2fe; box-shadow: 0 8px 30px rgba(99,102,241,0.12); transform: translateY(-4px); }
-        .step-line { position: absolute; top: 24px; left: 50%; width: calc(100% - 48px); height: 2px; background: linear-gradient(90deg, #c7d2fe, #ddd6fe); transform: translateX(-50%); z-index: 0; }
+        .step-line { position: absolute; top: 24px; left: 16.66%; width: 66.66%; height: 2px; background: linear-gradient(90deg, #c7d2fe, #ddd6fe); z-index: 0; }
         @media (max-width: 768px) { .step-line { display: none; } }
     </style>
 </head>
@@ -108,7 +108,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
                 <!-- Connector line (desktop only) -->
-                <div class="step-line hidden md:block" style="left:calc(16.66% + 24px); width:calc(66.66% - 48px);"></div>
+                <div class="step-line hidden md:block"></div>
 
                 <!-- Step 1 -->
                 <div class="text-center relative z-10">
