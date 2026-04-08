@@ -1041,6 +1041,33 @@ func (s *Store) CreateQuizAttempt(ctx context.Context, quizID, studentID int) (i
 	return id, err
 }
 
+// GetOpenAttempt returns the most recent unfinished attempt (started but not submitted).
+func (s *Store) GetOpenAttempt(ctx context.Context, quizID, studentID int) (*QuizAttempt, error) {
+	a := &QuizAttempt{}
+	err := s.DB.QueryRow(ctx,
+		`SELECT id, quiz_id, student_id, started_at FROM quiz_attempt
+		 WHERE quiz_id=$1 AND student_id=$2 AND finished_at IS NULL
+		 ORDER BY started_at DESC LIMIT 1`,
+		quizID, studentID).Scan(&a.ID, &a.QuizID, &a.StudentID, &a.StartedAt)
+	if err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+
+// CreateQuizAttemptAtomic creates an attempt only if the student hasn't exceeded max_attempts.
+// Returns 0 if the limit is reached.
+func (s *Store) CreateQuizAttemptAtomic(ctx context.Context, quizID, studentID, maxAttempts int) (int, error) {
+	var id int
+	err := s.DB.QueryRow(ctx,
+		`INSERT INTO quiz_attempt (quiz_id, student_id)
+		 SELECT $1, $2
+		 WHERE ($3 = 0 OR (SELECT COUNT(*) FROM quiz_attempt WHERE quiz_id=$1 AND student_id=$2 AND finished_at IS NOT NULL) < $3)
+		 RETURNING id`,
+		quizID, studentID, maxAttempts).Scan(&id)
+	return id, err
+}
+
 func (s *Store) SubmitQuizAttempt(ctx context.Context, id int, answers map[string]string, fileAnswers map[string]map[string]string, score, maxScore int) error {
 	answersJSON, _ := json.Marshal(answers)
 	fileAnswersJSON, _ := json.Marshal(fileAnswers)

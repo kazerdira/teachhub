@@ -472,13 +472,13 @@ func (h *Handler) EditAssignment(c *gin.Context) {
 	}
 
 	// Get existing assignment to preserve file if no new one uploaded
-	existing, _ := h.Store.GetAssignment(c.Request.Context(), aID)
-	filePath := ""
-	fileName := ""
-	if existing != nil {
-		filePath = existing.FilePath
-		fileName = existing.FileName
+	existing, err := h.Store.GetAssignment(c.Request.Context(), aID)
+	if err != nil || existing == nil {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d?tab=assignments", classID))
+		return
 	}
+	filePath := existing.FilePath
+	fileName := existing.FileName
 
 	// Check if user wants to remove existing file
 	if c.PostForm("remove_file") == "1" {
@@ -528,6 +528,26 @@ func (h *Handler) DownloadAssignmentFile(c *gin.Context) {
 	if err != nil || assign.FilePath == "" {
 		c.String(404, "Not found")
 		return
+	}
+	// Auth: must be an admin who owns this classroom OR an enrolled student
+	aid := adminID(c)
+	if aid > 0 {
+		_, err := h.Store.GetClassroomForAdmin(c.Request.Context(), assign.ClassroomID, aid)
+		if err != nil {
+			c.String(403, "Access denied")
+			return
+		}
+	} else {
+		student := middleware.GetStudent(c)
+		if student == nil {
+			c.String(403, "Access denied")
+			return
+		}
+		in, _ := h.Store.IsStudentInClassroom(c.Request.Context(), student.ID, assign.ClassroomID)
+		if !in {
+			c.String(403, "Access denied")
+			return
+		}
 	}
 	fullPath := filepath.Join(h.UploadDir, assign.FilePath)
 	c.FileAttachment(fullPath, assign.FileName)

@@ -78,11 +78,25 @@ func (h *Handler) JoinPage(c *gin.Context) {
 	h.render(c, "student_join.html", gin.H{"Classroom": classroom, "Code": code})
 }
 
+func sanitizePhone(p string) string {
+	var b strings.Builder
+	for _, r := range p {
+		if r >= '0' && r <= '9' || r == '+' {
+			b.WriteRune(r)
+		}
+	}
+	s := b.String()
+	if len(s) > 15 {
+		s = s[:15]
+	}
+	return s
+}
+
 func (h *Handler) JoinClassroom(c *gin.Context) {
 	code := c.Param("code")
 	name := strings.TrimSpace(c.PostForm("name"))
 	email := strings.TrimSpace(c.PostForm("email"))
-	phone := strings.TrimSpace(c.PostForm("phone"))
+	phone := sanitizePhone(c.PostForm("phone"))
 
 	classroom, err := h.Store.GetClassroomByCode(c.Request.Context(), code)
 	if err != nil {
@@ -367,11 +381,28 @@ func (h *Handler) StudentSubmitQuiz(c *gin.Context) {
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 
 	quiz, _ := h.Store.GetQuiz(c.Request.Context(), quizID)
+	if quiz == nil {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d", classID))
+		return
+	}
 
 	// Deadline enforcement
 	if quiz.Deadline != nil && time.Now().After(*quiz.Deadline) {
 		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d/quiz/%d", classID, quizID))
 		return
+	}
+
+	// Server-side time limit enforcement: check if student has an open attempt that started too long ago
+	if quiz.TimeLimitMinutes > 0 {
+		openAttempt, _ := h.Store.GetOpenAttempt(c.Request.Context(), quizID, student.ID)
+		if openAttempt != nil {
+			elapsed := time.Since(openAttempt.StartedAt)
+			// Allow 60s grace period for network delays
+			if elapsed > time.Duration(quiz.TimeLimitMinutes)*time.Minute+60*time.Second {
+				c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d/quiz/%d", classID, quizID))
+				return
+			}
+		}
 	}
 
 	// Attempt limit enforcement
@@ -399,11 +430,10 @@ func (h *Handler) StudentSubmitQuiz(c *gin.Context) {
 			// Handle file upload answer
 			file, header, ferr := c.Request.FormFile(key)
 			if ferr == nil {
-				defer file.Close()
-
 				// Validate extension and size
 				ext := strings.ToLower(filepath.Ext(header.Filename))
 				if !isStudentAllowedExtension(ext) || header.Size > MaxStudentFileSize {
+					file.Close()
 					// Skip bad files silently (quiz continues)
 					hasOpenEnded = true
 					continue
@@ -416,9 +446,10 @@ func (h *Handler) StudentSubmitQuiz(c *gin.Context) {
 
 				dst, derr := os.Create(fullPath)
 				if derr == nil {
-					defer dst.Close()
 					io.Copy(dst, file)
+					dst.Close()
 				}
+				file.Close()
 				fileAnswers[qIDStr] = map[string]string{
 					"file_path": fPath,
 					"file_name": header.Filename,
@@ -445,8 +476,13 @@ func (h *Handler) StudentSubmitQuiz(c *gin.Context) {
 		}
 	}
 
-	// Create attempt
-	attemptID, _ := h.Store.CreateQuizAttempt(c.Request.Context(), quizID, student.ID)
+	// Create attempt (atomic: checks max_attempts in the same INSERT to prevent race conditions)
+	attemptID, err := h.Store.CreateQuizAttemptAtomic(c.Request.Context(), quizID, student.ID, quiz.MaxAttempts)
+	if err != nil || attemptID == 0 {
+		// Race condition caught: another submission sneaked in
+		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d/quiz/%d", classID, quizID))
+		return
+	}
 	_ = hasOpenEnded // mark as needing review handled by reviewed=false default
 	h.Store.SubmitQuizAttempt(c.Request.Context(), attemptID, answers, fileAnswers, score, maxScore)
 
@@ -457,7 +493,14 @@ func (h *Handler) StudentSubmitQuiz(c *gin.Context) {
 
 func (h *Handler) StudentQuizResult(c *gin.Context) {
 	student := middleware.GetStudent(c)
+	classID, _ := strconv.Atoi(c.Param("id"))
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
+	// Verify student belongs to this classroom
+	in, _ := h.Store.IsStudentInClassroom(c.Request.Context(), student.ID, classID)
+	if !in {
+		c.JSON(403, gin.H{"error": "access denied"})
+		return
+	}
 	attempt, _ := h.Store.GetStudentAttempt(c.Request.Context(), quizID, student.ID)
 	if attempt == nil {
 		c.JSON(200, gin.H{"status": "not_taken"})
