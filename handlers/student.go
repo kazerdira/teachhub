@@ -232,8 +232,22 @@ func (h *Handler) StudentAssignment(c *gin.Context) {
 	classID, _ := strconv.Atoi(c.Param("id"))
 	assignID, _ := strconv.Atoi(c.Param("assignId"))
 
+	// Verify student belongs to this classroom
+	in, _ := h.Store.IsStudentInClassroom(c.Request.Context(), student.ID, classID)
+	if !in {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
 	classroom, _ := h.Store.GetClassroom(c.Request.Context(), classID)
 	assignment, _ := h.Store.GetAssignment(c.Request.Context(), assignID)
+
+	// Verify assignment belongs to this classroom
+	if assignment == nil || assignment.ClassroomID != classID {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d", classID))
+		return
+	}
+
 	submissions, _ := h.Store.GetStudentSubmissions(c.Request.Context(), assignID, student.ID)
 
 	h.render(c, "student_assignment.html", gin.H{
@@ -249,9 +263,16 @@ func (h *Handler) StudentSubmit(c *gin.Context) {
 	classID, _ := strconv.Atoi(c.Param("id"))
 	assignID, _ := strconv.Atoi(c.Param("assignId"))
 
+	// Verify student belongs to this classroom
+	in, _ := h.Store.IsStudentInClassroom(c.Request.Context(), student.ID, classID)
+	if !in {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
 	assignment, err := h.Store.GetAssignment(c.Request.Context(), assignID)
-	if err != nil {
-		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d/assignment/%d", classID, assignID))
+	if err != nil || assignment.ClassroomID != classID {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d", classID))
 		return
 	}
 
@@ -340,8 +361,22 @@ func (h *Handler) StudentQuiz(c *gin.Context) {
 	classID, _ := strconv.Atoi(c.Param("id"))
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 
+	// Verify student belongs to this classroom
+	in, _ := h.Store.IsStudentInClassroom(c.Request.Context(), student.ID, classID)
+	if !in {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
 	classroom, _ := h.Store.GetClassroom(c.Request.Context(), classID)
 	quiz, _ := h.Store.GetQuiz(c.Request.Context(), quizID)
+
+	// Verify quiz belongs to this classroom
+	if quiz == nil || quiz.ClassroomID != classID {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d", classID))
+		return
+	}
+
 	if !quiz.Published {
 		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d?tab=quizzes", classID))
 		return
@@ -380,8 +415,15 @@ func (h *Handler) StudentSubmitQuiz(c *gin.Context) {
 	classID, _ := strconv.Atoi(c.Param("id"))
 	quizID, _ := strconv.Atoi(c.Param("quizId"))
 
+	// Verify student belongs to this classroom
+	in, _ := h.Store.IsStudentInClassroom(c.Request.Context(), student.ID, classID)
+	if !in {
+		c.Redirect(http.StatusFound, "/")
+		return
+	}
+
 	quiz, _ := h.Store.GetQuiz(c.Request.Context(), quizID)
-	if quiz == nil {
+	if quiz == nil || quiz.ClassroomID != classID {
 		c.Redirect(http.StatusFound, fmt.Sprintf("/classroom/%d", classID))
 		return
 	}

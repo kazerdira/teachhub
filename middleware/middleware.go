@@ -181,11 +181,9 @@ func generateCSRFToken() string {
 // CSRFProtection generates a CSRF token on every request and validates it on POST.
 // The token is stored in a dedicated "teachhub-csrf" session cookie.
 func CSRFProtection() gin.HandlerFunc {
-	// Routes that are exempt from CSRF (e.g. sendBeacon, AJAX uploads with session auth)
-	exempt := map[string]bool{
-		"/live/leave": true,
-		"/live/image": true,
-	}
+	// Routes that are exempt from CSRF (e.g. sendBeacon, AJAX uploads with session auth).
+	// These use exact suffix matching on path segments to prevent bypass via crafted paths.
+	exemptSuffixes := []string{"/live/leave", "/live/image", "/live/pdf"}
 
 	return func(c *gin.Context) {
 		session, _ := SessionStore.Get(c.Request, "teachhub-csrf")
@@ -200,10 +198,12 @@ func CSRFProtection() gin.HandlerFunc {
 		c.Set("csrf_token", token)
 
 		if c.Request.Method == "POST" {
-			// Check if path ends with an exempt suffix
+			// Check if path matches a known exempt pattern (must be under /classroom/ or /admin/classroom/)
 			skip := false
-			for suffix := range exempt {
-				if strings.HasSuffix(c.Request.URL.Path, suffix) {
+			path := c.Request.URL.Path
+			for _, suffix := range exemptSuffixes {
+				if strings.HasSuffix(path, suffix) &&
+					(strings.HasPrefix(path, "/classroom/") || strings.HasPrefix(path, "/admin/classroom/")) {
 					skip = true
 					break
 				}

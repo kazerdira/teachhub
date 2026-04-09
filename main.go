@@ -206,16 +206,7 @@ func main() {
 		}, "urlquery": func(s string) string {
 			return url.QueryEscape(s)
 		},
-		"safeContent": func(s string) template.HTML {
-			s = strings.TrimSpace(s)
-			if len(s) == 0 {
-				return template.HTML("")
-			}
-			if s[0] == '<' {
-				return template.HTML(s)
-			}
-			return template.HTML(template.HTMLEscapeString(s))
-		},
+		"safeContent": SafeContent,
 		"letter": func(i int) string {
 			if i >= 0 && i < 26 {
 				return string(rune('A' + i))
@@ -280,9 +271,9 @@ func main() {
 	r.Use(middleware.SecurityHeaders())
 	r.Use(middleware.CSRFProtection())
 
-	// Static file serving for uploads (resources download handled by handler)
+	// Static assets (CSS/JS/fonts) — public, no auth needed
 	r.Static("/static", "./static")
-	r.Static("/uploads", uploadDir)
+	// NOTE: /uploads is NOT served statically — all files go through authenticated handlers
 
 	// ─── Platform: Teacher Application (public) ─────────
 	r.GET("/apply", h.ApplyPage)
@@ -349,6 +340,9 @@ func main() {
 
 	// ─── Student Routes ─────────────────────────────────
 	studentMw := middleware.StudentFromSession(s)
+
+	// Authenticated upload serving — requires either admin session or student session
+	r.GET("/uploads/*filepath", studentMw, h.ServeUpload)
 
 	r.GET("/", studentMw, h.Home)
 	r.GET("/join/:code", studentMw, h.JoinPage)

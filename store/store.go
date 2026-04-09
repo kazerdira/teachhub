@@ -2814,7 +2814,7 @@ type PublicClassroom struct {
 func (s *Store) ListPublicClassrooms(ctx context.Context, teacherID int) ([]PublicClassroom, error) {
 	rows, err := s.DB.Query(ctx,
 		`SELECT c.id, c.name, COALESCE(c.subject,''), COALESCE(c.level,''),
-		        (SELECT COUNT(*) FROM student s WHERE s.classroom_id=c.id AND s.status='approved')
+		        (SELECT COUNT(*) FROM classroom_student cs WHERE cs.classroom_id=c.id AND cs.status='approved')
 		 FROM classroom c WHERE c.admin_id=$1 ORDER BY c.name`, teacherID)
 	if err != nil {
 		return nil, err
