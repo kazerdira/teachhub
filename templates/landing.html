@@ -10,11 +10,18 @@
     <style>
         html { scroll-behavior: smooth; }
         .gradient-text { background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .hero-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(120px); opacity: 0.15; pointer-events: none; }
-        .feature-card { background: white; border: 1px solid #e5e7eb; border-radius: 1rem; transition: all 0.25s ease; }
-        .feature-card:hover { border-color: #c7d2fe; box-shadow: 0 8px 30px rgba(99,102,241,0.12); transform: translateY(-4px); }
+        .hero-glow { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; }
+        .feature-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.8); border-radius: 1rem; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
+        .feature-card::before { content: ''; position: absolute; inset: 0; border-radius: 1rem; padding: 1px; background: linear-gradient(135deg, rgba(99,102,241,0.15), transparent 50%, rgba(168,85,247,0.1)); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+        .feature-card:hover { border-color: rgba(199,210,254,0.6); box-shadow: 0 20px 40px rgba(99,102,241,0.1), 0 8px 16px rgba(99,102,241,0.06); transform: translateY(-4px); }
+        .feature-card:hover::before { opacity: 1; }
         .step-line { position: absolute; top: 24px; left: 16.66%; width: 66.66%; height: 2px; background: linear-gradient(90deg, #c7d2fe, #ddd6fe); z-index: 0; }
         @media (max-width: 768px) { .step-line { display: none; } }
+        /* Subtle noise texture */
+        body::after { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.35; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); }
+        /* Animated gradient ring on hero badge */
+        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        .hero-badge { background: linear-gradient(90deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.15) 50%, rgba(99,102,241,0.08) 100%); background-size: 200% auto; animation: shimmer 4s ease infinite; }
     </style>
 </head>
 <body class="bg-white font-sans text-gray-900 antialiased">
@@ -43,13 +50,14 @@
     </nav>
 
     <!-- ─── Hero ─────────────────────────────────────── -->
-    <section class="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28 px-4">
+    <section class="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28 px-4" style="background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(99,102,241,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 50%, rgba(168,85,247,0.08) 0%, transparent 50%);">
         <!-- Background glows -->
-        <div class="hero-glow bg-indigo-400" style="top:-200px; left:-100px;"></div>
-        <div class="hero-glow bg-violet-400" style="top:-100px; right:-200px;"></div>
+        <div class="hero-glow bg-indigo-400" style="top:-250px; left:-150px; width:700px; height:700px; opacity:0.18;"></div>
+        <div class="hero-glow bg-violet-400" style="top:-150px; right:-250px; width:600px; height:600px; opacity:0.14;"></div>
+        <div class="hero-glow bg-cyan-300" style="bottom:-200px; left:30%; width:500px; height:500px; opacity:0.08;"></div>
 
         <div class="max-w-4xl mx-auto text-center relative z-10">
-            <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-6 border border-indigo-100">
+            <div class="hero-badge inline-flex items-center gap-2 text-indigo-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-6 border border-indigo-100/60">
                 <span>🇩🇿</span>
                 <span>{{t .Lang "land_badge"}}</span>
             </div>
@@ -66,11 +74,11 @@
 
             <!-- CTA Buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
-                <a href="/apply" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold px-8 py-4 rounded-xl text-base hover:shadow-xl hover:shadow-indigo-200 transition-all hover:-translate-y-1">
+                <a href="/apply" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold px-8 py-4 rounded-xl text-base shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all hover:-translate-y-1">
                     <span>👨‍🏫</span>
                     {{t .Lang "land_cta_teacher"}}
                 </a>
-                <a href="#student-join" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-800 font-semibold px-8 py-4 rounded-xl text-base border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all hover:-translate-y-1">
+                <a href="#student-join" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/80 backdrop-blur text-gray-800 font-semibold px-8 py-4 rounded-xl text-base border border-gray-200/80 hover:border-indigo-300 hover:shadow-lg transition-all hover:-translate-y-1">
                     <span>🎓</span>
                     {{t .Lang "land_cta_student"}}
                 </a>
@@ -80,7 +88,7 @@
     </section>
 
     <!-- ─── Student Quick Join ───────────────────────── -->
-    <section id="student-join" class="py-16 sm:py-20 bg-gray-50 px-4">
+    <section id="student-join" class="py-16 sm:py-20 px-4" style="background: linear-gradient(180deg, #f8f9fc 0%, #f0f1f8 100%);">
         <div class="max-w-md mx-auto text-center">
             <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-emerald-100">
                 <span class="text-2xl">🎓</span>
@@ -135,7 +143,7 @@
     </section>
 
     <!-- ─── Features ─────────────────────────────────── -->
-    <section class="py-20 sm:py-28 bg-gray-50 px-4">
+    <section class="py-20 sm:py-28 px-4" style="background: linear-gradient(180deg, #f8f9fc 0%, #f0f1f8 100%);">
         <div class="max-w-5xl mx-auto">
             <div class="text-center mb-16">
                 <h2 class="text-3xl sm:text-4xl font-bold mb-3">{{t .Lang "land_feat_title"}}</h2>
@@ -145,28 +153,28 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Quizzes -->
                 <div class="feature-card p-6">
-                    <div class="w-11 h-11 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 text-xl">📝</div>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 text-xl" style="background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(99,102,241,0.05));">📝</div>
                     <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_quiz_t"}}</h3>
                     <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_quiz_d"}}</p>
                 </div>
 
                 <!-- Assignments -->
                 <div class="feature-card p-6">
-                    <div class="w-11 h-11 bg-violet-50 rounded-xl flex items-center justify-center mb-4 text-xl">📋</div>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 text-xl" style="background:linear-gradient(135deg, rgba(139,92,246,0.1), rgba(139,92,246,0.05));">📋</div>
                     <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_assign_t"}}</h3>
                     <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_assign_d"}}</p>
                 </div>
 
                 <!-- Live Sessions -->
                 <div class="feature-card p-6">
-                    <div class="w-11 h-11 bg-red-50 rounded-xl flex items-center justify-center mb-4 text-xl">🎥</div>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 text-xl" style="background:linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05));">🎥</div>
                     <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_live_t"}}</h3>
                     <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_live_d"}}</p>
                 </div>
 
                 <!-- Resources -->
                 <div class="feature-card p-6">
-                    <div class="w-11 h-11 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 text-xl">📂</div>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 text-xl" style="background:linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.05));">📂</div>
                     <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_res_t"}}</h3>
                     <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_res_d"}}</p>
                 </div>
@@ -181,7 +189,7 @@
 
                 <!-- Analytics -->
                 <div class="feature-card p-6">
-                    <div class="w-11 h-11 bg-blue-50 rounded-xl flex items-center justify-center mb-4 text-xl">📊</div>
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4 text-xl" style="background:linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.05));">📊</div>
                     <h3 class="font-bold text-base mb-1.5">{{t .Lang "land_feat_stats_t"}}</h3>
                     <p class="text-sm text-gray-500 leading-relaxed">{{t .Lang "land_feat_stats_d"}}</p>
                 </div>
@@ -195,7 +203,7 @@
             <h2 class="text-3xl sm:text-4xl font-bold mb-4">{{t .Lang "land_final_title"}}</h2>
             <p class="text-gray-500 text-lg mb-10 max-w-xl mx-auto">{{t .Lang "land_final_desc"}}</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="/apply" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold px-8 py-4 rounded-xl text-base hover:shadow-xl hover:shadow-indigo-200 transition-all hover:-translate-y-1">
+                <a href="/apply" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold px-8 py-4 rounded-xl text-base shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all hover:-translate-y-1">
                     {{t .Lang "land_cta_teacher"}}
                 </a>
                 <a href="/admin/login" class="text-indigo-600 font-semibold hover:underline">

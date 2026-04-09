@@ -22,15 +22,15 @@
         h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 20px; vertical-align: middle; }
         .tab-active { border-bottom: 2px solid #6c5ce7; color: #6c5ce7; font-weight: 600; }
-        .card { background: #fff; border: none; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        .card { background: rgba(255,255,255,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.7); border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03), inset 0 1px 0 rgba(255,255,255,0.6); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
         @media (hover: hover) {
-          .card:hover { box-shadow: 0 20px 40px -8px rgba(27,28,26,0.08), 0 8px 16px -4px rgba(108,92,231,0.06); transform: translateY(-3px); }
+          .card:hover { box-shadow: 0 20px 40px -8px rgba(99,102,241,0.1), 0 8px 16px -4px rgba(99,102,241,0.06), 0 0 0 1px rgba(99,102,241,0.08); transform: translateY(-3px); }
         }
-        .btn-primary { background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%); color: white; border-radius: 12px; font-weight: 600; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border: none; }
-        .btn-primary:hover { box-shadow: 0 8px 25px rgba(108,92,231,0.35); transform: translateY(-2px); }
-        .btn-primary:active { transform: scale(0.97); }
-        .input { border: 1.5px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 0.6rem 0.875rem; font-size: 0.875rem; transition: all 0.2s; outline: none; width: 100%; background: #fff; }
-        .input:focus { border-color: #6c5ce7; box-shadow: 0 0 0 3px rgba(108,92,231,0.1); }
+        .btn-primary { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); color: white; border-radius: 12px; font-weight: 600; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); border: none; box-shadow: 0 2px 8px rgba(99,102,241,0.25); }
+        .btn-primary:hover { box-shadow: 0 8px 30px rgba(99,102,241,0.4), 0 0 0 1px rgba(99,102,241,0.1); transform: translateY(-2px); }
+        .btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(99,102,241,0.25); }
+        .input { border: 1.5px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 0.6rem 0.875rem; font-size: 0.875rem; transition: all 0.2s; outline: none; width: 100%; background: rgba(255,255,255,0.9); }
+        .input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
         .ql-toolbar.ql-snow{border-radius:12px 12px 0 0;border-color:rgba(0,0,0,0.08);background:rgba(0,0,0,0.02);padding:6px 8px}
         .ql-container.ql-snow{border-radius:0 0 12px 12px;border-color:rgba(0,0,0,0.08);font-family:'Manrope',Inter,system-ui,sans-serif;font-size:.875rem}
         .ql-editor{min-height:80px;padding:10px 14px}
@@ -61,10 +61,12 @@
         /* Premium scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(108,92,231,0.2); border-radius: 999px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(108,92,231,0.35); }
+        ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.18); border-radius: 999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.32); }
         /* Selection color */
-        ::selection { background: rgba(108,92,231,0.2); color: #1a1a2e; }
+        ::selection { background: rgba(99,102,241,0.2); color: #1a1a2e; }
+        /* Subtle noise texture */
+        body::before { content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); }
         /* Print */
         @media print { .card { box-shadow: none!important; border: 1px solid #d1d5db!important; break-inside: avoid; } nav,.btn-primary,[onclick] { display: none!important; } }
         /* Prevent layout shift */
@@ -72,15 +74,15 @@
         /* Headings */
         h1, h2, h3, h4 { letter-spacing: -0.025em; }
         /* Glow orbs */
-        .glow-orb { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+        .glow-orb { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
     </style>
 </head>
-<body style="display:flex;flex-direction:column;min-height:100vh;background:#faf9f5;font-family:'Manrope',Inter,system-ui,sans-serif;position:relative;overflow-x:hidden;">
+<body style="display:flex;flex-direction:column;min-height:100vh;background:#f5f6fa;font-family:'Manrope',Inter,system-ui,sans-serif;position:relative;overflow-x:hidden;">
     <!-- Ambient glow orbs -->
-    <div class="glow-orb" style="top:-200px;left:-50px;width:450px;height:450px;background:#6c5ce7;opacity:0.04;"></div>
-    <div class="glow-orb" style="top:30%;right:-80px;width:350px;height:350px;background:#e17055;opacity:0.03;"></div>
+    <div class="glow-orb" style="top:-250px;left:-80px;width:550px;height:550px;background:#6366f1;opacity:0.06;"></div>
+    <div class="glow-orb" style="top:25%;right:-100px;width:400px;height:400px;background:#a855f7;opacity:0.05;"></div>
 
-    <nav class="student-nav" style="background:rgba(250,249,247,0.8);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(0,0,0,0.06);padding:0 1rem;">
+    <nav class="student-nav" style="background:rgba(245,246,250,0.82);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid rgba(99,102,241,0.06);padding:0 1rem;">
         <div style="max-width:56rem" class="mx-auto flex items-center justify-between" style="height:60px;">
             <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
                 <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">T</div>

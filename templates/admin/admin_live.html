@@ -656,6 +656,16 @@ function muteAllStudents() {
 function endClassForAll() {
     if (!confirm('{{t .Lang "end_class_confirm"}}')) return;
     broadcastCommand('end-class');
+    /* If minimized, tear down mini-player so form submits on the top-level page */
+    if (liveMini) {
+        var el = document.getElementById('liveSession');
+        el.classList.remove('minimized', 'mini-animating');
+        el.removeAttribute('style');
+        var fr = document.getElementById('classroomFrame');
+        fr.classList.remove('active');
+        fr.src = 'about:blank';
+        liveMini = false;
+    }
     setTimeout(function() { room.disconnect(); document.getElementById('endClassForm').submit(); }, 500);
 }
 
@@ -1070,6 +1080,21 @@ room.on(LK.RoomEvent.Reconnecting, function() {
 room.on(LK.RoomEvent.Reconnected, function() {
     document.getElementById('reconnectBanner').classList.add('hidden');
     showToast('Connection restored ✓', 'success');
+});
+room.on(LK.RoomEvent.Disconnected, function(reason) {
+    console.log('Room disconnected, reason:', reason);
+    /* If we're minimized, the teacher ended the session from the iframe or
+       the server closed the room. Navigate the top-level page to the classroom. */
+    if (liveMini) {
+        window.location.href = '/admin/classroom/{{.Classroom.ID}}';
+    }
+});
+
+/* Listen for end-session message from the classroom iframe */
+window.addEventListener('message', function(e) {
+    if (e.data === 'end-live-session') {
+        endClassForAll();
+    }
 });
 
 /* ─── Local Controls ────────────────────────────── */
