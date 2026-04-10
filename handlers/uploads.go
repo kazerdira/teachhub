@@ -30,6 +30,13 @@ func (h *Handler) ServeUpload(c *gin.Context) {
 
 	// Must be logged in as either admin or student
 	aid := adminID(c)
+	// Also check admin session directly (since AdminRequired middleware is not on this route)
+	if aid == 0 {
+		session, _ := middleware.SessionStore.Get(c.Request, "teachhub-admin")
+		if session.Values["admin_id"] != nil {
+			aid = session.Values["admin_id"].(int)
+		}
+	}
 	student := middleware.GetStudent(c)
 
 	if aid == 0 && student == nil {
