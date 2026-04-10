@@ -2047,7 +2047,7 @@ function sendWbStateTo(identity) {
     sendDataTo(identity, { action: 'wb-open' });
     /* PDF info for late joiner */
     if (wbPdfUrl) {
-        sendDataTo(identity, { action: 'wb-pdf', url: wbPdfUrl });
+        sendDataTo(identity, { action: 'wb-pdf', url: wbPdfUrl, page: wbPdfPage });
         sendDataTo(identity, { action: 'wb-pdf-page', page: wbPdfPage });
     }
     /* background image */

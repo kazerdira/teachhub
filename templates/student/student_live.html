@@ -323,9 +323,12 @@ room.on(LK.RoomEvent.DataReceived, function(payload, participant) {
             case 'wb-bg-del':
                 sWbBgObj = null; sWbImgRect = null; sWbRedrawAll(); break;
             case 'wb-pdf':
-                if (msg.url) loadStudentPdf(msg.url); break;
+                if (msg.url) loadStudentPdf(msg.url, msg.page); break;
             case 'wb-pdf-page':
-                if (msg.page && sWbPdfDoc) renderStudentPdfPage(msg.page); break;
+                if (msg.page) {
+                    if (sWbPdfDoc) { renderStudentPdfPage(msg.page); }
+                    else { sWbPdfPending = msg.page; } /* buffer until PDF loads */
+                } break;
             case 'wb-pdf-close':
                 closeStudentPdf(); break;
             case 'wb-clear-strokes':
@@ -855,13 +858,14 @@ var sWbPdfPage = 0;
 var sWbPdfTotal = 0;
 var sWbPdfCanvas = null;
 var sWbPdfPageImages = {};
+var sWbPdfPending = 0;  /* buffered page number if wb-pdf-page arrives before PDF loads */
 
 /* Initialize pdf.js worker */
 if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/static/js/pdf.worker.min.js';
 }
 
-async function loadStudentPdf(url) {
+async function loadStudentPdf(url, initialPage) {
     try {
         var loadingTask = pdfjsLib.getDocument(url);
         sWbPdfDoc = await loadingTask.promise;
@@ -869,6 +873,10 @@ async function loadStudentPdf(url) {
         sWbPdfPageImages = {};
         var info = document.getElementById('sWbPdfInfo');
         if (info) { info.classList.remove('hidden'); info.textContent = '📄 PDF'; }
+        /* Render: use buffered page, initial page hint, or default to page 1 */
+        var startPage = sWbPdfPending || initialPage || 1;
+        sWbPdfPending = 0;
+        await renderStudentPdfPage(startPage);
     } catch(e) { console.error('Student PDF load error:', e); }
 }
 
