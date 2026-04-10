@@ -1,6 +1,6 @@
 {{define "student_head"}}
 <!DOCTYPE html>
-<html lang="{{.Lang}}">
+<html lang="{{.Lang}}" style="background:#f5f6fa">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,14 +50,14 @@
         main { animation: pageIn .25s ease-out; }
         @keyframes pageIn { from { transform: translateY(6px); } }
         /* Card entrance animations */
-        .card { animation: cardIn .35s ease-out backwards; }
+        .card { animation: cardIn .3s ease-out; }
         .card:nth-child(1) { animation-delay: 0ms; }
-        .card:nth-child(2) { animation-delay: 50ms; }
-        .card:nth-child(3) { animation-delay: 100ms; }
-        .card:nth-child(4) { animation-delay: 150ms; }
-        .card:nth-child(5) { animation-delay: 200ms; }
-        .card:nth-child(n+6) { animation-delay: 250ms; }
-        @keyframes cardIn { from { opacity: 0.5; transform: translateY(10px); } }
+        .card:nth-child(2) { animation-delay: 40ms; }
+        .card:nth-child(3) { animation-delay: 80ms; }
+        .card:nth-child(4) { animation-delay: 120ms; }
+        .card:nth-child(5) { animation-delay: 160ms; }
+        .card:nth-child(n+6) { animation-delay: 200ms; }
+        @keyframes cardIn { from { transform: translateY(8px); } }
         /* Premium scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
