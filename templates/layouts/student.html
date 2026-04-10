@@ -46,18 +46,18 @@
         .student-main { max-width: 36rem; margin: 0 auto; padding: 1.5rem 1rem; }
         @media (min-width: 768px) { .student-main { max-width: 48rem; padding: 2rem 1.5rem; } }
         @media (min-width: 1024px) { .student-main { max-width: 56rem; padding: 2.5rem 2rem; } }
-        /* Page fade-in */
-        main { animation: pageIn .4s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes pageIn { from { opacity: 0; transform: translateY(8px); } }
+        /* Page fade-in — no opacity:0 to avoid black flash on reload */
+        main { animation: pageIn .25s ease-out; }
+        @keyframes pageIn { from { transform: translateY(6px); } }
         /* Card entrance animations */
-        .card { animation: cardIn .5s cubic-bezier(.4,0,.2,1) backwards; }
+        .card { animation: cardIn .35s ease-out backwards; }
         .card:nth-child(1) { animation-delay: 0ms; }
-        .card:nth-child(2) { animation-delay: 70ms; }
-        .card:nth-child(3) { animation-delay: 140ms; }
-        .card:nth-child(4) { animation-delay: 210ms; }
-        .card:nth-child(5) { animation-delay: 280ms; }
-        .card:nth-child(n+6) { animation-delay: 350ms; }
-        @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } }
+        .card:nth-child(2) { animation-delay: 50ms; }
+        .card:nth-child(3) { animation-delay: 100ms; }
+        .card:nth-child(4) { animation-delay: 150ms; }
+        .card:nth-child(5) { animation-delay: 200ms; }
+        .card:nth-child(n+6) { animation-delay: 250ms; }
+        @keyframes cardIn { from { opacity: 0.5; transform: translateY(10px); } }
         /* Premium scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -312,29 +312,45 @@ window.toast=function(msg,type){
 </div>
 <script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
 <script>
-var _meTarget=null,_meCursor=0,_kbVisible=false;
+var _meTarget=null,_meCursor=0,_kbVisible=false,_meWaiting=false;
+var _isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 function mfToggleKbd(){
     var vk=window.mathVirtualKeyboard;if(!vk)return;
-    _kbVisible=!_kbVisible;if(_kbVisible)vk.show();else vk.hide();
+    _kbVisible=!_kbVisible;
+    if(_kbVisible){
+        if(_isTouch&&document.activeElement&&document.activeElement.tagName!=='MATH-FIELD')document.activeElement.blur();
+        vk.show();
+    }else{vk.hide();}
     var btn=document.getElementById('mpKbToggle');if(btn)btn.classList.toggle('active',_kbVisible);
 }
 function meOpen(el){
     if(!el)return;
     var mf=document.getElementById('mf');
     if(!mf||typeof mf.getValue!=='function'){
-        var latex=prompt('LaTeX formula (e.g. \\frac{a}{b}):');
-        if(latex&&latex.trim())_meInsertText(el,latex.trim());
+        if(_meWaiting)return;
+        _meWaiting=true;
+        if(typeof toast==='function')toast('Loading math editor…','info');
+        var tries=0,poll=setInterval(function(){
+            tries++;
+            var m=document.getElementById('mf');
+            if(m&&typeof m.getValue==='function'){clearInterval(poll);_meWaiting=false;meOpen(el);}
+            else if(tries>40){clearInterval(poll);_meWaiting=false;var latex=prompt('LaTeX formula (e.g. \\frac{a}{b}):');if(latex&&latex.trim())_meInsertText(el,latex.trim());}
+        },250);
         return;
     }
     _meTarget=el;
     if(el.root){var rng=el.getSelection();_meCursor=rng?rng.index:el.getLength()-1;}
     else{_meCursor=el.selectionStart!=null?el.selectionStart:(el.value||'').length;}
+    if(_isTouch&&document.activeElement&&document.activeElement.blur)document.activeElement.blur();
     mf.value='';_kbVisible=false;
     var btn=document.getElementById('mpKbToggle');if(btn)btn.classList.remove('active');
-    document.getElementById('mpOv').style.display='block';
-    document.getElementById('mpSh').classList.add('open');
-    document.body.style.overflow='hidden';
-    setTimeout(function(){mf.focus();},180);
+    var delay=_isTouch?280:10;
+    setTimeout(function(){
+        document.getElementById('mpOv').style.display='block';
+        document.getElementById('mpSh').classList.add('open');
+        document.body.style.overflow='hidden';
+        setTimeout(function(){mf.focus();},180);
+    },delay);
 }
 function meClose(){
     document.getElementById('mpSh').classList.remove('open');

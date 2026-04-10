@@ -443,23 +443,38 @@ function _syncBar(bar,q){
 
 /* ═══ MathLive-powered formula editor ═══ */
 var _kbVisible=false;
+var _isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+var _meWaitingQ=false;
 function mfToggleKbd(){
     var vk=window.mathVirtualKeyboard;
     if(!vk)return;
     _kbVisible=!_kbVisible;
-    if(_kbVisible){vk.show();}else{vk.hide();}
+    if(_kbVisible){
+        if(_isTouch&&document.activeElement&&document.activeElement.tagName!=='MATH-FIELD')document.activeElement.blur();
+        vk.show();
+    }else{vk.hide();}
     var btn=document.getElementById('mpKbToggle');
     if(btn)btn.classList.toggle('active',_kbVisible);
 }
 function meOpen(target){
     var mf=document.getElementById('mf');
-    /* Fallback if MathLive hasn't loaded yet */
+    /* Wait for MathLive to load instead of raw prompt */
     if(!mf||typeof mf.getValue!=='function'){
-        var latex=prompt('Enter LaTeX formula (e.g. \\frac{a}{b}):');
-        if(latex&&latex.trim()&&target&&target.root){
-            var q=target,rng=q.getSelection(true),idx=rng?rng.index:q.getLength()-1;
-            q.insertEmbed(idx,'formula',latex.trim(),'user');q.setSelection(idx+1,'user');
-        }
+        if(_meWaitingQ)return;
+        _meWaitingQ=true;
+        if(typeof toast==='function')toast('Loading math editor…','info');
+        var tries=0,poll=setInterval(function(){
+            tries++;
+            var m=document.getElementById('mf');
+            if(m&&typeof m.getValue==='function'){clearInterval(poll);_meWaitingQ=false;meOpen(target);}
+            else if(tries>40){clearInterval(poll);_meWaitingQ=false;
+                var latex=prompt('Enter LaTeX formula (e.g. \\frac{a}{b}):');
+                if(latex&&latex.trim()&&target&&target.root){
+                    var q=target,rng=q.getSelection(true),idx=rng?rng.index:q.getLength()-1;
+                    q.insertEmbed(idx,'formula',latex.trim(),'user');q.setSelection(idx+1,'user');
+                }
+            }
+        },250);
         return;
     }
     if(target&&target.root){
@@ -470,16 +485,22 @@ function meOpen(target){
         _meTarget=target;_meMode='input';
         _meCursor=target.selectionStart!=null?target.selectionStart:target.value.length;
     }
+    /* On touch devices, blur native input to dismiss OS keyboard */
+    if(_isTouch&&document.activeElement&&document.activeElement.blur)document.activeElement.blur();
     mf.value='';
     _kbVisible=false;
     var btn=document.getElementById('mpKbToggle');
     if(btn)btn.classList.remove('active');
     var lbl=_meMode==='quill'?(target._meLabel||'{{t .Lang "question_text"}}'):({'correct_answer':'{{t .Lang "correct_answer"}}'}[target.name]||target.name);
     document.getElementById('mpLbl').textContent='→ '+lbl;
-    document.getElementById('mpOv').style.display='block';
-    document.getElementById('mpSh').classList.add('open');
-    document.body.style.overflow='hidden';
-    setTimeout(function(){mf.focus();},180);
+    /* Delay modal open on touch so OS keyboard dismisses first */
+    var delay=_isTouch?280:10;
+    setTimeout(function(){
+        document.getElementById('mpOv').style.display='block';
+        document.getElementById('mpSh').classList.add('open');
+        document.body.style.overflow='hidden';
+        setTimeout(function(){mf.focus();},180);
+    },delay);
 }
 function meClose(){
     var sh=document.getElementById('mpSh');
