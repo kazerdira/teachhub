@@ -61,7 +61,7 @@ var Translations = map[string]map[string]string{
 	"tab_assignments": {"en": "Assignments", "fr": "Devoirs"},
 	"tab_quizzes":     {"en": "Quizzes", "fr": "Quiz"},
 	"tab_students":    {"en": "Students", "fr": "Étudiants"},
-	"tab_analytics":   {"en": "📊 Analytics", "fr": "📊 Statistiques"},
+	"tab_analytics":   {"en": "Analytics", "fr": "Statistiques"},
 
 	// Resources section
 	"res_categories":      {"en": "Categories", "fr": "Catégories"},
