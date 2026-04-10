@@ -409,9 +409,11 @@ function meInsert(){
     if(!mf||!_meTarget){meClose();return;}
     var latex=(typeof mf.getValue==='function')?mf.getValue('latex'):mf.value;
     if(!latex||!latex.trim()){meClose();return;}
+    latex=latex.replace(/\\placeholder/g,'').trim();
+    if(!latex){meClose();return;}
     var el=_meTarget;
     meClose();
-    _meInsertText(el,latex.trim());
+    _meInsertText(el,latex);
     el.focus();
 }
 document.addEventListener('DOMContentLoaded',function(){

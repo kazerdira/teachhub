@@ -522,7 +522,8 @@ function meInsert(){
     if(!mf||!_meTarget){meClose();return;}
     var latex=(typeof mf.getValue==='function')?mf.getValue('latex'):mf.value;
     if(!latex||!latex.trim()){meClose();return;}
-    latex=latex.trim();
+    latex=latex.replace(/\\placeholder/g,'').trim();
+    if(!latex){meClose();return;}
     if(_meMode==='quill'){
         var q=_meTarget,rng=q.getSelection(true),idx=rng?rng.index:q.getLength()-1;
         q.insertEmbed(idx,'formula',latex,'user');
