@@ -116,6 +116,11 @@ func (h *Handler) AdminAnalytics(c *gin.Context) {
 		data["ResourceViews"] = resourceViews
 	}
 
+	// If requested as partial (AJAX from classroom tab), render without layout
+	if c.GetHeader("X-Partial") == "true" {
+		h.render(c, "admin_analytics_partial.html", data)
+		return
+	}
 	h.render(c, "admin_analytics.html", data)
 }
 

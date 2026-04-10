@@ -84,7 +84,7 @@
         <span class="material-symbols-outlined" style="font-size:18px">group</span> {{t .Lang "tab_students"}}
         {{if .PendingStudents}}<span style="background:linear-gradient(135deg,#fdcb6e,#ffeaa7);color:#78350f;font-size:10px;font-weight:800;padding:1px 7px;border-radius:9999px;">{{len .PendingStudents}}</span>{{end}}
     </a>
-    <a href="/admin/classroom/{{.Classroom.ID}}/analytics" class="seg-tab">
+    <a href="#" data-tab="analytics" class="seg-tab tab-link {{if eq .Tab "analytics"}}seg-tab-active{{end}}">
         <span class="material-symbols-outlined" style="font-size:18px">monitoring</span> {{t .Lang "tab_analytics"}}
     </a>
 </div>
@@ -599,11 +599,57 @@ function copyParentLink(url) {
 
 </div>
 
+<!-- ANALYTICS TAB -->
+<div id="tabPanel-analytics" class="tab-panel"{{if ne .Tab "analytics"}} style="display:none"{{end}}>
+    <div id="analyticsContainer">
+        <div class="text-center py-12 text-gray-400">
+            <div class="inline-block w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-sm">{{t .Lang "loading"}}</p>
+        </div>
+    </div>
+</div>
+
 </div><!-- /tabPanelContainer -->
 
 <script>
+var _analyticsLoaded=false;
+var _classroomID={{.Classroom.ID}};
+function loadAnalyticsTab(sub){
+    var url='/admin/classroom/'+_classroomID+'/analytics?sub='+(sub||'quizzes');
+    var ct=document.getElementById('analyticsContainer');
+    ct.style.opacity='0.5';ct.style.pointerEvents='none';
+    fetch(url,{headers:{'X-Partial':'true'},credentials:'same-origin'})
+    .then(function(r){return r.text();})
+    .then(function(html){
+        ct.innerHTML=html;ct.style.opacity='';ct.style.pointerEvents='';
+        _analyticsLoaded=true;
+        wireAnalyticsSubTabs();
+    }).catch(function(){ct.style.opacity='';ct.style.pointerEvents='';});
+}
+function loadAnalyticsSub(params){
+    var url='/admin/classroom/'+_classroomID+'/analytics?sub='+params;
+    var ct=document.getElementById('analyticsContainer');
+    ct.style.opacity='0.5';ct.style.pointerEvents='none';
+    fetch(url,{headers:{'X-Partial':'true'},credentials:'same-origin'})
+    .then(function(r){return r.text();})
+    .then(function(html){
+        ct.innerHTML=html;ct.style.opacity='';ct.style.pointerEvents='';
+        wireAnalyticsSubTabs();
+    }).catch(function(){ct.style.opacity='';ct.style.pointerEvents='';});
+}
+function wireAnalyticsSubTabs(){
+    document.querySelectorAll('#analyticsContainer .analytics-sub-link').forEach(function(a){
+        a.addEventListener('click',function(e){
+            e.preventDefault();
+            loadAnalyticsSub(a.dataset.sub);
+        });
+    });
+}
+</script>
+
+<script>
 (function(){
-    var tabs=['resources','assignments','quizzes','students'];
+    var tabs=['resources','assignments','quizzes','students','analytics'];
     var container=document.getElementById('tabPanelContainer');
     var nav=document.getElementById('tabNav');
     var indicator=document.getElementById('segIndicator');
@@ -629,6 +675,7 @@ function copyParentLink(url) {
             if(isActive) moveIndicator(a);
         });
         history.replaceState(null,'','?tab='+name);
+        if(name==='analytics'&&!_analyticsLoaded){loadAnalyticsTab();}
         requestAnimationFrame(function(){
             requestAnimationFrame(function(){
                 container.style.minHeight='200px';
@@ -647,6 +694,8 @@ function copyParentLink(url) {
         moveIndicator(activeTab);
         setTimeout(function(){ indicator.style.transition=''; },50);
     }
+    /* Auto-load analytics if that tab is active on page load */
+    if(activeTab&&activeTab.dataset.tab==='analytics'&&!_analyticsLoaded){loadAnalyticsTab();}
 })();
 </script>
 
