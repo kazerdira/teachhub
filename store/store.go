@@ -1055,6 +1055,18 @@ func (s *Store) GetOpenAttempt(ctx context.Context, quizID, studentID int) (*Qui
 	return a, nil
 }
 
+// GetSubmissionForDownload returns the file path and name for a submission,
+// verifying the submission belongs to a classroom owned by the given admin.
+func (s *Store) GetSubmissionForDownload(ctx context.Context, subID, adminID int) (string, string, error) {
+	var filePath, fileName string
+	err := s.DB.QueryRow(ctx,
+		`SELECT sub.file_path, sub.file_name FROM submission sub
+		 JOIN assignment a ON sub.assignment_id = a.id
+		 JOIN classroom c ON a.classroom_id = c.id
+		 WHERE sub.id=$1 AND c.admin_id=$2`, subID, adminID).Scan(&filePath, &fileName)
+	return filePath, fileName, err
+}
+
 // CreateQuizAttemptAtomic creates an attempt only if the student hasn't exceeded max_attempts.
 // Returns 0 if the limit is reached.
 func (s *Store) CreateQuizAttemptAtomic(ctx context.Context, quizID, studentID, maxAttempts int) (int, error) {

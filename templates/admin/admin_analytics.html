@@ -1,4 +1,4 @@
-{{template "admin_head" .}}
+{{if not .Partial}}{{template "admin_head" .}}
 
 <div class="mb-4">
     <a href="/admin/classroom/{{.Classroom.ID}}" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back_to_classroom"}}</a>
@@ -7,7 +7,7 @@
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
     <h1 class="text-xl sm:text-2xl font-bold text-gray-900">{{t .Lang "analytics_heading"}} — {{.Classroom.Name}}</h1>
 </div>
-
+{{end}}
 <!-- Action buttons -->
 <div class="flex flex-wrap gap-2 mb-4">
     <a href="/admin/classroom/{{.Classroom.ID}}/report" target="_blank" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-medium transition">{{t .Lang "print_report"}}</a>
@@ -880,4 +880,4 @@
 {{end}}
 </div>
 
-{{template "admin_foot" .}}
+{{if not .Partial}}{{template "admin_foot" .}}{{end}}

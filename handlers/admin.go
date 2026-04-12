@@ -615,13 +615,7 @@ func (h *Handler) ReviewSubmission(c *gin.Context) {
 
 func (h *Handler) DownloadSubmission(c *gin.Context) {
 	subID, _ := strconv.Atoi(c.Param("subId"))
-	// Verify submission belongs to a classroom this teacher owns
-	var filePath, fileName string
-	err := h.Store.DB.QueryRow(c.Request.Context(),
-		`SELECT sub.file_path, sub.file_name FROM submission sub
-		 JOIN assignment a ON sub.assignment_id = a.id
-		 JOIN classroom c ON a.classroom_id = c.id
-		 WHERE sub.id=$1 AND c.admin_id=$2`, subID, adminID(c)).Scan(&filePath, &fileName)
+	filePath, fileName, err := h.Store.GetSubmissionForDownload(c.Request.Context(), subID, adminID(c))
 	if err != nil || filePath == "" {
 		c.String(404, "Not found")
 		return

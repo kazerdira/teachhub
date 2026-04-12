@@ -118,8 +118,7 @@ func (h *Handler) AdminAnalytics(c *gin.Context) {
 
 	// If requested as partial (AJAX from classroom tab), render without layout
 	if c.GetHeader("X-Partial") == "true" {
-		h.render(c, "admin_analytics_partial.html", data)
-		return
+		data["Partial"] = true
 	}
 	h.render(c, "admin_analytics.html", data)
 }
@@ -194,8 +193,6 @@ func (h *Handler) AdminStudentDetail(c *gin.Context) {
 func (h *Handler) AnalyticsMissing(c *gin.Context) {
 	classID, _ := strconv.Atoi(c.Param("id"))
 	assignID, _ := strconv.Atoi(c.Param("assignId"))
-	missing, _ := h.Store.GetMissingSubmissions(c.Request.Context(), assignID, classID)
 	c.Redirect(http.StatusFound,
 		fmt.Sprintf("/admin/classroom/%d/analytics?sub=assignments&assign=%d", classID, assignID))
-	_ = missing // redirect handles display
 }

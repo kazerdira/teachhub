@@ -168,7 +168,12 @@
     {{end}}
 
     <div class="sticky bottom-4 z-10 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-200 flex justify-between items-center">
-        <span class="text-sm text-gray-500 font-medium">{{len .Questions}} {{t .Lang "questions_to_complete"}}</span>
+        <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-500 font-medium" id="progressText">0 / {{len .Questions}}</span>
+            <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div id="progressBar" class="h-full bg-indigo-500 rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+        </div>
         <button type="submit" class="btn-primary px-8 py-2.5 text-base shadow-md shadow-indigo-200 hover:-translate-y-0.5 transition-transform" id="submitBtn">{{t .Lang "submit_quiz"}}</button>
     </div>
 </form>
@@ -218,6 +223,32 @@
 })();
 </script>
 {{end}}
+
+<script>
+// Quiz progress tracker
+(function(){
+    var form=document.getElementById('quizForm');
+    if(!form)return;
+    var total={{len .Questions}};
+    var bar=document.getElementById('progressBar');
+    var txt=document.getElementById('progressText');
+    function update(){
+        var answered=0;
+        form.querySelectorAll('.card').forEach(function(card){
+            if(card.querySelector('input[type=radio]:checked')||
+               card.querySelector('input[type=text]')&&card.querySelector('input[type=text]').value.trim()||
+               card.querySelector('textarea')&&card.querySelector('textarea').value.trim()||
+               card.querySelector('input[type=file]')&&card.querySelector('input[type=file]').files.length)
+                answered++;
+        });
+        if(txt)txt.textContent=answered+' / '+total;
+        if(bar)bar.style.width=Math.round(answered/total*100)+'%';
+    }
+    form.addEventListener('input',update);
+    form.addEventListener('change',update);
+    update();
+})();
+</script>
 
 {{else if not .Attempts}}
 <!-- No attempts yet and can't take -->

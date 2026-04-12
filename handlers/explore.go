@@ -39,15 +39,15 @@ func (h *Handler) ExplorePage(c *gin.Context) {
 	}
 
 	h.render(c, "explore.html", gin.H{
-		"Teachers":   teachers,
-		"Country":    country,
-		"Region":     region,
-		"Subject":    subject,
-		"Level":      level,
-		"Subjects":   geo.AllSubjects,
-		"SubjectMap": geo.SubjectMap(),
-		"Levels":     geo.LevelsForCountry(country),
-		"Regions":    geo.RegionsForCountry(country),
+		"Teachers":    teachers,
+		"Country":     country,
+		"Region":      region,
+		"Subject":     subject,
+		"Level":       level,
+		"Subjects":    geo.AllSubjects,
+		"SubjectMap":  geo.SubjectMap(),
+		"Levels":      geo.LevelsForCountry(country),
+		"Regions":     geo.RegionsForCountry(country),
 		"RegionLabel": geo.RegionLabel(country, lang),
 	})
 }

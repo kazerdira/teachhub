@@ -80,8 +80,8 @@ func (h *Handler) JoinPage(c *gin.Context) {
 
 func sanitizePhone(p string) string {
 	var b strings.Builder
-	for _, r := range p {
-		if r >= '0' && r <= '9' || r == '+' {
+	for i, r := range p {
+		if r >= '0' && r <= '9' || (r == '+' && i == 0) {
 			b.WriteRune(r)
 		}
 	}
