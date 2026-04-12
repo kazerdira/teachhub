@@ -333,6 +333,13 @@ func (s *Store) GetClassroomByCode(ctx context.Context, code string) (*Classroom
 	return c, nil
 }
 
+// GetClassroomCountry returns the teacher's country for a given classroom ID.
+func (s *Store) GetClassroomCountry(ctx context.Context, classroomID int) string {
+	var country string
+	_ = s.DB.QueryRow(ctx, `SELECT COALESCE(a.country,'') FROM admin a JOIN classroom c ON c.admin_id=a.id WHERE c.id=$1`, classroomID).Scan(&country)
+	return country
+}
+
 func (s *Store) CreateClassroom(ctx context.Context, name, subject, level string, adminID int) (int, error) {
 	var id int
 	err := s.DB.QueryRow(ctx, `INSERT INTO classroom (name, subject, level, admin_id) VALUES ($1, $2, $3, $4) RETURNING id`, name, subject, level, adminID).Scan(&id)

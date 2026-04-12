@@ -78,10 +78,16 @@ func (h *Handler) JoinPage(c *gin.Context) {
 	h.render(c, "student_join.html", gin.H{"Classroom": classroom, "Code": code})
 }
 
+// countryDialCode maps ISO country codes to phone prefixes.
+var countryDialCode = map[string]string{
+	"DZ": "+213",
+	"FR": "+33",
+}
+
 func sanitizePhone(p string) string {
 	var b strings.Builder
-	for i, r := range p {
-		if r >= '0' && r <= '9' || (r == '+' && i == 0) {
+	for _, r := range p {
+		if r >= '0' && r <= '9' {
 			b.WriteRune(r)
 		}
 	}
@@ -102,6 +108,18 @@ func (h *Handler) JoinClassroom(c *gin.Context) {
 	if err != nil {
 		h.render(c, "student_join.html", gin.H{"Error": "Invalid code"})
 		return
+	}
+
+	// Auto-prepend country dial code to phone
+	if phone != "" {
+		country := h.Store.GetClassroomCountry(c.Request.Context(), classroom.ID)
+		if prefix, ok := countryDialCode[country]; ok {
+			// Strip leading 0 (local format) before adding prefix
+			if strings.HasPrefix(phone, "0") {
+				phone = phone[1:]
+			}
+			phone = prefix + phone
+		}
 	}
 
 	// Check if student already in session

@@ -44,7 +44,7 @@
             </div>
             <div>
                 <label class="text-sm font-medium text-gray-700 block mb-1">{{t .Lang "phone_label"}}</label>
-                <input type="tel" name="phone" required class="input w-full py-2.5" inputmode="tel" pattern="[\+0-9]{8,15}" maxlength="15" placeholder="{{t .Lang "phone_ph"}}" oninput="this.value=this.value.replace(/[^\+0-9]/g,'')">
+                <input type="tel" name="phone" required class="input w-full py-2.5" inputmode="numeric" pattern="[0-9]{8,15}" maxlength="15" placeholder="{{t .Lang "phone_ph"}}" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                 <p class="text-xs text-gray-500 mt-1">{{t .Lang "phone_help"}}</p>
             </div>
             <button class="btn-primary w-full py-3 mt-2">{{t .Lang "request_join"}}</button>
