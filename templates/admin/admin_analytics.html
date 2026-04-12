@@ -21,13 +21,13 @@
 <div id="analytics-content" hx-target="#analytics-content" hx-select="#analytics-content" hx-swap="outerHTML" hx-push-url="true">
 <!-- Sub-tabs -->
 <div class="flex gap-3 sm:gap-5 border-b border-gray-200 mb-6 text-sm overflow-x-auto">
-    <a href="?sub=quizzes" hx-get="?sub=quizzes" class="pb-2 whitespace-nowrap {{if eq .Sub "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_quizzes"}}</a>
-    <a href="?sub=assignments" hx-get="?sub=assignments" class="pb-2 whitespace-nowrap {{if eq .Sub "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_assignments"}}</a>
-    <a href="?sub=students" hx-get="?sub=students" class="pb-2 whitespace-nowrap {{if eq .Sub "students"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_roster"}}</a>
-    <a href="?sub=live" hx-get="?sub=live" class="pb-2 whitespace-nowrap {{if eq .Sub "live"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_live"}}</a>
-    <a href="?sub=trends" hx-get="?sub=trends" class="pb-2 whitespace-nowrap {{if eq .Sub "trends"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_trends"}}</a>
-    <a href="?sub=risk" hx-get="?sub=risk" class="pb-2 whitespace-nowrap {{if eq .Sub "risk"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_risk"}}</a>
-    <a href="?sub=resources" hx-get="?sub=resources" class="pb-2 whitespace-nowrap {{if eq .Sub "resources"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_resources"}}</a>
+    <a href="?sub=quizzes" {{if not .Partial}}hx-get="?sub=quizzes"{{end}} data-sub="quizzes" class="pb-2 whitespace-nowrap analytics-sub-link {{if eq .Sub "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_quizzes"}}</a>
+    <a href="?sub=assignments" {{if not .Partial}}hx-get="?sub=assignments"{{end}} data-sub="assignments" class="pb-2 whitespace-nowrap analytics-sub-link {{if eq .Sub "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_assignments"}}</a>
+    <a href="?sub=students" {{if not .Partial}}hx-get="?sub=students"{{end}} data-sub="students" class="pb-2 whitespace-nowrap analytics-sub-link {{if eq .Sub "students"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_roster"}}</a>
+    <a href="?sub=live" {{if not .Partial}}hx-get="?sub=live"{{end}} data-sub="live" class="pb-2 whitespace-nowrap analytics-sub-link {{if eq .Sub "live"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_live"}}</a>
+    <a href="?sub=trends" {{if not .Partial}}hx-get="?sub=trends"{{end}} data-sub="trends" class="pb-2 whitespace-nowrap analytics-sub-link {{if eq .Sub "trends"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_trends"}}</a>
+    <a href="?sub=risk" {{if not .Partial}}hx-get="?sub=risk"{{end}} data-sub="risk" class="pb-2 whitespace-nowrap analytics-sub-link {{if eq .Sub "risk"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_risk"}}</a>
+    <a href="?sub=resources" {{if not .Partial}}hx-get="?sub=resources"{{end}} data-sub="resources" class="pb-2 whitespace-nowrap analytics-sub-link {{if eq .Sub "resources"}}tab-active{{else}}text-gray-500 hover:text-gray-700{{end}}">{{t .Lang "sub_resources"}}</a>
 </div>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -94,7 +94,7 @@
                     <td class="px-4 py-3 text-center text-emerald-600 font-medium">{{printf "%.0f" .HighestPct}}%</td>
                     <td class="px-4 py-3 text-center text-red-500 font-medium">{{printf "%.0f" .LowestPct}}%</td>
                     <td class="px-4 py-3 text-center">
-                        <a href="?sub=quizzes&quiz={{.QuizID}}" hx-get="?sub=quizzes&quiz={{.QuizID}}" class="text-indigo-600 hover:underline text-xs font-medium">{{t $.Lang "view_arrow"}}</a>
+                        <a href="?sub=quizzes&quiz={{.QuizID}}" {{if not $.Partial}}hx-get="?sub=quizzes&quiz={{.QuizID}}"{{else}}onclick="loadAnalyticsSub('quizzes&quiz={{.QuizID}}');return false;"{{end}} class="text-indigo-600 hover:underline text-xs font-medium">{{t $.Lang "view_arrow"}}</a>
                     </td>
                 </tr>
                 {{end}}
@@ -310,7 +310,7 @@
                     <td class="px-4 py-3 text-center">
                         {{$missing := sub .EnrolledCount .SubmissionCount}}
                         {{if gt $missing 0}}
-                        <a href="?sub=assignments&assign={{.AssignmentID}}" hx-get="?sub=assignments&assign={{.AssignmentID}}" class="text-red-500 hover:underline text-xs font-medium">
+                        <a href="?sub=assignments&assign={{.AssignmentID}}" {{if not $.Partial}}hx-get="?sub=assignments&assign={{.AssignmentID}}"{{else}}onclick="loadAnalyticsSub('assignments&assign={{.AssignmentID}}');return false;"{{end}} class="text-red-500 hover:underline text-xs font-medium">
                             {{$missing}} {{t $.Lang "missing"}}
                         </a>
                         {{else}}
@@ -522,7 +522,7 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                         {{if gt .AttendeeCount 0}}
-                        <a href="?sub=live&session={{.ID}}" hx-get="?sub=live&session={{.ID}}" class="text-indigo-600 hover:underline text-xs font-medium">{{t $.Lang "view_arrow"}}</a>
+                        <a href="?sub=live&session={{.ID}}" {{if not $.Partial}}hx-get="?sub=live&session={{.ID}}"{{else}}onclick="loadAnalyticsSub('live&session={{.ID}}');return false;"{{end}} class="text-indigo-600 hover:underline text-xs font-medium">{{t $.Lang "view_arrow"}}</a>
                         {{else}}
                         <span class="text-gray-300 text-xs">—</span>
                         {{end}}
