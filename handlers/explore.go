@@ -102,7 +102,7 @@ func (h *Handler) JoinRequestPage(c *gin.Context) {
 func (h *Handler) JoinRequestSubmit(c *gin.Context) {
 	teacherID, _ := strconv.Atoi(c.Param("id"))
 	// Verify teacher exists and is public
-	_, err := h.Store.GetPublicTeacher(c.Request.Context(), teacherID)
+	teacher, err := h.Store.GetPublicTeacher(c.Request.Context(), teacherID)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/explore")
 		return
@@ -110,9 +110,19 @@ func (h *Handler) JoinRequestSubmit(c *gin.Context) {
 
 	fullName := strings.TrimSpace(c.PostForm("full_name"))
 	email := strings.TrimSpace(c.PostForm("email"))
-	phone := strings.TrimSpace(c.PostForm("phone"))
+	phone := sanitizePhone(c.PostForm("phone"))
 	level := strings.TrimSpace(c.PostForm("level"))
 	message := strings.TrimSpace(c.PostForm("message"))
+
+	// Auto-prepend country dial code to phone
+	if phone != "" {
+		if prefix, ok := countryDialCode[teacher.Country]; ok {
+			if strings.HasPrefix(phone, "0") {
+				phone = phone[1:]
+			}
+			phone = prefix + phone
+		}
+	}
 
 	if fullName == "" || email == "" {
 		c.Redirect(http.StatusFound, "/explore/teacher/"+strconv.Itoa(teacherID)+"/join")
