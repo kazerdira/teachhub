@@ -362,7 +362,27 @@ func (h *Handler) DownloadResource(c *gin.Context) {
 		c.String(404, "Not found")
 		return
 	}
-	// Auth: must be an enrolled student in this classroom
+
+	// Admin who owns this classroom can always download
+	aid := adminID(c)
+	if aid == 0 {
+		session, _ := middleware.SessionStore.Get(c.Request, "teachhub-admin")
+		if session.Values["admin_id"] != nil {
+			aid, _ = session.Values["admin_id"].(int)
+		}
+	}
+	if aid > 0 {
+		// Admin — skip student checks, serve directly
+		if res.ExternalURL != "" {
+			c.Redirect(http.StatusFound, res.ExternalURL)
+			return
+		}
+		fullPath := filepath.Join(h.UploadDir, res.FilePath)
+		c.FileAttachment(fullPath, filepath.Base(res.FilePath))
+		return
+	}
+
+	// Student: must be enrolled in this classroom
 	student := middleware.GetStudent(c)
 	if student == nil {
 		c.String(403, "Access denied")
