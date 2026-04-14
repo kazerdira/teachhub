@@ -30,7 +30,7 @@
         {{if .Assignments}}<span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{{len .Assignments}}</span>{{end}}
     </a>
     <a href="#" data-tab="quizzes" class="pb-2 whitespace-nowrap tab-link {{if eq .Tab "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "stab_quizzes"}}</a>
-    <a href="/classroom/{{.Classroom.ID}}/dashboard" class="pb-2 whitespace-nowrap {{if eq .Tab "dashboard"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "tab_my_progress"}}</a>
+    <a href="#" data-tab="dashboard" class="pb-2 whitespace-nowrap tab-link flex items-center gap-1 {{if eq .Tab "dashboard"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}"><span class="material-symbols-outlined" style="font-size:16px">monitoring</span> {{t .Lang "tab_my_progress"}}</a>
 </div>
 
 <!-- RESOURCES -->
@@ -130,9 +130,55 @@
 {{end}}
 </div>
 
+<!-- DASHBOARD (My Progress) -->
+<div id="tabPanel-dashboard" class="tab-panel"{{if ne .Tab "dashboard"}} style="display:none"{{end}}>
+    <div id="dashboardContainer">
+        <div class="text-center py-12 text-gray-400">
+            <div class="inline-block w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-sm">{{t .Lang "loading"}}</p>
+        </div>
+    </div>
+</div>
+
+<script>
+var _dashboardLoaded=false;
+var _classroomID={{.Classroom.ID}};
+function loadDashboardTab(sub){
+    var url='/classroom/'+_classroomID+'/dashboard?sub='+(sub||'overview');
+    var ct=document.getElementById('dashboardContainer');
+    ct.style.opacity='0.5';ct.style.pointerEvents='none';
+    fetch(url,{headers:{'X-Partial':'true'},credentials:'same-origin'})
+    .then(function(r){return r.text();})
+    .then(function(html){
+        ct.innerHTML=html;ct.style.opacity='';ct.style.pointerEvents='';
+        _dashboardLoaded=true;
+        wireDashboardSubTabs();
+    }).catch(function(){ct.style.opacity='';ct.style.pointerEvents='';});
+}
+function loadDashboardSub(sub){
+    var url='/classroom/'+_classroomID+'/dashboard?sub='+sub;
+    var ct=document.getElementById('dashboardContainer');
+    ct.style.opacity='0.5';ct.style.pointerEvents='none';
+    fetch(url,{headers:{'X-Partial':'true'},credentials:'same-origin'})
+    .then(function(r){return r.text();})
+    .then(function(html){
+        ct.innerHTML=html;ct.style.opacity='';ct.style.pointerEvents='';
+        wireDashboardSubTabs();
+    }).catch(function(){ct.style.opacity='';ct.style.pointerEvents='';});
+}
+function wireDashboardSubTabs(){
+    document.querySelectorAll('#dashboardContainer .dashboard-sub-link').forEach(function(a){
+        a.addEventListener('click',function(e){
+            e.preventDefault();
+            loadDashboardSub(a.dataset.sub);
+        });
+    });
+}
+</script>
+
 <script>
 (function(){
-    var tabs=['resources','assignments','quizzes'];
+    var tabs=['resources','assignments','quizzes','dashboard'];
     function switchTab(name){
         tabs.forEach(function(t){
             var p=document.getElementById('tabPanel-'+t);
@@ -146,10 +192,14 @@
             a.classList.toggle('font-medium',!isActive);
         });
         history.replaceState(null,'','?tab='+name);
+        if(name==='dashboard'&&!_dashboardLoaded){loadDashboardTab();}
     }
     document.querySelectorAll('#tabNav .tab-link').forEach(function(a){
         a.addEventListener('click',function(e){e.preventDefault();switchTab(a.dataset.tab);});
     });
+    /* Auto-load dashboard if tab=dashboard on page load */
+    var activeTab=document.querySelector('#tabNav .tab-active');
+    if(activeTab&&activeTab.dataset.tab==='dashboard'&&!_dashboardLoaded){loadDashboardTab();}
 })();
 </script>
 

@@ -1,4 +1,4 @@
-{{template "student_head" .}}
+{{if not .Partial}}{{template "student_head" .}}
 
 <div class="mb-4">
     <a href="/classroom/{{.Classroom.ID}}" class="text-indigo-600 text-sm hover:underline">{{t .Lang "back_to_classroom"}}</a>
@@ -6,9 +6,10 @@
 
 <h1 class="text-2xl font-extrabold text-gray-900 mb-1">{{t .Lang "my_progress"}}</h1>
 <p class="text-sm text-gray-500 mb-6">{{.Classroom.Name}}</p>
+{{end}}
 
 <!-- Live Class Banner -->
-{{if .LiveSession}}
+{{if and (not .Partial) .LiveSession}}
 <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center justify-between animate-pulse-slow">
     <div class="flex items-center gap-3">
         <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
@@ -57,11 +58,19 @@
 
 <!-- Sub-tabs -->
 <div class="flex gap-4 border-b border-gray-200 mb-6 text-sm overflow-x-auto pb-1">
+    {{if .Partial}}
+    <a href="#" class="dashboard-sub-link pb-2 whitespace-nowrap {{if eq .Sub "overview"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}" data-sub="overview">{{t .Lang "dtab_overview"}}</a>
+    <a href="#" class="dashboard-sub-link pb-2 whitespace-nowrap {{if eq .Sub "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}" data-sub="quizzes">{{t .Lang "dtab_quizzes"}}</a>
+    <a href="#" class="dashboard-sub-link pb-2 whitespace-nowrap {{if eq .Sub "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}" data-sub="assignments">{{t .Lang "dtab_assignments"}}</a>
+    <a href="#" class="dashboard-sub-link pb-2 whitespace-nowrap {{if eq .Sub "attendance"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}" data-sub="attendance">{{t .Lang "dtab_attendance"}}</a>
+    <a href="#" class="dashboard-sub-link pb-2 whitespace-nowrap {{if eq .Sub "remarks"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}" data-sub="remarks">{{t .Lang "dtab_notes"}}</a>
+    {{else}}
     <a href="?sub=overview" class="pb-2 whitespace-nowrap {{if eq .Sub "overview"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_overview"}}</a>
     <a href="?sub=quizzes" class="pb-2 whitespace-nowrap {{if eq .Sub "quizzes"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_quizzes"}}</a>
     <a href="?sub=assignments" class="pb-2 whitespace-nowrap {{if eq .Sub "assignments"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_assignments"}}</a>
     <a href="?sub=attendance" class="pb-2 whitespace-nowrap {{if eq .Sub "attendance"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_attendance"}}</a>
     <a href="?sub=remarks" class="pb-2 whitespace-nowrap {{if eq .Sub "remarks"}}tab-active{{else}}text-gray-500 hover:text-gray-700 font-medium{{end}}">{{t .Lang "dtab_notes"}}</a>
+    {{end}}
 </div>
 
 <!-- ===== OVERVIEW ===== -->
@@ -411,4 +420,4 @@
 
 {{end}}
 
-{{template "student_foot" .}}
+{{if not .Partial}}{{template "student_foot" .}}{{end}}

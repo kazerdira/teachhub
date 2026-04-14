@@ -331,13 +331,19 @@ document.addEventListener('DOMContentLoaded',function(){
     {{range .Assignments}}
     <div class="card p-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div class="min-w-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center
+                    {{if eq .ResponseType "file"}}" style="background:rgba(59,130,246,0.08)"><span class="material-symbols-outlined" style="font-size:20px;color:#3b82f6">attach_file</span
+                    {{else if eq .ResponseType "text"}}" style="background:rgba(16,185,129,0.08)"><span class="material-symbols-outlined" style="font-size:20px;color:#10b981">edit_note</span
+                    {{else}}" style="background:rgba(139,92,246,0.08)"><span class="material-symbols-outlined" style="font-size:20px;color:#8b5cf6">attachment</span
+                    {{end}}></div>
+                <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
                     <h4 class="font-semibold text-gray-900 text-sm">{{.Title}}</h4>
                     <span class="badge {{if eq .ResponseType "file"}}bg-blue-50 text-blue-600{{else if eq .ResponseType "text"}}bg-emerald-50 text-emerald-600{{else}}bg-purple-50 text-purple-600{{end}}">
-                        {{if eq .ResponseType "file"}}📎 file{{else if eq .ResponseType "text"}}📝 text{{else}}📎📝 both{{end}}
+                        {{if eq .ResponseType "file"}}{{t $.Lang "assign_file"}}{{else if eq .ResponseType "text"}}{{t $.Lang "assign_text"}}{{else}}{{t $.Lang "assign_both"}}{{end}}
                     </span>
-                    {{if .FileName}}<span class="badge bg-amber-50 text-amber-700">📄 {{.FileName}}</span>{{end}}
+                    {{if .FileName}}<span class="badge bg-amber-50 text-amber-700 flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:12px">description</span> {{.FileName}}</span>{{end}}
                 </div>
                 {{if .Description}}<div class="text-xs text-gray-500 mt-1 qc-display">{{safeContent .Description}}</div>{{end}}
                 <p class="text-xs text-gray-400 mt-1">
@@ -346,7 +352,7 @@ document.addEventListener('DOMContentLoaded',function(){
                     {{if and (gt .MaxFileSize 0) (ne .ResponseType "text")}} · Max {{fileSizeMB .MaxFileSize}}MB{{end}}
                     {{if and (gt .MaxChars 0) (ne .ResponseType "file")}} · Max {{.MaxChars}} chars{{end}}
                 </p>
-            </div>
+            </div></div>
             <div class="flex items-center gap-3">
                 <a href="/admin/classroom/{{$.Classroom.ID}}/assignment/{{.ID}}/submissions" class="text-indigo-600 text-sm hover:underline font-medium">{{t $.Lang "view"}}</a>
                 <button onclick="toggleEditAssign({{.ID}})" class="text-amber-600 text-sm hover:underline font-medium">{{t $.Lang "edit"}}</button>
@@ -446,7 +452,9 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="space-y-3">
     {{range .Quizzes}}
     <div class="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div class="min-w-0">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center" style="background:rgba(108,92,231,0.08)"><span class="material-symbols-outlined" style="font-size:20px;color:#6c5ce7">quiz</span></div>
+            <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
                 <h4 class="font-medium text-gray-900 text-sm">{{.Title}}</h4>
                 {{if .Published}}
@@ -456,7 +464,7 @@ document.addEventListener('DOMContentLoaded',function(){
                 {{end}}
             </div>
             <p class="text-xs text-gray-400 mt-0.5">{{.QuestionCount}} {{t $.Lang "questions"}} · {{.AttemptCount}} {{t $.Lang "attempts"}}{{if .Deadline}} · {{t $.Lang "due"}} {{.Deadline.Format "Jan 2"}}{{end}}{{if gt .TimeLimitMinutes 0}} · {{.TimeLimitMinutes}}min{{end}}{{if gt .MaxAttempts 0}} · {{.MaxAttempts}} {{t $.Lang "attempt"}}{{if gt .MaxAttempts 1}}s{{end}}{{else}} · ∞ {{t $.Lang "attempts"}}{{end}}</p>
-        </div>
+        </div></div>
         <div class="flex items-center gap-3">
             <a href="/admin/classroom/{{$.Classroom.ID}}/quiz/{{.ID}}/edit" class="text-indigo-600 text-sm hover:underline">{{t $.Lang "edit"}}</a>
             <form method="POST" action="/admin/classroom/{{$.Classroom.ID}}/quiz/{{.ID}}/toggle">

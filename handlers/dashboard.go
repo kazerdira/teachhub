@@ -70,7 +70,7 @@ func (h *Handler) StudentDashboard(c *gin.Context) {
 
 	sub := c.DefaultQuery("sub", "overview")
 
-	h.render(c, "student_dashboard.html", gin.H{
+	data := gin.H{
 		"Classroom":         classroom,
 		"Student":           student,
 		"Tab":               "dashboard",
@@ -87,7 +87,14 @@ func (h *Handler) StudentDashboard(c *gin.Context) {
 		"ClassAvgQuizPct":   classStats.ClassAvgQuizPct,
 		"ClassAvgAssignPct": classStats.ClassAvgAssignPct,
 		"Remarks":           remarks,
-	})
+	}
+
+	// Partial mode for inline embedding in classroom page
+	if c.GetHeader("X-Partial") == "true" {
+		data["Partial"] = true
+	}
+
+	h.render(c, "student_dashboard.html", data)
 }
 
 // ─── Admin: Add Remark to Student ───────────────────────
