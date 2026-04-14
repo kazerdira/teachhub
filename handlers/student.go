@@ -216,23 +216,21 @@ func (h *Handler) StudentClassroom(c *gin.Context) {
 		"LiveSession": liveSession,
 	}
 
-	switch tab {
-	case "resources":
-		resources, _ := h.Store.ListResources(c.Request.Context(), classID)
-		data["Resources"] = resources
-	case "assignments":
-		assignments, _ := h.Store.ListAssignments(c.Request.Context(), classID)
-		data["Assignments"] = assignments
-	case "quizzes":
-		quizzes, _ := h.Store.ListQuizzes(c.Request.Context(), classID)
-		var published []store.Quiz
-		for _, q := range quizzes {
-			if q.Published {
-				published = append(published, q)
-			}
+	// Load all tab data so client-side switching works instantly
+	resources, _ := h.Store.ListResources(c.Request.Context(), classID)
+	data["Resources"] = resources
+
+	assignments, _ := h.Store.ListAssignments(c.Request.Context(), classID)
+	data["Assignments"] = assignments
+
+	quizzes, _ := h.Store.ListQuizzes(c.Request.Context(), classID)
+	var published []store.Quiz
+	for _, q := range quizzes {
+		if q.Published {
+			published = append(published, q)
 		}
-		data["Quizzes"] = published
 	}
+	data["Quizzes"] = published
 
 	h.render(c, "student_classroom.html", data)
 }
