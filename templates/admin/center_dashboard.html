@@ -105,7 +105,7 @@
         <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
             <thead>
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Username</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Name</th>
                     <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Classes</th>
                     <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Students</th>
                     <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Status</th>
@@ -114,7 +114,7 @@
             <tbody>
                 {{range .Teachers}}
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.03);">
-                    <td style="padding:0.625rem 0.75rem;font-weight:600;color:#1a1a2e;">{{.Username}}</td>
+                    <td style="padding:0.625rem 0.75rem;font-weight:600;color:#1a1a2e;">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</td>
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.ClassroomCount}}</td>
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.StudentCount}}</td>
                     <td style="padding:0.625rem 0.75rem;">
@@ -154,7 +154,7 @@
                 {{range .Performance}}
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.03);">
                     <td style="padding:0.625rem 0.75rem;">
-                        <div style="font-weight:600;color:#1a1a2e;">{{.Username}}</div>
+                        <div style="font-weight:600;color:#1a1a2e;">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</div>
                         <div style="font-size:0.6875rem;color:#8b8ba3;">{{.Email}}</div>
                     </td>
                     <td style="padding:0.625rem 0.75rem;text-align:center;color:#6b7280;">{{.ClassroomCount}}</td>

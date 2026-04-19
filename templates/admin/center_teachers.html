@@ -16,8 +16,8 @@
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
     <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
     {{if eq .Query.error "seat_limit"}}Seat limit reached. Upgrade your plan to add more teachers.
-    {{else if eq .Query.error "username_taken"}}Username already taken. Please choose another.
-    {{else if eq .Query.error "missing_fields"}}Username and email are required.
+    {{else if eq .Query.error "username_taken"}}Could not create account. Please try a different email.
+    {{else if eq .Query.error "missing_fields"}}Full name and email are required.
     {{else if eq .Query.error "self"}}You cannot deactivate yourself.
     {{else}}An error occurred.{{end}}
     </span>
@@ -25,8 +25,24 @@
 {{end}}
 
 {{if .Query.created}}
-<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
-    <span style="font-size:0.875rem;color:#059669;font-weight:500;">Teacher <strong>{{.Query.created}}</strong> created successfully. They can log in with their temporary password shown below.</span>
+<div class="card" style="padding:1.25rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem;">
+        <span class="material-symbols-outlined" style="color:#059669;font-size:20px;">check_circle</span>
+        <span style="font-size:0.9375rem;color:#059669;font-weight:700;">Teacher created successfully</span>
+    </div>
+    <p style="font-size:0.8125rem;color:#374151;margin:0 0 0.75rem;">Share these credentials with the teacher. The password cannot be retrieved later.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;max-width:420px;">
+        <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:0.625rem 0.875rem;">
+            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Username</div>
+            <div style="font-family:monospace;font-size:0.9375rem;font-weight:700;color:#1a1a2e;user-select:all;">{{.Query.created}}</div>
+        </div>
+        {{if .Query.pw}}
+        <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:0.625rem 0.875rem;">
+            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Password</div>
+            <div style="font-family:monospace;font-size:0.9375rem;font-weight:700;color:#1a1a2e;user-select:all;">{{.Query.pw}}</div>
+        </div>
+        {{end}}
+    </div>
 </div>
 {{end}}
 

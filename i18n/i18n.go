@@ -17,8 +17,8 @@ var Translations = map[string]map[string]string{
 	// ─────────────────────────────────────────────────
 	// ADMIN LOGIN
 	// ─────────────────────────────────────────────────
-	"login_heading":    {"en": "Teacher Portal", "fr": "Espace Enseignant"},
-	"login_subheading": {"en": "Sign in to manage your classrooms", "fr": "Connectez-vous pour gérer vos classes"},
+	"login_heading":    {"en": "Admin Portal", "fr": "Espace Administration"},
+	"login_subheading": {"en": "Sign in to manage your center", "fr": "Connectez-vous pour gérer votre centre"},
 	"login_error":      {"en": "Invalid credentials. Please try again.", "fr": "Identifiants invalides. Veuillez réessayer."},
 	"login_username":   {"en": "Username", "fr": "Nom d'utilisateur"},
 	"login_password":   {"en": "Password", "fr": "Mot de passe"},
@@ -1162,6 +1162,7 @@ var Translations = map[string]map[string]string{
 	// ─────────────────────────────────────────────────
 	"nav_profile":           {"en": "Profile", "fr": "Profil"},
 	"nav_requests":          {"en": "Requests", "fr": "Demandes"},
+	"nav_my_classes":        {"en": "My Classes", "fr": "Mes Classes"},
 	"profile_heading":       {"en": "Public Profile", "fr": "Profil public"},
 	"profile_subheading":    {"en": "Control how students find you on Explore", "fr": "Contrôlez comment les élèves vous trouvent sur Explorer"},
 	"profile_public_toggle": {"en": "Visible on Explore", "fr": "Visible sur Explorer"},

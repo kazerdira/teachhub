@@ -107,7 +107,7 @@ func (h *Handler) CenterCreateTeacher(c *gin.Context) {
 		}
 	}
 
-	c.Redirect(http.StatusFound, "/admin/center/teachers?created="+username)
+	c.Redirect(http.StatusFound, "/admin/center/teachers?created="+username+"&pw="+password)
 }
 
 func (h *Handler) CenterToggleTeacher(c *gin.Context) {

@@ -50,6 +50,7 @@ func (s *Store) GetCenterDashboardStats(ctx context.Context, centerID int) (*Cen
 type TeacherPerformanceRow struct {
 	TeacherID         int
 	Username          string
+	DisplayName       string
 	Email             string
 	ClassroomCount    int
 	StudentCount      int
@@ -60,7 +61,7 @@ type TeacherPerformanceRow struct {
 
 func (s *Store) GetCenterTeacherPerformance(ctx context.Context, centerID int) ([]TeacherPerformanceRow, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT a.id, a.username, a.email,
+		SELECT a.id, a.username, COALESCE(a.display_name,''), a.email,
 			(SELECT COUNT(*) FROM classroom WHERE admin_id=a.id),
 			(SELECT COUNT(DISTINCT cs.student_id) FROM classroom_student cs
 			 JOIN classroom cl ON cl.id=cs.classroom_id
@@ -84,7 +85,7 @@ func (s *Store) GetCenterTeacherPerformance(ctx context.Context, centerID int) (
 	var list []TeacherPerformanceRow
 	for rows.Next() {
 		var r TeacherPerformanceRow
-		if err := rows.Scan(&r.TeacherID, &r.Username, &r.Email, &r.ClassroomCount, &r.StudentCount,
+		if err := rows.Scan(&r.TeacherID, &r.Username, &r.DisplayName, &r.Email, &r.ClassroomCount, &r.StudentCount,
 			&r.AvgQuizPct, &r.SessionsThisMonth, &r.LastActive); err != nil {
 			return nil, err
 		}
