@@ -84,6 +84,24 @@
                     <div class="text-white">{{.App.SchoolName}}</div>
                 </div>
                 {{end}}
+                {{if .App.CenterName}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">Center Name</div>
+                    <div class="text-white">{{.App.CenterName}}</div>
+                </div>
+                {{end}}
+                {{if gt .App.ExpectedTeachers 1}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expected Teachers</div>
+                    <div class="text-white">{{.App.ExpectedTeachers}}</div>
+                </div>
+                {{end}}
+                {{if gt .App.ExpectedStudents 0}}
+                <div>
+                    <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">Expected Students</div>
+                    <div class="text-white">{{.App.ExpectedStudents}}</div>
+                </div>
+                {{end}}
                 {{if .App.Wilaya}}<!-- wilaya hidden (region-agnostic)
                 <div>
                     <div class="text-slate-500 text-xs uppercase tracking-wider mb-1">{{t .Lang "apply_wilaya"}}</div>

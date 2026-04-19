@@ -281,6 +281,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
 </div>
 
+{{if .Invoices}}
+<!-- ═══ Payment History ═══ -->
+<div class="card">
+    <div class="card-header">💰 {{if eq .Lang "fr"}}Historique des paiements{{else}}Payment History{{end}}</div>
+    <div class="card-body">
+        <table class="tbl" style="width:100%;border-collapse:collapse;font-size:0.875rem;">
+            <thead>
+                <tr>
+                    <th style="text-align:left;padding:6px 8px;">{{if eq .Lang "fr"}}Mois{{else}}Month{{end}}</th>
+                    <th style="text-align:center;padding:6px 8px;">{{if eq .Lang "fr"}}Séances{{else}}Sessions{{end}}</th>
+                    <th style="text-align:right;padding:6px 8px;">{{if eq .Lang "fr"}}Montant{{else}}Amount{{end}}</th>
+                    <th style="text-align:center;padding:6px 8px;">{{if eq .Lang "fr"}}Statut{{else}}Status{{end}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Invoices}}
+                <tr>
+                    <td style="padding:6px 8px;">{{.PeriodMonth.Format "Jan 2006"}}</td>
+                    <td style="text-align:center;padding:6px 8px;">{{.SessionsAttended}}</td>
+                    <td style="text-align:right;padding:6px 8px;font-weight:600;">{{printf "%.0f" .TotalAmount}} DA</td>
+                    <td style="text-align:center;padding:6px 8px;">
+                        {{if eq .Status "paid"}}<span style="color:#10b981;font-weight:600;">✓ {{if eq $.Lang "fr"}}Payé{{else}}Paid{{end}}</span>
+                        {{else if eq .Status "unpaid"}}<span style="color:#ef4444;font-weight:600;">{{if eq $.Lang "fr"}}Impayé{{else}}Unpaid{{end}}</span>
+                        {{else}}<span style="color:#9ca3af;">{{if eq $.Lang "fr"}}Annulé{{else}}Cancelled{{end}}</span>{{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
+
 </div><!-- /container -->
 
 <!-- Footer -->

@@ -413,25 +413,25 @@ var Translations = map[string]map[string]string{
 	"nav_student_portal":      {"en": "Student", "fr": "Élève"},
 	"nav_teacher_login":       {"en": "Teacher Login", "fr": "Espace Enseignant"},
 	"nav_teacher_login_desc":  {"en": "Sign in to manage your classrooms", "fr": "Connectez-vous pour gérer vos classes"},
-	"nav_become_teacher":      {"en": "Become a Teacher", "fr": "Devenir Enseignant"},
-	"nav_become_teacher_desc": {"en": "Apply to create your own classrooms", "fr": "Postulez pour créer vos propres classes"},
+	"nav_become_teacher":      {"en": "Open a Center", "fr": "Ouvrir un Centre"},
+	"nav_become_teacher_desc": {"en": "Apply to create your learning center", "fr": "Postulez pour créer votre centre de formation"},
 	"nav_platform_admin":      {"en": "Platform Admin", "fr": "Admin Plateforme"},
 	"nav_platform_admin_desc": {"en": "Platform owner access", "fr": "Accès propriétaire de la plateforme"},
 
 	// ─────────────────────────────────────────────────
 	// LANDING PAGE
 	// ─────────────────────────────────────────────────
-	"land_tagline":        {"en": "The classroom platform for teachers", "fr": "La plateforme de classe pour les enseignants"},
+	"land_tagline":        {"en": "The platform for learning centers", "fr": "La plateforme pour les centres de formation"},
 	"land_badge":          {"en": "Built for the classroom", "fr": "Conçu pour la classe"},
 	"land_hero_1":         {"en": "Your classroom, ", "fr": "Votre classe, "},
 	"land_hero_highlight": {"en": "simplified.", "fr": "simplifiée."},
 	"land_hero_2":         {"en": "", "fr": ""},
 	"land_hero_desc":      {"en": "Create quizzes, share resources, run live sessions, and track student progress — all in one lightweight platform built for teachers.", "fr": "Créez des quiz, partagez des ressources, lancez des sessions en direct et suivez la progression des élèves — le tout dans une plateforme légère conçue pour les enseignants."},
-	"land_cta_teacher":    {"en": "Apply as Teacher", "fr": "Postuler comme Enseignant"},
+	"land_cta_teacher":    {"en": "Open a Center", "fr": "Ouvrir un Centre"},
 	"land_cta_student":    {"en": "I'm a Student", "fr": "Je suis Élève"},
 	"land_cta_free":       {"en": "Free to apply · No credit card required", "fr": "Inscription gratuite · Aucune carte bancaire requise"},
-	"land_teacher_signin": {"en": "Teacher Sign In", "fr": "Connexion Enseignant"},
-	"land_apply_btn":      {"en": "Apply as Teacher", "fr": "Postuler"},
+	"land_teacher_signin": {"en": "Sign In", "fr": "Connexion"},
+	"land_apply_btn":      {"en": "Open a Center", "fr": "Ouvrir un Centre"},
 
 	// Student quick-join on landing
 	"land_student_title": {"en": "Already have a classroom code?", "fr": "Vous avez un code de classe ?"},
@@ -466,8 +466,8 @@ var Translations = map[string]map[string]string{
 
 	// Final CTA & Footer
 	"land_final_title":    {"en": "Ready to transform your classroom?", "fr": "Prêt à transformer votre classe ?"},
-	"land_final_desc":     {"en": "Join teachers who are already using TeachHub to make teaching simpler.", "fr": "Rejoignez les enseignants qui utilisent déjà TeachHub pour simplifier l'enseignement."},
-	"land_footer_tagline": {"en": "Made for teachers", "fr": "Fait pour les enseignants"},
+	"land_final_desc":     {"en": "Join centers already using TeachHub to manage their classrooms.", "fr": "Rejoignez les centres qui utilisent déjà TeachHub pour gérer leurs classes."},
+	"land_footer_tagline": {"en": "Made for learning centers", "fr": "Fait pour les centres de formation"},
 
 	// Student home (logged out) — kept for student_home.html
 	"home_heading":     {"en": "TeachHub", "fr": "TeachHub"},
@@ -753,8 +753,8 @@ var Translations = map[string]map[string]string{
 	// ─────────────────────────────────────────────────
 	// PLATFORM: TEACHER APPLICATION
 	// ─────────────────────────────────────────────────
-	"apply_title":           {"en": "Become a Teacher", "fr": "Devenir enseignant"},
-	"apply_heading":         {"en": "Join TeachHub as a Teacher", "fr": "Rejoignez TeachHub en tant qu'enseignant"},
+	"apply_title":           {"en": "Open a Learning Center", "fr": "Ouvrir un Centre de Formation"},
+	"apply_heading":         {"en": "Create your center on TeachHub", "fr": "Créez votre centre sur TeachHub"},
 	"apply_subheading":      {"en": "Apply for a teacher account and start managing your classrooms", "fr": "Demandez un compte enseignant et commencez à gérer vos classes"},
 	"apply_already_teacher": {"en": "Already a teacher? Sign in →", "fr": "Déjà enseignant ? Connexion →"},
 	"apply_full_name":       {"en": "Full Name", "fr": "Nom complet"},
@@ -793,6 +793,31 @@ var Translations = map[string]map[string]string{
 	"apply_success_step3":   {"en": "You receive your teacher credentials and start teaching!", "fr": "Vous recevez vos identifiants et commencez à enseigner !"},
 	"apply_success_home":    {"en": "← Back to Home", "fr": "← Retour à l'accueil"},
 	"apply_success_another": {"en": "Submit Another", "fr": "Autre demande"},
+
+	// ─────────────────────────────────────────────────
+	// CENTER BILLING
+	// ─────────────────────────────────────────────────
+	"billing":               {"en": "Billing", "fr": "Facturation"},
+	"billing_period":        {"en": "Period", "fr": "Période"},
+	"billing_filter":        {"en": "Status", "fr": "Statut"},
+	"billing_all":           {"en": "All", "fr": "Tous"},
+	"billing_unpaid":        {"en": "Unpaid", "fr": "Impayé"},
+	"billing_paid":          {"en": "Paid", "fr": "Payé"},
+	"billing_cancelled":     {"en": "Cancelled", "fr": "Annulé"},
+	"billing_view":          {"en": "View", "fr": "Voir"},
+	"billing_generate":      {"en": "Generate Invoices", "fr": "Générer les factures"},
+	"billing_generate_hint": {"en": "Auto-calculates from live session attendance", "fr": "Calcul automatique à partir des présences aux sessions"},
+	"billing_total":         {"en": "Total", "fr": "Total"},
+	"billing_collected":     {"en": "Collected", "fr": "Encaissé"},
+	"billing_parent_views":  {"en": "Parent Views (7d)", "fr": "Vues parents (7j)"},
+	"billing_student":       {"en": "Student", "fr": "Élève"},
+	"billing_classroom":     {"en": "Classroom", "fr": "Classe"},
+	"billing_sessions":      {"en": "Sessions", "fr": "Séances"},
+	"billing_rate":          {"en": "Rate", "fr": "Tarif"},
+	"billing_mark_paid":     {"en": "Paid", "fr": "Payé"},
+	"billing_empty":         {"en": "No invoices for this period", "fr": "Aucune facture pour cette période"},
+	"billing_empty_hint":    {"en": "Click 'Generate Invoices' to create invoices from attendance data.", "fr": "Cliquez sur 'Générer les factures' pour créer les factures à partir des présences."},
+	"billing_enabled":       {"en": "Billing enabled", "fr": "Facturation activée"},
 
 	// ─────────────────────────────────────────────────
 	// PLATFORM: ADMIN DASHBOARD
@@ -891,8 +916,10 @@ var Translations = map[string]map[string]string{
 	"plat_teacher_confirm_reset":   {"en": "Generate a new password for this teacher?", "fr": "Générer un nouveau mot de passe pour cet enseignant ?"},
 
 	// Login error (subscription)
-	"login_error_suspended": {"en": "Your account has been suspended. Please contact the platform administrator.", "fr": "Votre compte a été suspendu. Veuillez contacter l'administrateur de la plateforme."},
-	"login_error_expired":   {"en": "Your subscription has expired. Please contact the platform administrator to renew.", "fr": "Votre abonnement a expiré. Veuillez contacter l'administrateur pour le renouveler."},
+	"login_error_suspended":     {"en": "Your account has been suspended. Please contact the platform administrator.", "fr": "Votre compte a été suspendu. Veuillez contacter l'administrateur de la plateforme."},
+	"login_error_expired":       {"en": "Your subscription has expired. Please contact the platform administrator to renew.", "fr": "Votre abonnement a expiré. Veuillez contacter l'administrateur pour le renouveler."},
+	"login_error_deactivated":   {"en": "Your account has been deactivated by the center owner.", "fr": "Votre compte a été désactivé par le propriétaire du centre."},
+	"login_error_trial_expired": {"en": "Your trial period has ended. Please contact the center owner to continue.", "fr": "Votre période d'essai est terminée. Contactez le propriétaire du centre pour continuer."},
 
 	// ─────────────────────────────────────────────────
 	// PLATFORM: DASHBOARD STATS (Phase 4)

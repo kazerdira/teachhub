@@ -385,6 +385,10 @@ func main() {
 			center.POST("/teachers/:id/toggle", h.CenterToggleTeacher)
 			center.GET("/settings", h.CenterSettings)
 			center.POST("/settings", h.CenterSettingsSave)
+			center.GET("/billing", h.CenterBilling)
+			center.POST("/billing/generate", h.CenterGenerateInvoices)
+			center.POST("/billing/:invoiceId/paid", h.CenterMarkInvoicePaid)
+			center.POST("/billing/:invoiceId/cancel", h.CenterCancelInvoice)
 		}
 
 		// Profile & Join Requests
@@ -398,6 +402,7 @@ func main() {
 		admin.POST("/classroom", h.CreateClassroom)
 		admin.POST("/classroom/:id/delete", h.DeleteClassroom)
 		admin.POST("/classroom/:id/tags", h.UpdateClassroomTags)
+		admin.POST("/classroom/:id/billing", h.UpdateClassroomBilling)
 		admin.POST("/classroom/:id/regenerate-code", h.RegenerateCode)
 		admin.GET("/classroom/:id", h.AdminClassroom)
 		admin.GET("/classroom/:id/analytics", h.AdminAnalytics)

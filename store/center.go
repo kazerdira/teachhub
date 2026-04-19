@@ -148,12 +148,12 @@ func (s *Store) ActivateTeacher(ctx context.Context, teacherID int) error {
 // ─── Center stats for dashboard ─────────────────────────
 
 type CenterStats struct {
-	TeacherCount  int
-	StudentCount  int
-	ClassCount    int
-	SessionCount  int
-	ActiveSeats   int
-	SeatCount     int
+	TeacherCount int
+	StudentCount int
+	ClassCount   int
+	SessionCount int
+	ActiveSeats  int
+	SeatCount    int
 }
 
 func (s *Store) GetCenterStats(ctx context.Context, centerID int) (*CenterStats, error) {

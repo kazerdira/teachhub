@@ -232,6 +232,21 @@ func (h *Handler) UpdateClassroomTags(c *gin.Context) {
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
 }
 
+func (h *Handler) UpdateClassroomBilling(c *gin.Context) {
+	classID := h.ownsClassroom(c)
+	if classID == 0 {
+		return
+	}
+	rateStr := strings.TrimSpace(c.PostForm("session_rate"))
+	rate, _ := strconv.ParseFloat(rateStr, 64)
+	if rate < 0 {
+		rate = 0
+	}
+	enabled := c.PostForm("billing_enabled") == "on"
+	h.Store.UpdateClassroomBilling(c.Request.Context(), classID, adminID(c), rate, enabled)
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
+}
+
 func (h *Handler) DeleteClassroom(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	h.Store.DeleteClassroom(c.Request.Context(), id, adminID(c))

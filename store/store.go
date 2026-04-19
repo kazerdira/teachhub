@@ -99,6 +99,24 @@ type Payment struct {
 	RecordedAt time.Time
 }
 
+type StudentInvoice struct {
+	ID               int
+	CenterID         int
+	ClassroomID      int
+	StudentID        int
+	StudentName      string // joined
+	ClassroomName    string // joined
+	PeriodMonth      time.Time
+	SessionsAttended int
+	RatePerSession   float64
+	TotalAmount      float64
+	Status           string
+	PaidAt           *time.Time
+	PaidMethod       string
+	Notes            string
+	GeneratedAt      time.Time
+}
+
 type JoinRequest struct {
 	ID          int
 	TeacherID   int
@@ -116,13 +134,15 @@ type JoinRequest struct {
 }
 
 type Classroom struct {
-	ID         int
-	Name       string
-	JoinCode   string
-	TeacherPic string
-	Subject    string
-	Level      string
-	CreatedAt  time.Time
+	ID             int
+	Name           string
+	JoinCode       string
+	TeacherPic     string
+	Subject        string
+	Level          string
+	CreatedAt      time.Time
+	SessionRate    float64
+	BillingEnabled bool
 	// computed
 	StudentCount  int
 	ResourceCount int
@@ -292,6 +312,7 @@ func (s *Store) CreateAdmin(ctx context.Context, username, hashedPassword string
 func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT c.id, c.name, c.join_code, c.teacher_pic, COALESCE(c.subject,''), COALESCE(c.level,''), c.created_at,
+			COALESCE(c.session_rate,0), COALESCE(c.billing_enabled,false),
 			(SELECT COUNT(*) FROM classroom_student WHERE classroom_id=c.id AND status='approved') AS student_count,
 			(SELECT COUNT(*) FROM resource WHERE classroom_id=c.id) AS resource_count,
 			(SELECT COUNT(*) FROM quiz WHERE classroom_id=c.id) AS quiz_count,
@@ -304,7 +325,7 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 	var list []Classroom
 	for rows.Next() {
 		var c Classroom
-		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -314,8 +335,8 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 
 func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE id=$1`, id).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at, COALESCE(session_rate,0), COALESCE(billing_enabled,false) FROM classroom WHERE id=$1`, id).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled)
 	if err != nil {
 		return nil, err
 	}
@@ -324,8 +345,8 @@ func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 
 func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at, COALESCE(session_rate,0), COALESCE(billing_enabled,false) FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled)
 	if err != nil {
 		return nil, err
 	}
@@ -334,8 +355,8 @@ func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Cla
 
 func (s *Store) GetClassroomByCode(ctx context.Context, code string) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE join_code=$1`, code).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at, COALESCE(session_rate,0), COALESCE(billing_enabled,false) FROM classroom WHERE join_code=$1`, code).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled)
 	if err != nil {
 		return nil, err
 	}
@@ -375,6 +396,11 @@ func (s *Store) RegenerateJoinCode(ctx context.Context, id, adminID int) (string
 
 func (s *Store) SetClassroomTeacherPic(ctx context.Context, classroomID, adminID int, picPath string) error {
 	_, err := s.DB.Exec(ctx, `UPDATE classroom SET teacher_pic=$1 WHERE id=$2 AND admin_id=$3`, picPath, classroomID, adminID)
+	return err
+}
+
+func (s *Store) UpdateClassroomBilling(ctx context.Context, classroomID, adminID int, sessionRate float64, billingEnabled bool) error {
+	_, err := s.DB.Exec(ctx, `UPDATE classroom SET session_rate=$1, billing_enabled=$2 WHERE id=$3 AND admin_id=$4`, sessionRate, billingEnabled, classroomID, adminID)
 	return err
 }
 

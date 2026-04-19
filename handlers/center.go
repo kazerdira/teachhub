@@ -2,10 +2,12 @@ package handlers
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
@@ -170,4 +172,83 @@ func generateCenterPassword(length int) string {
 		result[i] = chars[n.Int64()]
 	}
 	return string(result)
+}
+
+// ─── Center Billing ─────────────────────────────────────
+
+func (h *Handler) CenterBilling(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+
+	// Parse month param, default to current month
+	monthStr := c.Query("month")
+	var period time.Time
+	if monthStr != "" {
+		period, err = time.Parse("2006-01", monthStr)
+		if err != nil {
+			period = time.Now()
+		}
+	} else {
+		period = time.Now()
+	}
+	period = time.Date(period.Year(), period.Month(), 1, 0, 0, 0, 0, time.UTC)
+
+	statusFilter := c.DefaultQuery("status", "all")
+	invoices, _ := h.Store.ListCenterInvoices(ctx, center.ID, period, statusFilter)
+	totalAmount, paidAmount, unpaidCount, _ := h.Store.GetCenterBillingSummary(ctx, center.ID, period)
+	parentViews := h.Store.GetParentViewsWeek(ctx, center.ID)
+
+	h.render(c, "center_billing.html", gin.H{
+		"Center":       center,
+		"Invoices":     invoices,
+		"Period":       period,
+		"PeriodStr":    period.Format("2006-01"),
+		"StatusFilter": statusFilter,
+		"TotalAmount":  totalAmount,
+		"PaidAmount":   paidAmount,
+		"UnpaidCount":  unpaidCount,
+		"ParentViews":  parentViews,
+	})
+}
+
+func (h *Handler) CenterGenerateInvoices(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+
+	monthStr := c.PostForm("month")
+	period, err := time.Parse("2006-01", monthStr)
+	if err != nil {
+		period = time.Now()
+	}
+
+	count, err := h.Store.GenerateMonthlyInvoices(ctx, *admin.CenterID, period)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/billing?month="+period.Format("2006-01")+"&error=generate")
+		return
+	}
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/billing?month=%s&generated=%d", period.Format("2006-01"), count))
+}
+
+func (h *Handler) CenterMarkInvoicePaid(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	invoiceID, _ := strconv.Atoi(c.Param("invoiceId"))
+	method := c.DefaultPostForm("method", "cash")
+	month := c.DefaultPostForm("month", time.Now().Format("2006-01"))
+
+	h.Store.MarkInvoicePaid(c.Request.Context(), invoiceID, *admin.CenterID, method)
+	c.Redirect(http.StatusFound, "/admin/center/billing?month="+month)
+}
+
+func (h *Handler) CenterCancelInvoice(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	invoiceID, _ := strconv.Atoi(c.Param("invoiceId"))
+	month := c.DefaultPostForm("month", time.Now().Format("2006-01"))
+
+	h.Store.CancelInvoice(c.Request.Context(), invoiceID, *admin.CenterID)
+	c.Redirect(http.StatusFound, "/admin/center/billing?month="+month)
 }
