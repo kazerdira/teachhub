@@ -118,7 +118,7 @@
                 {{range .Classrooms}}
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.04);transition:background 0.1s;" onmouseover="this.style.background='rgba(99,102,241,0.03)'" onmouseout="this.style.background='transparent'">
                     <td style="padding:0.75rem 1rem;">
-                        <div style="font-weight:600;color:#1a1a2e;">{{.Name}}</div>
+                        <a href="/admin/classroom/{{.ID}}" style="font-weight:600;color:#1a1a2e;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#6c5ce7'" onmouseout="this.style.color='#1a1a2e'">{{.Name}}</a>
                     </td>
                     <td style="padding:0.75rem;">
                         <span style="font-size:0.75rem;background:rgba(99,102,241,0.08);color:#4f46e5;padding:2px 8px;border-radius:6px;font-weight:600;">{{.TeacherName}}</span>

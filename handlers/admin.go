@@ -96,16 +96,37 @@ func adminID(c *gin.Context) int {
 }
 
 // ownsClassroom verifies the logged-in teacher owns the classroom identified by the "id" URL param.
+// Center owners can also access classrooms belonging to their center's teachers.
 // Returns the classroomID if owned, or 0 and aborts with redirect if not.
 func (h *Handler) ownsClassroom(c *gin.Context) int {
 	classID, _ := strconv.Atoi(c.Param("id"))
 	_, err := h.Store.GetClassroomForAdmin(c.Request.Context(), classID, adminID(c))
 	if err != nil {
+		// Check if owner can access this classroom via their center
+		if h.ownerCanAccessClassroom(c, classID) {
+			return classID
+		}
 		c.Redirect(http.StatusFound, "/admin")
 		c.Abort()
 		return 0
 	}
 	return classID
+}
+
+// ownerCanAccessClassroom checks if the current admin is a center owner
+// and the classroom belongs to a teacher in their center.
+func (h *Handler) ownerCanAccessClassroom(c *gin.Context, classroomID int) bool {
+	admin := c.MustGet("admin").(*store.Admin)
+	if admin.Role != "owner" || admin.CenterID == nil {
+		return false
+	}
+	classrooms, _ := h.Store.ListCenterClassrooms(c.Request.Context(), *admin.CenterID)
+	for _, cl := range classrooms {
+		if cl.ID == classroomID {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Handler) AdminLoginPage(c *gin.Context) {
@@ -188,8 +209,13 @@ func (h *Handler) AdminLogout(c *gin.Context) {
 
 func (h *Handler) AdminDashboard(c *gin.Context) {
 	aid := adminID(c)
-	classrooms, _ := h.Store.ListClassrooms(c.Request.Context(), aid)
 	admin, _ := h.Store.GetAdminByID(c.Request.Context(), aid)
+	// Owners land on the center dashboard, not the teacher dashboard
+	if admin != nil && admin.Role == "owner" && admin.CenterID != nil {
+		c.Redirect(http.StatusFound, "/admin/center")
+		return
+	}
+	classrooms, _ := h.Store.ListClassrooms(c.Request.Context(), aid)
 	country := ""
 	if admin != nil && admin.Country != "" {
 		country = admin.Country
@@ -272,8 +298,14 @@ func (h *Handler) AdminClassroom(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	classroom, err := h.Store.GetClassroomForAdmin(c.Request.Context(), id, adminID(c))
 	if err != nil {
-		c.String(404, "Classroom not found")
-		return
+		// Owner can view classrooms belonging to their center's teachers
+		if h.ownerCanAccessClassroom(c, id) {
+			classroom, err = h.Store.GetClassroom(c.Request.Context(), id)
+		}
+		if err != nil {
+			c.String(404, "Classroom not found")
+			return
+		}
 	}
 	students, _ := h.Store.ListClassroomStudents(c.Request.Context(), id)
 	categories, _ := h.Store.ListCategories(c.Request.Context(), id)
