@@ -30,8 +30,10 @@ type Center struct {
 type CenterTeacher struct {
 	ID             int
 	Username       string
+	DisplayName    string
 	Email          string
 	Phone          string
+	Role           string
 	Active         bool
 	ClassroomCount int
 	StudentCount   int
@@ -78,7 +80,7 @@ func (s *Store) UpdateCenter(ctx context.Context, id int, name, address, city, p
 
 func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterTeacher, error) {
 	rows, err := s.DB.Query(ctx, `
-		SELECT a.id, a.username, a.email, COALESCE(a.phone,''), a.active,
+		SELECT a.id, a.username, COALESCE(a.display_name,''), a.email, COALESCE(a.phone,''), a.role, a.active,
 		       COALESCE((SELECT COUNT(*) FROM classroom WHERE admin_id = a.id), 0),
 		       COALESCE((SELECT COUNT(DISTINCT cs.student_id)
 		                 FROM classroom_student cs
@@ -95,7 +97,7 @@ func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterT
 	var list []CenterTeacher
 	for rows.Next() {
 		var t CenterTeacher
-		if err := rows.Scan(&t.ID, &t.Username, &t.Email, &t.Phone, &t.Active,
+		if err := rows.Scan(&t.ID, &t.Username, &t.DisplayName, &t.Email, &t.Phone, &t.Role, &t.Active,
 			&t.ClassroomCount, &t.StudentCount, &t.LastLoginAt, &t.CreatedAt); err != nil {
 			return nil, err
 		}
@@ -111,27 +113,27 @@ func (s *Store) CountCenterTeachers(ctx context.Context, centerID int) (int, err
 	return count, err
 }
 
-func (s *Store) CreateOwnerAdmin(ctx context.Context, centerID int, username, hashedPassword, plaintextPassword, email, phone, schoolName string, applicationID int) (int, error) {
+func (s *Store) CreateOwnerAdmin(ctx context.Context, centerID int, username, hashedPassword, plaintextPassword, email, phone, schoolName string, applicationID int, displayName string) (int, error) {
 	var id int
 	err := s.DB.QueryRow(ctx,
 		`INSERT INTO admin (username, password, pending_password, email, phone, school_name,
 		                     subscription_status, subscription_start, created_by_platform, application_id,
-		                     role, center_id, active)
-		 VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW(), true, $7, 'owner', $8, true)
+		                     role, center_id, active, display_name)
+		 VALUES ($1, $2, $3, $4, $5, $6, 'active', NOW(), true, $7, 'owner', $8, true, $9)
 		 RETURNING id`,
-		username, hashedPassword, plaintextPassword, email, phone, schoolName, applicationID, centerID).Scan(&id)
+		username, hashedPassword, plaintextPassword, email, phone, schoolName, applicationID, centerID, displayName).Scan(&id)
 	return id, err
 }
 
-func (s *Store) CreateTeacherInCenter(ctx context.Context, centerID int, username, hashedPassword, plaintextPassword, email, phone string) (int, error) {
+func (s *Store) CreateTeacherInCenter(ctx context.Context, centerID int, username, hashedPassword, plaintextPassword, email, phone, displayName string) (int, error) {
 	var id int
 	err := s.DB.QueryRow(ctx,
 		`INSERT INTO admin (username, password, pending_password, email, phone,
 		                     subscription_status, subscription_start, created_by_platform,
-		                     role, center_id, active)
-		 VALUES ($1, $2, $3, $4, $5, 'active', NOW(), true, 'teacher', $6, true)
+		                     role, center_id, active, display_name)
+		 VALUES ($1, $2, $3, $4, $5, 'active', NOW(), true, 'teacher', $6, true, $7)
 		 RETURNING id`,
-		username, hashedPassword, plaintextPassword, email, phone, centerID).Scan(&id)
+		username, hashedPassword, plaintextPassword, email, phone, centerID, displayName).Scan(&id)
 	return id, err
 }
 

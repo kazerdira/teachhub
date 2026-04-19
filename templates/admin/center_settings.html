@@ -27,7 +27,7 @@
 
 <div class="card" style="padding:1.5rem;">
     <form method="POST" action="/admin/center/settings" style="display:grid;gap:1.25rem;max-width:500px;">
-        {{if .CSRFToken}}<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">{{end}}
+        {{csrfField .CSRFToken}}
 
         <div>
             <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Center Name *</label>

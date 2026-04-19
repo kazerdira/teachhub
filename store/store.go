@@ -45,9 +45,10 @@ type Admin struct {
 	Region        string
 	PublicProfile bool
 	// Center
-	Role     string // "owner" or "teacher"
-	CenterID *int
-	Active   bool
+	Role        string // "owner" or "teacher"
+	CenterID    *int
+	Active      bool
+	DisplayName string
 }
 
 type TeacherListItem struct {
@@ -286,14 +287,14 @@ func (s *Store) GetAdmin(ctx context.Context, username string) (*Admin, error) {
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
 		        last_login_at, COALESCE(last_login_ip,''),
 		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false),
-		        COALESCE(role,'teacher'), center_id, COALESCE(active,true)
+		        COALESCE(role,'teacher'), center_id, COALESCE(active,true), COALESCE(display_name,'')
 		 FROM admin WHERE username=$1`, username).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
 			&a.LastLoginAt, &a.LastLoginIP,
 			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile,
-			&a.Role, &a.CenterID, &a.Active)
+			&a.Role, &a.CenterID, &a.Active, &a.DisplayName)
 	if err != nil {
 		return nil, err
 	}
@@ -2456,14 +2457,14 @@ func (s *Store) GetAdminByID(ctx context.Context, id int) (*Admin, error) {
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
 		        last_login_at, COALESCE(last_login_ip,''),
 		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false),
-		        COALESCE(role,'teacher'), center_id, COALESCE(active,true)
+		        COALESCE(role,'teacher'), center_id, COALESCE(active,true), COALESCE(display_name,'')
 		 FROM admin WHERE id=$1`, id).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
 			&a.LastLoginAt, &a.LastLoginIP,
 			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile,
-			&a.Role, &a.CenterID, &a.Active)
+			&a.Role, &a.CenterID, &a.Active, &a.DisplayName)
 	if err != nil {
 		return nil, err
 	}

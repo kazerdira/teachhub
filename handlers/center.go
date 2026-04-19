@@ -76,14 +76,18 @@ func (h *Handler) CenterCreateTeacher(c *gin.Context) {
 		return
 	}
 
-	username := strings.TrimSpace(c.PostForm("username"))
+	displayName := strings.TrimSpace(c.PostForm("display_name"))
 	email := strings.TrimSpace(c.PostForm("email"))
 	phone := strings.TrimSpace(c.PostForm("phone"))
 
-	if username == "" || email == "" {
+	if displayName == "" || email == "" {
 		c.Redirect(http.StatusFound, "/admin/center/teachers?error=missing_fields")
 		return
 	}
+
+	// Auto-generate username from email prefix
+	username := strings.Split(email, "@")[0]
+	username = strings.ToLower(strings.ReplaceAll(username, " ", ""))
 
 	password := generateCenterPassword(10)
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -92,10 +96,15 @@ func (h *Handler) CenterCreateTeacher(c *gin.Context) {
 		return
 	}
 
-	_, err = h.Store.CreateTeacherInCenter(ctx, center.ID, username, string(hashed), password, email, phone)
+	_, err = h.Store.CreateTeacherInCenter(ctx, center.ID, username, string(hashed), password, email, phone, displayName)
 	if err != nil {
-		c.Redirect(http.StatusFound, "/admin/center/teachers?error=username_taken")
-		return
+		// Username conflict — append number
+		username = fmt.Sprintf("%s%d", username, time.Now().Unix()%1000)
+		_, err = h.Store.CreateTeacherInCenter(ctx, center.ID, username, string(hashed), password, email, phone, displayName)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/admin/center/teachers?error=username_taken")
+			return
+		}
 	}
 
 	c.Redirect(http.StatusFound, "/admin/center/teachers?created="+username)

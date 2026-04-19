@@ -36,6 +36,7 @@
         <button type="submit" class="btn btn-secondary" style="height:40px;">{{t .Lang "billing_view"}}</button>
     </form>
     <form method="POST" action="/admin/center/billing/generate" style="margin-top:1rem;">
+        {{csrfField .CSRFToken}}
         <input type="hidden" name="month" value="{{.PeriodStr}}">
         <button type="submit" class="btn btn-primary" style="height:40px;">
             <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:4px;">calculate</span>
@@ -121,6 +122,7 @@
                 {{if eq .Status "unpaid"}}
                 <div style="display:flex;gap:4px;justify-content:center;">
                     <form method="POST" action="/admin/center/billing/{{.ID}}/paid" style="display:inline;">
+                        {{csrfField $.CSRFToken}}
                         <input type="hidden" name="month" value="{{$.PeriodStr}}">
                         <select name="method" class="input" style="font-size:0.75rem;padding:2px 6px;width:80px;">
                             <option value="cash">Cash</option>
@@ -131,6 +133,7 @@
                         <button type="submit" class="btn btn-primary" style="font-size:0.75rem;padding:2px 10px;height:28px;">{{t $.Lang "billing_mark_paid"}}</button>
                     </form>
                     <form method="POST" action="/admin/center/billing/{{.ID}}/cancel" style="display:inline;">
+                        {{csrfField $.CSRFToken}}
                         <input type="hidden" name="month" value="{{$.PeriodStr}}">
                         <button type="submit" class="btn btn-secondary" style="font-size:0.75rem;padding:2px 10px;height:28px;">{{t $.Lang "cancel"}}</button>
                     </form>

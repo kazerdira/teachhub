@@ -245,11 +245,11 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 		h.Store.DB.Exec(ctx, `UPDATE center SET seat_count=$1 WHERE id=$2`, seats, centerID)
 
 		// 2) Create owner admin with center_id
-		ownerID, err := h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
+		ownerID, err := h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id, app.FullName)
 		if err != nil {
 			// Username conflict — append number
 			username = fmt.Sprintf("%s%d", username, id)
-			ownerID, err = h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
+			ownerID, err = h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id, app.FullName)
 			if err != nil {
 				c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=create"))
 				return

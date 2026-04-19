@@ -35,10 +35,10 @@
 <div class="card" style="padding:1.5rem;margin-bottom:2rem;">
     <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Add Teacher</h2>
     <form method="POST" action="/admin/center/teachers/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
-        {{if .CSRFToken}}<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">{{end}}
+        {{csrfField .CSRFToken}}
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Username *</label>
-            <input type="text" name="username" required class="input" style="width:100%;" placeholder="teacher_name">
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Full Name *</label>
+            <input type="text" name="display_name" required class="input" style="width:100%;" placeholder="Ahmed Benali">
         </div>
         <div>
             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Email *</label>
@@ -72,11 +72,12 @@
         <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
             <thead>
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Username</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Name</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Login</th>
                     <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Email</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Role</th>
                     <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Classes</th>
                     <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Students</th>
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Last Login</th>
                     <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Status</th>
                     <th style="text-align:right;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Action</th>
                 </tr>
@@ -85,14 +86,19 @@
                 {{range .Teachers}}
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.03);">
                     <td style="padding:0.625rem 0.75rem;">
-                        <span style="font-weight:600;color:#1a1a2e;">{{.Username}}</span>
+                        <span style="font-weight:600;color:#1a1a2e;">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</span>
                     </td>
+                    <td style="padding:0.625rem 0.75rem;color:#6b7280;font-family:monospace;font-size:0.8rem;">{{.Username}}</td>
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.Email}}</td>
+                    <td style="padding:0.625rem 0.75rem;">
+                        {{if eq .Role "owner"}}
+                        <span class="badge" style="background:rgba(99,102,241,0.1);color:#6366f1;">Owner</span>
+                        {{else}}
+                        <span class="badge" style="background:rgba(107,114,128,0.1);color:#6b7280;">Teacher</span>
+                        {{end}}
+                    </td>
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.ClassroomCount}}</td>
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.StudentCount}}</td>
-                    <td style="padding:0.625rem 0.75rem;color:#6b7280;">
-                        {{if .LastLoginAt}}{{.LastLoginAt.Format "02 Jan 15:04"}}{{else}}<span style="color:#d1d5db;">Never</span>{{end}}
-                    </td>
                     <td style="padding:0.625rem 0.75rem;">
                         {{if .Active}}
                         <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;">Active</span>
@@ -101,14 +107,18 @@
                         {{end}}
                     </td>
                     <td style="padding:0.625rem 0.75rem;text-align:right;">
+                        {{if eq .Role "teacher"}}
                         <form method="POST" action="/admin/center/teachers/{{.ID}}/toggle" style="display:inline;">
-                            {{if $.CSRFToken}}<input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">{{end}}
+                            {{csrfField $.CSRFToken}}
                             {{if .Active}}
                             <button type="submit" style="font-size:0.75rem;color:#dc2626;background:rgba(239,68,68,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.15)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Deactivate</button>
                             {{else}}
                             <button type="submit" style="font-size:0.75rem;color:#059669;background:rgba(16,185,129,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">Activate</button>
                             {{end}}
                         </form>
+                        {{else}}
+                        <span style="font-size:0.75rem;color:#8b8ba3;">—</span>
+                        {{end}}
                     </td>
                 </tr>
                 {{end}}
