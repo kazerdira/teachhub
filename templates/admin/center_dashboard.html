@@ -1,0 +1,139 @@
+{{template "admin_head" .}}
+
+<div style="margin-bottom:2rem;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:0.25rem;">
+        <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;">
+            <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">domain</span>
+        </div>
+        <div>
+            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{.Center.Name}}</h1>
+            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">Center Dashboard</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem;">
+    <div class="card" style="padding:1.25rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(99,102,241,0.1);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="color:#6366f1;font-size:18px;">group</span>
+            </div>
+            <span style="font-size:0.75rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Teachers</span>
+        </div>
+        <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{if .Stats}}{{.Stats.ActiveSeats}}{{else}}0{{end}} <span style="font-size:0.875rem;font-weight:500;color:#8b8ba3;">/ {{if .Stats}}{{.Stats.SeatCount}}{{else}}0{{end}} seats</span></div>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="color:#10b981;font-size:18px;">school</span>
+            </div>
+            <span style="font-size:0.75rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Students</span>
+        </div>
+        <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{if .Stats}}{{.Stats.StudentCount}}{{else}}0{{end}}</div>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="color:#f59e0b;font-size:18px;">class</span>
+            </div>
+            <span style="font-size:0.75rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Classes</span>
+        </div>
+        <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{if .Stats}}{{.Stats.ClassCount}}{{else}}0{{end}}</div>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(236,72,153,0.1);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="color:#ec4899;font-size:18px;">videocam</span>
+            </div>
+            <span style="font-size:0.75rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Sessions</span>
+        </div>
+        <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{if .Stats}}{{.Stats.SessionCount}}{{else}}0{{end}}</div>
+    </div>
+</div>
+
+<!-- Subscription Status -->
+<div class="card" style="padding:1.25rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <span class="material-symbols-outlined" style="color:#6366f1;font-size:20px;">verified</span>
+        <div>
+            <span style="font-size:0.875rem;font-weight:600;color:#1a1a2e;">Subscription</span>
+            {{if eq .Center.SubscriptionStatus "active"}}
+            <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;margin-left:8px;">Active</span>
+            {{else if eq .Center.SubscriptionStatus "trial"}}
+            <span class="badge" style="background:rgba(245,158,11,0.1);color:#d97706;margin-left:8px;">Trial</span>
+            {{else}}
+            <span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;margin-left:8px;">{{.Center.SubscriptionStatus}}</span>
+            {{end}}
+        </div>
+    </div>
+    <div style="font-size:0.8125rem;color:#8b8ba3;">
+        {{.Center.SeatCount}} seat{{if gt .Center.SeatCount 1}}s{{end}} included
+    </div>
+</div>
+
+<!-- Teachers Table -->
+<div class="card" style="padding:1.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+        <h2 style="font-size:1.125rem;font-weight:700;color:#1a1a2e;margin:0;">Teachers</h2>
+        <a href="/admin/center/teachers" class="btn-primary" style="padding:0.5rem 1rem;font-size:0.8125rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">settings</span> Manage
+        </a>
+    </div>
+    {{if .Teachers}}
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+            <thead>
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Username</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Classes</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Students</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Teachers}}
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.03);">
+                    <td style="padding:0.625rem 0.75rem;font-weight:600;color:#1a1a2e;">{{.Username}}</td>
+                    <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.ClassroomCount}}</td>
+                    <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.StudentCount}}</td>
+                    <td style="padding:0.625rem 0.75rem;">
+                        {{if .Active}}
+                        <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;">Active</span>
+                        {{else}}
+                        <span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">Inactive</span>
+                        {{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <p style="text-align:center;color:#8b8ba3;padding:2rem;font-size:0.875rem;">No teachers yet. <a href="/admin/center/teachers" style="color:#6366f1;text-decoration:none;font-weight:600;">Add your first teacher</a></p>
+    {{end}}
+</div>
+
+<!-- Quick Links -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1.5rem;">
+    <a href="/admin" class="card card-accent" style="padding:1.25rem;text-decoration:none;display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:rgba(99,102,241,0.1);display:flex;align-items:center;justify-content:center;">
+            <span class="material-symbols-outlined" style="color:#6366f1;font-size:20px;">dashboard</span>
+        </div>
+        <div>
+            <div style="font-size:0.875rem;font-weight:700;color:#1a1a2e;">My Classes</div>
+            <div style="font-size:0.75rem;color:#8b8ba3;">Manage your own classrooms</div>
+        </div>
+    </a>
+    <a href="/admin/center/settings" class="card card-accent" style="padding:1.25rem;text-decoration:none;display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:rgba(168,85,247,0.1);display:flex;align-items:center;justify-content:center;">
+            <span class="material-symbols-outlined" style="color:#a855f7;font-size:20px;">settings</span>
+        </div>
+        <div>
+            <div style="font-size:0.875rem;font-weight:700;color:#1a1a2e;">Center Settings</div>
+            <div style="font-size:0.75rem;color:#8b8ba3;">Name, address, contact info</div>
+        </div>
+    </a>
+</div>
+
+{{template "admin_foot" .}}

@@ -2,6 +2,30 @@
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+-- ─── Centers ────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS center (
+    id                  SERIAL PRIMARY KEY,
+    name                TEXT NOT NULL,
+    owner_admin_id      INT,
+    address             TEXT NOT NULL DEFAULT '',
+    city                TEXT NOT NULL DEFAULT '',
+    country             TEXT NOT NULL DEFAULT 'DZ',
+    phone               TEXT NOT NULL DEFAULT '',
+    email               TEXT NOT NULL DEFAULT '',
+    logo_path           TEXT NOT NULL DEFAULT '',
+    subscription_status TEXT NOT NULL DEFAULT 'trial'
+                        CHECK (subscription_status IN ('trial','active','expired','suspended','cancelled')),
+    subscription_start  TIMESTAMPTZ,
+    subscription_end    TIMESTAMPTZ,
+    seat_count          INT NOT NULL DEFAULT 3,
+    price_per_seat      NUMERIC(10,2) NOT NULL DEFAULT 0,
+    trial_ends_at       TIMESTAMPTZ,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_center_owner ON center(owner_admin_id);
+CREATE INDEX IF NOT EXISTS idx_center_status ON center(subscription_status);
+
 -- ─── Admin (Teachers) ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS admin (
     id                  SERIAL PRIMARY KEY,
@@ -22,8 +46,14 @@ CREATE TABLE IF NOT EXISTS admin (
     country             TEXT NOT NULL DEFAULT '',
     region              TEXT NOT NULL DEFAULT '',
     public_profile      BOOLEAN NOT NULL DEFAULT false,
+    role                TEXT NOT NULL DEFAULT 'teacher' CHECK (role IN ('owner','teacher')),
+    center_id           INT REFERENCES center(id) ON DELETE SET NULL,
+    active              BOOLEAN NOT NULL DEFAULT true,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_admin_center ON admin(center_id);
+CREATE INDEX IF NOT EXISTS idx_admin_role ON admin(role);
 
 -- ─── Platform Administrators ────────────────────────────
 CREATE TABLE IF NOT EXISTS platform_admin (
@@ -35,17 +65,20 @@ CREATE TABLE IF NOT EXISTS platform_admin (
 
 -- ─── Teacher Applications ───────────────────────────────
 CREATE TABLE IF NOT EXISTS teacher_application (
-    id          SERIAL PRIMARY KEY,
-    full_name   TEXT NOT NULL,
-    email       TEXT NOT NULL,
-    phone       TEXT NOT NULL DEFAULT '',
-    school_name TEXT NOT NULL DEFAULT '',
-    wilaya      TEXT NOT NULL DEFAULT '',
-    message     TEXT NOT NULL DEFAULT '',
-    status      TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'contacted')),
-    admin_notes TEXT NOT NULL DEFAULT '',
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    reviewed_at TIMESTAMPTZ
+    id                 SERIAL PRIMARY KEY,
+    full_name          TEXT NOT NULL,
+    email              TEXT NOT NULL,
+    phone              TEXT NOT NULL DEFAULT '',
+    school_name        TEXT NOT NULL DEFAULT '',
+    wilaya             TEXT NOT NULL DEFAULT '',
+    message            TEXT NOT NULL DEFAULT '',
+    status             TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'contacted')),
+    admin_notes        TEXT NOT NULL DEFAULT '',
+    center_name        TEXT NOT NULL DEFAULT '',
+    expected_teachers  INT NOT NULL DEFAULT 1,
+    expected_students  INT NOT NULL DEFAULT 0,
+    created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    reviewed_at        TIMESTAMPTZ
 );
 
 -- FK for application_id (after teacher_application exists)
@@ -60,6 +93,7 @@ END $$;
 CREATE TABLE IF NOT EXISTS payment (
     id          SERIAL PRIMARY KEY,
     teacher_id  INT NOT NULL REFERENCES admin(id) ON DELETE CASCADE,
+    center_id   INT REFERENCES center(id) ON DELETE CASCADE,
     amount      NUMERIC(10,2) NOT NULL,
     method      TEXT NOT NULL DEFAULT 'cash' CHECK (method IN ('cash', 'ccp', 'baridi_mob', 'other')),
     reference   TEXT NOT NULL DEFAULT '',
@@ -381,3 +415,21 @@ CREATE TABLE IF NOT EXISTS join_request (
 CREATE INDEX IF NOT EXISTS idx_join_request_teacher ON join_request(teacher_id);
 CREATE INDEX IF NOT EXISTS idx_join_request_status ON join_request(status);
 CREATE INDEX IF NOT EXISTS idx_admin_public_profile ON admin(public_profile) WHERE public_profile = true;
+
+-- ─── FK: center.owner_admin_id → admin ──────────────────
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'center_owner_admin_fkey') THEN
+        ALTER TABLE center ADD CONSTRAINT center_owner_admin_fkey
+            FOREIGN KEY (owner_admin_id) REFERENCES admin(id) ON DELETE SET NULL;
+    END IF;
+END $$;
+
+-- ─── Center columns on admin (migration-safe) ──────────
+ALTER TABLE admin ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'teacher'
+    CHECK (role IN ('owner','teacher'));
+ALTER TABLE admin ADD COLUMN IF NOT EXISTS center_id INT REFERENCES center(id) ON DELETE SET NULL;
+ALTER TABLE admin ADD COLUMN IF NOT EXISTS active BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE teacher_application ADD COLUMN IF NOT EXISTS center_name TEXT NOT NULL DEFAULT '';
+ALTER TABLE teacher_application ADD COLUMN IF NOT EXISTS expected_teachers INT NOT NULL DEFAULT 1;
+ALTER TABLE teacher_application ADD COLUMN IF NOT EXISTS expected_students INT NOT NULL DEFAULT 0;
+ALTER TABLE payment ADD COLUMN IF NOT EXISTS center_id INT REFERENCES center(id) ON DELETE CASCADE;

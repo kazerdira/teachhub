@@ -300,12 +300,12 @@ func main() {
 	// ─── CGU / Privacy ──────────────────────────────────
 	r.GET("/cgu", h.CGUPage)
 
-	// ─── Explore (public teacher directory) ─────────────
-	r.GET("/explore", h.ExplorePage)
-	r.GET("/explore/teacher/:id", h.TeacherPublicProfile)
-	r.GET("/explore/teacher/:id/join", h.JoinRequestPage)
-	r.POST("/explore/teacher/:id/join", h.JoinRequestSubmit)
-	r.GET("/explore/teacher/:id/join/success", h.JoinRequestSuccess)
+	// ─── Explore (public teacher directory) — COMMENTED OUT ─────────────
+	// r.GET("/explore", h.ExplorePage)
+	// r.GET("/explore/teacher/:id", h.TeacherPublicProfile)
+	// r.GET("/explore/teacher/:id/join", h.JoinRequestPage)
+	// r.POST("/explore/teacher/:id/join", h.JoinRequestSubmit)
+	// r.GET("/explore/teacher/:id/join/success", h.JoinRequestSuccess)
 
 	// ─── API (public, for AJAX) ─────────────────────────
 	r.GET("/api/levels", h.APILevelsForCountry)
@@ -375,6 +375,17 @@ func main() {
 	admin := r.Group("/admin", middleware.AdminRequired(), middleware.AdminSubscriptionCheck(s))
 	{
 		admin.GET("", h.AdminDashboard)
+
+		// Center management (owner only)
+		center := admin.Group("/center", middleware.OwnerRequired())
+		{
+			center.GET("", h.CenterDashboard)
+			center.GET("/teachers", h.CenterTeachers)
+			center.POST("/teachers/create", h.CenterCreateTeacher)
+			center.POST("/teachers/:id/toggle", h.CenterToggleTeacher)
+			center.GET("/settings", h.CenterSettings)
+			center.POST("/settings", h.CenterSettingsSave)
+		}
 
 		// Profile & Join Requests
 		admin.GET("/profile", h.AdminProfilePage)

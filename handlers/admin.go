@@ -59,6 +59,14 @@ func (h *Handler) render(c *gin.Context, tmplName string, data gin.H) {
 			data["PendingRequests"] = h.Store.CountPendingJoinRequests(c.Request.Context(), aid)
 		}
 	}
+	// Inject admin role / center info for nav
+	if admin, exists := c.Get("admin"); exists {
+		a := admin.(*store.Admin)
+		data["AdminRole"] = a.Role
+		if a.CenterID != nil {
+			data["AdminCenterID"] = *a.CenterID
+		}
+	}
 	// Query params map for flash messages etc.
 	if _, exists := data["Query"]; !exists {
 		qm := map[string]string{}
@@ -112,9 +120,37 @@ func (h *Handler) AdminLogin(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin/login?error=invalid")
 		return
 	}
-	// Check subscription status for platform-created teachers
-	if admin.CreatedByPlatform {
-		// Auto-expire if subscription_end has passed
+
+	// Block deactivated teachers
+	if !admin.Active {
+		c.Redirect(http.StatusFound, "/admin/login?error=deactivated")
+		return
+	}
+
+	// Check subscription: center-based or legacy individual
+	if admin.CenterID != nil {
+		center, err := h.Store.GetCenter(c.Request.Context(), *admin.CenterID)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/admin/login?error=invalid")
+			return
+		}
+		if center.SubscriptionEnd != nil && center.SubscriptionEnd.Before(time.Now()) && center.SubscriptionStatus == "active" {
+			h.Store.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
+			center.SubscriptionStatus = "expired"
+		}
+		if center.TrialEndsAt != nil && center.TrialEndsAt.Before(time.Now()) && center.SubscriptionStatus == "trial" {
+			h.Store.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
+			center.SubscriptionStatus = "expired"
+		}
+		if center.SubscriptionStatus != "active" && center.SubscriptionStatus != "trial" {
+			errKey := "suspended"
+			if center.SubscriptionStatus == "expired" {
+				errKey = "expired"
+			}
+			c.Redirect(http.StatusFound, "/admin/login?error="+errKey)
+			return
+		}
+	} else if admin.CreatedByPlatform {
 		if admin.SubscriptionEnd != nil && admin.SubscriptionEnd.Before(time.Now()) && admin.SubscriptionStatus == "active" {
 			h.Store.UpdateTeacherSubscription(c.Request.Context(), admin.ID, "expired")
 			admin.SubscriptionStatus = "expired"
@@ -134,6 +170,11 @@ func (h *Handler) AdminLogin(c *gin.Context) {
 	// Clear pending password on first login so platform owner can no longer see it
 	if admin.PendingPassword != nil {
 		h.Store.ClearPendingPassword(c.Request.Context(), admin.ID)
+	}
+	// Redirect owners to center dashboard
+	if admin.Role == "owner" && admin.CenterID != nil {
+		c.Redirect(http.StatusFound, "/admin/center")
+		return
 	}
 	c.Redirect(http.StatusFound, "/admin")
 }

@@ -44,6 +44,10 @@ type Admin struct {
 	Country       string
 	Region        string
 	PublicProfile bool
+	// Center
+	Role     string // "owner" or "teacher"
+	CenterID *int
+	Active   bool
 }
 
 type TeacherListItem struct {
@@ -69,17 +73,20 @@ type PlatformAdmin struct {
 }
 
 type TeacherApplication struct {
-	ID         int
-	FullName   string
-	Email      string
-	Phone      string
-	SchoolName string
-	Wilaya     string
-	Message    string
-	Status     string // pending, approved, rejected, contacted
-	AdminNotes string
-	CreatedAt  time.Time
-	ReviewedAt *time.Time
+	ID               int
+	FullName         string
+	Email            string
+	Phone            string
+	SchoolName       string
+	Wilaya           string
+	Message          string
+	Status           string // pending, approved, rejected, contacted
+	AdminNotes       string
+	CenterName       string
+	ExpectedTeachers int
+	ExpectedStudents int
+	CreatedAt        time.Time
+	ReviewedAt       *time.Time
 }
 
 type Payment struct {
@@ -258,13 +265,15 @@ func (s *Store) GetAdmin(ctx context.Context, username string) (*Admin, error) {
 		`SELECT id, username, password, email, COALESCE(phone,''), school_name, subscription_status,
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
 		        last_login_at, COALESCE(last_login_ip,''),
-		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false)
+		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false),
+		        COALESCE(role,'teacher'), center_id, COALESCE(active,true)
 		 FROM admin WHERE username=$1`, username).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
 			&a.LastLoginAt, &a.LastLoginIP,
-			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile)
+			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile,
+			&a.Role, &a.CenterID, &a.Active)
 	if err != nil {
 		return nil, err
 	}
@@ -2420,13 +2429,15 @@ func (s *Store) GetAdminByID(ctx context.Context, id int) (*Admin, error) {
 		`SELECT id, username, password, email, COALESCE(phone,''), school_name, subscription_status,
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
 		        last_login_at, COALESCE(last_login_ip,''),
-		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false)
+		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false),
+		        COALESCE(role,'teacher'), center_id, COALESCE(active,true)
 		 FROM admin WHERE id=$1`, id).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
 			&a.LastLoginAt, &a.LastLoginIP,
-			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile)
+			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile,
+			&a.Role, &a.CenterID, &a.Active)
 	if err != nil {
 		return nil, err
 	}
@@ -2651,16 +2662,18 @@ func (s *Store) CreatePlatformAdmin(ctx context.Context, username, hashedPasswor
 
 // ─── Teacher Applications ───────────────────────────────
 
-func (s *Store) CreateTeacherApplication(ctx context.Context, fullName, email, phone, school, wilaya, message string) error {
+func (s *Store) CreateTeacherApplication(ctx context.Context, fullName, email, phone, school, wilaya, message, centerName string, expectedTeachers, expectedStudents int) error {
 	_, err := s.DB.Exec(ctx,
-		`INSERT INTO teacher_application (full_name, email, phone, school_name, wilaya, message)
-		 VALUES ($1, $2, $3, $4, $5, $6)`,
-		fullName, email, phone, school, wilaya, message)
+		`INSERT INTO teacher_application (full_name, email, phone, school_name, wilaya, message, center_name, expected_teachers, expected_students)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		fullName, email, phone, school, wilaya, message, centerName, expectedTeachers, expectedStudents)
 	return err
 }
 
 func (s *Store) ListTeacherApplications(ctx context.Context, statusFilter string) ([]TeacherApplication, error) {
-	query := `SELECT id, full_name, email, phone, school_name, wilaya, message, status, admin_notes, created_at, reviewed_at
+	query := `SELECT id, full_name, email, phone, school_name, wilaya, message, status, admin_notes,
+	                 COALESCE(center_name,''), COALESCE(expected_teachers,1), COALESCE(expected_students,0),
+	                 created_at, reviewed_at
 	          FROM teacher_application`
 	var args []interface{}
 	if statusFilter != "" && statusFilter != "all" {
@@ -2677,7 +2690,9 @@ func (s *Store) ListTeacherApplications(ctx context.Context, statusFilter string
 	var list []TeacherApplication
 	for rows.Next() {
 		var a TeacherApplication
-		if err := rows.Scan(&a.ID, &a.FullName, &a.Email, &a.Phone, &a.SchoolName, &a.Wilaya, &a.Message, &a.Status, &a.AdminNotes, &a.CreatedAt, &a.ReviewedAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.FullName, &a.Email, &a.Phone, &a.SchoolName, &a.Wilaya, &a.Message, &a.Status, &a.AdminNotes,
+			&a.CenterName, &a.ExpectedTeachers, &a.ExpectedStudents,
+			&a.CreatedAt, &a.ReviewedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, a)
@@ -2688,9 +2703,13 @@ func (s *Store) ListTeacherApplications(ctx context.Context, statusFilter string
 func (s *Store) GetTeacherApplication(ctx context.Context, id int) (*TeacherApplication, error) {
 	a := &TeacherApplication{}
 	err := s.DB.QueryRow(ctx,
-		`SELECT id, full_name, email, phone, school_name, wilaya, message, status, admin_notes, created_at, reviewed_at
+		`SELECT id, full_name, email, phone, school_name, wilaya, message, status, admin_notes,
+		        COALESCE(center_name,''), COALESCE(expected_teachers,1), COALESCE(expected_students,0),
+		        created_at, reviewed_at
 		 FROM teacher_application WHERE id=$1`, id).
-		Scan(&a.ID, &a.FullName, &a.Email, &a.Phone, &a.SchoolName, &a.Wilaya, &a.Message, &a.Status, &a.AdminNotes, &a.CreatedAt, &a.ReviewedAt)
+		Scan(&a.ID, &a.FullName, &a.Email, &a.Phone, &a.SchoolName, &a.Wilaya, &a.Message, &a.Status, &a.AdminNotes,
+			&a.CenterName, &a.ExpectedTeachers, &a.ExpectedStudents,
+			&a.CreatedAt, &a.ReviewedAt)
 	if err != nil {
 		return nil, err
 	}

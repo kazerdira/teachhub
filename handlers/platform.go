@@ -57,15 +57,20 @@ func (h *Handler) ApplySubmit(c *gin.Context) {
 	email := strings.TrimSpace(c.PostForm("email"))
 	phone := strings.TrimSpace(c.PostForm("phone"))
 	school := strings.TrimSpace(c.PostForm("school_name"))
-	// wilaya field commented out (region-agnostic)
+	centerName := strings.TrimSpace(c.PostForm("center_name"))
 	message := strings.TrimSpace(c.PostForm("message"))
+	expectedTeachers, _ := strconv.Atoi(c.PostForm("expected_teachers"))
+	expectedStudents, _ := strconv.Atoi(c.PostForm("expected_students"))
+	if expectedTeachers < 1 {
+		expectedTeachers = 1
+	}
 
 	if fullName == "" || email == "" {
 		c.Redirect(http.StatusFound, "/apply?error=name_email_required")
 		return
 	}
 
-	err := h.Store.CreateTeacherApplication(c.Request.Context(), fullName, email, phone, school, "", message)
+	err := h.Store.CreateTeacherApplication(c.Request.Context(), fullName, email, phone, school, "", message, centerName, expectedTeachers, expectedStudents)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/apply?error=submit_failed")
 		return
@@ -219,17 +224,40 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 			return
 		}
 
-		// Create teacher account
-		_, err = h.Store.CreateTeacherFromApplication(ctx, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
+		// 1) Create center
+		centerName := app.CenterName
+		if centerName == "" {
+			centerName = app.SchoolName
+		}
+		if centerName == "" {
+			centerName = app.FullName + " Center"
+		}
+		seats := app.ExpectedTeachers
+		if seats < 1 {
+			seats = 1
+		}
+		centerID, err := h.Store.CreateCenter(ctx, centerName, app.Email, 0)
+		if err != nil {
+			c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=center"))
+			return
+		}
+		// Set seat count
+		h.Store.DB.Exec(ctx, `UPDATE center SET seat_count=$1 WHERE id=$2`, seats, centerID)
+
+		// 2) Create owner admin with center_id
+		ownerID, err := h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
 		if err != nil {
 			// Username conflict — append number
 			username = fmt.Sprintf("%s%d", username, id)
-			_, err = h.Store.CreateTeacherFromApplication(ctx, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
+			ownerID, err = h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id)
 			if err != nil {
 				c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=create"))
 				return
 			}
 		}
+
+		// 3) Link center to owner
+		h.Store.DB.Exec(ctx, `UPDATE center SET owner_admin_id=$1 WHERE id=$2`, ownerID, centerID)
 
 		// Update application status
 		h.Store.UpdateApplicationStatus(ctx, id, status, notes)

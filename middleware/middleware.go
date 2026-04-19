@@ -46,6 +46,7 @@ func AdminRequired() gin.HandlerFunc {
 }
 
 // AdminSubscriptionCheck verifies subscription on every request for platform-created teachers.
+// For center-based admins, checks the center's subscription instead of the individual admin.
 func AdminSubscriptionCheck(db *store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		adminID, _ := c.Get("admin_id")
@@ -61,8 +62,56 @@ func AdminSubscriptionCheck(db *store.Store) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		// Block deactivated teachers
+		if !admin.Active {
+			ClearAdminSession(c)
+			c.Redirect(http.StatusFound, "/admin/login?error=deactivated")
+			c.Abort()
+			return
+		}
+
+		// Store admin in context for downstream handlers
+		c.Set("admin", admin)
+
+		// For center-based admins, check center subscription
+		if admin.CenterID != nil {
+			center, err := db.GetCenter(c.Request.Context(), *admin.CenterID)
+			if err != nil {
+				ClearAdminSession(c)
+				c.Redirect(http.StatusFound, "/admin/login")
+				c.Abort()
+				return
+			}
+
+			// Auto-expire
+			if center.SubscriptionEnd != nil && center.SubscriptionEnd.Before(time.Now()) && center.SubscriptionStatus == "active" {
+				db.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
+				center.SubscriptionStatus = "expired"
+			}
+			// Trial expiry
+			if center.TrialEndsAt != nil && center.TrialEndsAt.Before(time.Now()) && center.SubscriptionStatus == "trial" {
+				db.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
+				center.SubscriptionStatus = "expired"
+			}
+
+			if center.SubscriptionStatus != "active" && center.SubscriptionStatus != "trial" {
+				ClearAdminSession(c)
+				errKey := "suspended"
+				if center.SubscriptionStatus == "expired" {
+					errKey = "expired"
+				}
+				c.Redirect(http.StatusFound, "/admin/login?error="+errKey)
+				c.Abort()
+				return
+			}
+			c.Set("center", center)
+			c.Next()
+			return
+		}
+
+		// Legacy: non-center platform-created teachers
 		if admin.CreatedByPlatform {
-			// Auto-expire if subscription_end has passed
 			if admin.SubscriptionEnd != nil && admin.SubscriptionEnd.Before(time.Now()) && admin.SubscriptionStatus == "active" {
 				db.UpdateTeacherSubscription(c.Request.Context(), admin.ID, "expired")
 				admin.SubscriptionStatus = "expired"
@@ -77,6 +126,25 @@ func AdminSubscriptionCheck(db *store.Store) gin.HandlerFunc {
 				c.Abort()
 				return
 			}
+		}
+		c.Next()
+	}
+}
+
+// OwnerRequired blocks non-owner admins from center management routes.
+func OwnerRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		admin, exists := c.Get("admin")
+		if !exists {
+			c.Redirect(http.StatusFound, "/admin/login")
+			c.Abort()
+			return
+		}
+		a := admin.(*store.Admin)
+		if a.Role != "owner" || a.CenterID == nil {
+			c.Redirect(http.StatusFound, "/admin")
+			c.Abort()
+			return
 		}
 		c.Next()
 	}

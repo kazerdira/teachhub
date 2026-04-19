@@ -1,0 +1,101 @@
+{{template "admin_head" .}}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem;">
+    <a href="/admin/center" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
+        <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
+    </a>
+    <div>
+        <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">Center Settings</h1>
+        <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.Center.Name}}</p>
+    </div>
+</div>
+
+{{if .Query.saved}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
+    <span style="font-size:0.875rem;color:#059669;font-weight:500;">Settings saved successfully.</span>
+</div>
+{{end}}
+
+{{if .Query.error}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
+    <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
+    {{if eq .Query.error "name_required"}}Center name is required.
+    {{else}}An error occurred while saving.{{end}}
+    </span>
+</div>
+{{end}}
+
+<div class="card" style="padding:1.5rem;">
+    <form method="POST" action="/admin/center/settings" style="display:grid;gap:1.25rem;max-width:500px;">
+        {{if .CSRFToken}}<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">{{end}}
+
+        <div>
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Center Name *</label>
+            <input type="text" name="name" required value="{{.Center.Name}}" class="input" style="width:100%;">
+        </div>
+
+        <div>
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Address</label>
+            <input type="text" name="address" value="{{.Center.Address}}" class="input" style="width:100%;" placeholder="Street address">
+        </div>
+
+        <div>
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">City</label>
+            <input type="text" name="city" value="{{.Center.City}}" class="input" style="width:100%;" placeholder="City / Wilaya">
+        </div>
+
+        <div>
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Phone</label>
+            <input type="text" name="phone" value="{{.Center.Phone}}" class="input" style="width:100%;" placeholder="+213...">
+        </div>
+
+        <div>
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Email</label>
+            <input type="email" name="email" value="{{.Center.Email}}" class="input" style="width:100%;" placeholder="contact@center.com">
+        </div>
+
+        <div style="padding-top:0.5rem;">
+            <button type="submit" class="btn-primary" style="padding:0.65rem 1.5rem;font-size:0.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">save</span> Save Settings
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Read-Only Info -->
+<div class="card" style="padding:1.5rem;margin-top:1.5rem;">
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Subscription Info</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.8125rem;">
+        <div>
+            <span style="color:#8b8ba3;font-weight:500;">Status</span>
+            <div style="margin-top:2px;">
+                {{if eq .Center.SubscriptionStatus "active"}}
+                <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;">Active</span>
+                {{else if eq .Center.SubscriptionStatus "trial"}}
+                <span class="badge" style="background:rgba(245,158,11,0.1);color:#d97706;">Trial</span>
+                {{else}}
+                <span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">{{.Center.SubscriptionStatus}}</span>
+                {{end}}
+            </div>
+        </div>
+        <div>
+            <span style="color:#8b8ba3;font-weight:500;">Seats</span>
+            <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{.Center.SeatCount}}</div>
+        </div>
+        {{if .Center.SubscriptionEnd}}
+        <div>
+            <span style="color:#8b8ba3;font-weight:500;">Expires</span>
+            <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{.Center.SubscriptionEnd.Format "02 Jan 2006"}}</div>
+        </div>
+        {{end}}
+        {{if .Center.TrialEndsAt}}
+        <div>
+            <span style="color:#8b8ba3;font-weight:500;">Trial Ends</span>
+            <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{.Center.TrialEndsAt.Format "02 Jan 2006"}}</div>
+        </div>
+        {{end}}
+    </div>
+    <p style="font-size:0.75rem;color:#8b8ba3;margin:1rem 0 0;">Contact platform admin to change subscription or seat count.</p>
+</div>
+
+{{template "admin_foot" .}}

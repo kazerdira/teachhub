@@ -1,0 +1,123 @@
+{{template "admin_head" .}}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <a href="/admin/center" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
+            <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
+        </a>
+        <div>
+            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">Teachers</h1>
+            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.ActiveCount}} / {{.SeatCount}} seats used</p>
+        </div>
+    </div>
+</div>
+
+{{if .Query.error}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
+    <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
+    {{if eq .Query.error "seat_limit"}}Seat limit reached. Upgrade your plan to add more teachers.
+    {{else if eq .Query.error "username_taken"}}Username already taken. Please choose another.
+    {{else if eq .Query.error "missing_fields"}}Username and email are required.
+    {{else if eq .Query.error "self"}}You cannot deactivate yourself.
+    {{else}}An error occurred.{{end}}
+    </span>
+</div>
+{{end}}
+
+{{if .Query.created}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
+    <span style="font-size:0.875rem;color:#059669;font-weight:500;">Teacher <strong>{{.Query.created}}</strong> created successfully. They can log in with their temporary password shown below.</span>
+</div>
+{{end}}
+
+<!-- Add Teacher Form -->
+{{if lt .ActiveCount .SeatCount}}
+<div class="card" style="padding:1.5rem;margin-bottom:2rem;">
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Add Teacher</h2>
+    <form method="POST" action="/admin/center/teachers/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
+        {{if .CSRFToken}}<input type="hidden" name="csrf_token" value="{{.CSRFToken}}">{{end}}
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Username *</label>
+            <input type="text" name="username" required class="input" style="width:100%;" placeholder="teacher_name">
+        </div>
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Email *</label>
+            <input type="email" name="email" required class="input" style="width:100%;" placeholder="teacher@example.com">
+        </div>
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Phone</label>
+            <input type="text" name="phone" class="input" style="width:100%;" placeholder="+213...">
+        </div>
+        <div>
+            <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">person_add</span> Create
+            </button>
+        </div>
+    </form>
+</div>
+{{else}}
+<div class="card" style="padding:1.25rem;margin-bottom:2rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.05);">
+    <div style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;">warning</span>
+        <span style="font-size:0.875rem;color:#92400e;font-weight:500;">All seats are used ({{.ActiveCount}}/{{.SeatCount}}). Contact support to add more seats.</span>
+    </div>
+</div>
+{{end}}
+
+<!-- Teachers List -->
+<div class="card" style="padding:1.5rem;">
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">All Teachers</h2>
+    {{if .Teachers}}
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+            <thead>
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Username</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Email</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Classes</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Students</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Last Login</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Status</th>
+                    <th style="text-align:right;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Teachers}}
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.03);">
+                    <td style="padding:0.625rem 0.75rem;">
+                        <span style="font-weight:600;color:#1a1a2e;">{{.Username}}</span>
+                    </td>
+                    <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.Email}}</td>
+                    <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.ClassroomCount}}</td>
+                    <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.StudentCount}}</td>
+                    <td style="padding:0.625rem 0.75rem;color:#6b7280;">
+                        {{if .LastLoginAt}}{{.LastLoginAt.Format "02 Jan 15:04"}}{{else}}<span style="color:#d1d5db;">Never</span>{{end}}
+                    </td>
+                    <td style="padding:0.625rem 0.75rem;">
+                        {{if .Active}}
+                        <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;">Active</span>
+                        {{else}}
+                        <span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">Inactive</span>
+                        {{end}}
+                    </td>
+                    <td style="padding:0.625rem 0.75rem;text-align:right;">
+                        <form method="POST" action="/admin/center/teachers/{{.ID}}/toggle" style="display:inline;">
+                            {{if $.CSRFToken}}<input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">{{end}}
+                            {{if .Active}}
+                            <button type="submit" style="font-size:0.75rem;color:#dc2626;background:rgba(239,68,68,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.15)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Deactivate</button>
+                            {{else}}
+                            <button type="submit" style="font-size:0.75rem;color:#059669;background:rgba(16,185,129,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">Activate</button>
+                            {{end}}
+                        </form>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <p style="text-align:center;color:#8b8ba3;padding:2rem;font-size:0.875rem;">No teachers yet. Add your first teacher above.</p>
+    {{end}}
+</div>
+
+{{template "admin_foot" .}}
