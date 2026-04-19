@@ -1,0 +1,161 @@
+{{template "admin_head" .}}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <a href="/admin/center" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
+            <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
+        </a>
+        <div>
+            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">Classrooms</h1>
+            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{len .Classrooms}} classroom{{if ne (len .Classrooms) 1}}s{{end}} in {{.Center.Name}}</p>
+        </div>
+    </div>
+</div>
+
+{{if .Query.error}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
+    <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
+    {{if eq .Query.error "missing_fields"}}Classroom name and teacher are required.
+    {{else if eq .Query.error "invalid_teacher"}}Selected teacher does not belong to this center.
+    {{else if eq .Query.error "create_failed"}}Could not create classroom.
+    {{else if eq .Query.error "not_found"}}Classroom not found.
+    {{else}}An error occurred.{{end}}
+    </span>
+</div>
+{{end}}
+
+{{if .Query.created}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
+    <div style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:#059669;font-size:20px;">check_circle</span>
+        <span style="font-size:0.875rem;color:#059669;font-weight:600;">Classroom created successfully.</span>
+    </div>
+</div>
+{{end}}
+
+{{if .Query.deleted}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.05);">
+    <div style="display:flex;align-items:center;gap:8px;">
+        <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;">info</span>
+        <span style="font-size:0.875rem;color:#92400e;font-weight:600;">Classroom deleted.</span>
+    </div>
+</div>
+{{end}}
+
+<!-- Create Classroom Form -->
+{{if .Teachers}}
+<div class="card" style="padding:1.5rem;margin-bottom:2rem;">
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Create New Classroom</h2>
+    <form method="POST" action="/admin/center/classrooms/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;align-items:end;">
+        {{csrfField .CSRFToken}}
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Name *</label>
+            <input type="text" name="name" required class="input" style="width:100%;" placeholder="e.g. Math 3AM Group A">
+        </div>
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Teacher *</label>
+            <select name="teacher_id" required class="input" style="width:100%;">
+                <option value="">Select teacher...</option>
+                {{range .Teachers}}
+                {{if .Active}}
+                <option value="{{.ID}}">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</option>
+                {{end}}
+                {{end}}
+            </select>
+        </div>
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Subject</label>
+            <select name="subject" class="input" style="width:100%;">
+                <option value="">—</option>
+                {{range .Subjects}}
+                <option value="{{.Key}}">{{.Emoji}} {{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+                {{end}}
+            </select>
+        </div>
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Level</label>
+            <select name="level" class="input" style="width:100%;">
+                <option value="">—</option>
+                {{range .Levels}}
+                <option value="{{.Key}}">{{if eq $.Lang "fr"}}{{.Fr}}{{else}}{{.En}}{{end}}</option>
+                {{end}}
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">add</span> Create
+            </button>
+        </div>
+    </form>
+</div>
+{{else}}
+<div class="card" style="padding:1.5rem;margin-bottom:2rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.03);">
+    <p style="font-size:0.875rem;color:#92400e;margin:0;">
+        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;">warning</span>
+        You need to <a href="/admin/center/teachers" style="color:#6c5ce7;font-weight:600;">create a teacher</a> first before you can create classrooms.
+    </p>
+</div>
+{{end}}
+
+<!-- Classroom List -->
+{{if .Classrooms}}
+<div class="card" style="overflow:hidden;">
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+            <thead>
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
+                    <th style="text-align:left;padding:0.875rem 1rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Classroom</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Teacher</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Subject</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Level</th>
+                    <th style="text-align:center;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Students</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Code</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Created</th>
+                    <th style="text-align:center;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Classrooms}}
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.04);transition:background 0.1s;" onmouseover="this.style.background='rgba(99,102,241,0.03)'" onmouseout="this.style.background='transparent'">
+                    <td style="padding:0.75rem 1rem;">
+                        <div style="font-weight:600;color:#1a1a2e;">{{.Name}}</div>
+                    </td>
+                    <td style="padding:0.75rem;">
+                        <span style="font-size:0.75rem;background:rgba(99,102,241,0.08);color:#4f46e5;padding:2px 8px;border-radius:6px;font-weight:600;">{{.TeacherName}}</span>
+                    </td>
+                    <td style="padding:0.75rem;color:#6b7280;">
+                        {{if .Subject}}{{$subj := subjectInfo .Subject}}<span style="font-size:0.75rem;">{{$subj.Emoji}} {{if eq $.Lang "fr"}}{{$subj.Fr}}{{else}}{{$subj.En}}{{end}}</span>{{else}}<span style="color:#c7c7d4;">—</span>{{end}}
+                    </td>
+                    <td style="padding:0.75rem;color:#6b7280;">
+                        {{if .Level}}{{.Level}}{{else}}<span style="color:#c7c7d4;">—</span>{{end}}
+                    </td>
+                    <td style="padding:0.75rem;text-align:center;">
+                        <span style="font-size:0.75rem;background:rgba(16,185,129,0.08);color:#059669;padding:2px 8px;border-radius:6px;font-weight:600;">{{.StudentCount}}</span>
+                    </td>
+                    <td style="padding:0.75rem;">
+                        <span class="font-mono" style="font-size:0.75rem;color:#6c5ce7;font-weight:600;background:rgba(108,92,231,0.06);padding:2px 6px;border-radius:4px;">{{.JoinCode}}</span>
+                    </td>
+                    <td style="padding:0.75rem;color:#8b8ba3;font-size:0.75rem;">{{.CreatedAt.Format "Jan 2, 2006"}}</td>
+                    <td style="padding:0.75rem;text-align:center;">
+                        <form method="POST" action="/admin/center/classrooms/{{.ID}}/delete" style="display:inline;" onsubmit="return confirm('Delete this classroom? This cannot be undone.')">
+                            {{csrfField $.CSRFToken}}
+                            <button type="submit" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'" title="Delete classroom">
+                                <span class="material-symbols-outlined" style="font-size:18px;color:#ef4444;">delete</span>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{else}}
+<div class="card" style="padding:3rem;text-align:center;">
+    <span class="material-symbols-outlined" style="font-size:48px;color:#d1d5db;margin-bottom:1rem;">school</span>
+    <p style="font-size:1rem;color:#8b8ba3;font-weight:500;margin:0;">No classrooms yet</p>
+    <p style="font-size:0.8125rem;color:#b2b2c9;margin:0.5rem 0 0;">Use the form above to create your first classroom.</p>
+</div>
+{{end}}
+
+{{template "admin_foot" .}}

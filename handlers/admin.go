@@ -210,6 +210,13 @@ func (h *Handler) AdminDashboard(c *gin.Context) {
 // ─── Classroom CRUD ─────────────────────────────────────
 
 func (h *Handler) CreateClassroom(c *gin.Context) {
+	// Center teachers cannot create classrooms — owner does it via /center/classrooms
+	if a, ok := c.Get("admin"); ok {
+		if adm, ok := a.(*store.Admin); ok && adm.Role == "teacher" && adm.CenterID != nil {
+			c.Redirect(http.StatusFound, "/admin")
+			return
+		}
+	}
 	name := strings.TrimSpace(c.PostForm("name"))
 	if name == "" {
 		c.Redirect(http.StatusFound, "/admin")

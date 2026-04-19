@@ -354,6 +354,7 @@ func (s *Store) ListCenterClassrooms(ctx context.Context, centerID int) ([]Class
 		}
 		// Store teacher name in the Subject field temporarily for display
 		// (we'll use a proper struct in the template)
+		cl.AdminID = teacherID
 		cl.TeacherName = teacherName // teacher display name for center context
 		list = append(list, cl)
 	}

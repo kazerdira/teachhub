@@ -397,6 +397,9 @@ func main() {
 			center.POST("/students/create", h.CenterCreateStudent)
 			center.POST("/students/assign", h.CenterAssignStudent)
 			center.POST("/students/remove", h.CenterRemoveStudentFromClassroom)
+			center.GET("/classrooms", h.CenterClassrooms)
+			center.POST("/classrooms/create", h.CenterCreateClassroom)
+			center.POST("/classrooms/:id/delete", h.CenterDeleteClassroom)
 		}
 
 		// Profile & Join Requests

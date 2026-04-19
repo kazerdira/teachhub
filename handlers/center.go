@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 
+	"teachhub/geo"
 	"teachhub/store"
 )
 
@@ -360,4 +361,90 @@ func (h *Handler) CenterRemoveStudentFromClassroom(c *gin.Context) {
 
 	h.Store.RemoveStudentFromClassroom(ctx, studentID, classroomID)
 	c.Redirect(http.StatusFound, "/admin/center/students?removed=1")
+}
+
+// ─── Center Classrooms ──────────────────────────────────
+
+func (h *Handler) CenterClassrooms(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+	classrooms, _ := h.Store.ListCenterClassrooms(ctx, center.ID)
+	teachers, _ := h.Store.ListCenterTeachers(ctx, center.ID)
+
+	country := center.Country
+	if country == "" {
+		country = "FR"
+	}
+
+	h.render(c, "center_classrooms.html", gin.H{
+		"Center":     center,
+		"Classrooms": classrooms,
+		"Teachers":   teachers,
+		"Subjects":   geo.AllSubjects,
+		"Levels":     geo.LevelsForCountry(country),
+	})
+}
+
+func (h *Handler) CenterCreateClassroom(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+
+	center, _ := h.Store.GetCenter(ctx, *admin.CenterID)
+	if center == nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+
+	name := strings.TrimSpace(c.PostForm("name"))
+	subject := strings.TrimSpace(c.PostForm("subject"))
+	level := strings.TrimSpace(c.PostForm("level"))
+	teacherIDStr := c.PostForm("teacher_id")
+	teacherID, _ := strconv.Atoi(teacherIDStr)
+
+	if name == "" || teacherID == 0 {
+		c.Redirect(http.StatusFound, "/admin/center/classrooms?error=missing_fields")
+		return
+	}
+
+	// Verify teacher belongs to this center
+	teacher, err := h.Store.GetAdminByID(ctx, teacherID)
+	if err != nil || teacher.CenterID == nil || *teacher.CenterID != *admin.CenterID {
+		c.Redirect(http.StatusFound, "/admin/center/classrooms?error=invalid_teacher")
+		return
+	}
+
+	_, err = h.Store.CreateClassroom(ctx, name, subject, level, teacherID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/classrooms?error=create_failed")
+		return
+	}
+	c.Redirect(http.StatusFound, "/admin/center/classrooms?created=1")
+}
+
+func (h *Handler) CenterDeleteClassroom(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	classroomID, _ := strconv.Atoi(c.Param("id"))
+
+	// Verify classroom belongs to this center
+	classrooms, _ := h.Store.ListCenterClassrooms(ctx, *admin.CenterID)
+	var teacherID int
+	for _, cl := range classrooms {
+		if cl.ID == classroomID {
+			teacherID = cl.AdminID
+			break
+		}
+	}
+	if teacherID == 0 {
+		c.Redirect(http.StatusFound, "/admin/center/classrooms?error=not_found")
+		return
+	}
+
+	h.Store.DeleteClassroom(ctx, classroomID, teacherID)
+	c.Redirect(http.StatusFound, "/admin/center/classrooms?deleted=1")
 }

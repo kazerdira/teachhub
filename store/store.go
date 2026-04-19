@@ -144,6 +144,7 @@ type Classroom struct {
 	CreatedAt      time.Time
 	SessionRate    float64
 	BillingEnabled bool
+	AdminID        int    // teacher who owns it
 	TeacherName    string // populated in center context
 	// computed
 	StudentCount  int
