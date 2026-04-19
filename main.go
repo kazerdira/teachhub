@@ -393,6 +393,10 @@ func main() {
 			center.POST("/billing/generate", h.CenterGenerateInvoices)
 			center.POST("/billing/:invoiceId/paid", h.CenterMarkInvoicePaid)
 			center.POST("/billing/:invoiceId/cancel", h.CenterCancelInvoice)
+			center.GET("/students", h.CenterStudents)
+			center.POST("/students/create", h.CenterCreateStudent)
+			center.POST("/students/assign", h.CenterAssignStudent)
+			center.POST("/students/remove", h.CenterRemoveStudentFromClassroom)
 		}
 
 		// Profile & Join Requests

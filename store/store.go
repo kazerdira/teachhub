@@ -144,6 +144,7 @@ type Classroom struct {
 	CreatedAt      time.Time
 	SessionRate    float64
 	BillingEnabled bool
+	TeacherName    string // populated in center context
 	// computed
 	StudentCount  int
 	ResourceCount int
@@ -156,6 +157,7 @@ type Student struct {
 	Name         string
 	Email        string
 	Phone        string
+	CenterID     *int
 	CreatedAt    time.Time
 	MemberStatus string // approved, pending, rejected — only set in classroom context
 	ParentCode   string // per-classroom secret link for parent reports
@@ -429,8 +431,8 @@ func (s *Store) ListClassroomStudents(ctx context.Context, classroomID int) ([]S
 
 func (s *Store) GetStudent(ctx context.Context, id int) (*Student, error) {
 	st := &Student{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, COALESCE(email,''), COALESCE(phone,''), created_at, last_login_at, COALESCE(last_login_ip,'') FROM student WHERE id=$1`, id).
-		Scan(&st.ID, &st.Name, &st.Email, &st.Phone, &st.CreatedAt, &st.LastLoginAt, &st.LastLoginIP)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, COALESCE(email,''), COALESCE(phone,''), center_id, created_at, last_login_at, COALESCE(last_login_ip,'') FROM student WHERE id=$1`, id).
+		Scan(&st.ID, &st.Name, &st.Email, &st.Phone, &st.CenterID, &st.CreatedAt, &st.LastLoginAt, &st.LastLoginIP)
 	if err != nil {
 		return nil, err
 	}
@@ -448,8 +450,13 @@ func (s *Store) CreateStudentAndJoinWithStatus(ctx context.Context, name, email,
 	}
 	defer tx.Rollback(ctx)
 
+	// Resolve center_id from the classroom's teacher
+	var centerID *int
+	tx.QueryRow(ctx,
+		`SELECT a.center_id FROM classroom c JOIN admin a ON a.id=c.admin_id WHERE c.id=$1`, classroomID).Scan(&centerID)
+
 	var id int
-	err = tx.QueryRow(ctx, `INSERT INTO student (name, email, phone) VALUES ($1, $2, $3) RETURNING id`, name, email, phone).Scan(&id)
+	err = tx.QueryRow(ctx, `INSERT INTO student (name, email, phone, center_id) VALUES ($1, $2, $3, $4) RETURNING id`, name, email, phone, centerID).Scan(&id)
 	if err != nil {
 		return 0, err
 	}

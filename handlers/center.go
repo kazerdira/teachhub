@@ -65,14 +65,9 @@ func (h *Handler) CenterCreateTeacher(c *gin.Context) {
 	admin := c.MustGet("admin").(*store.Admin)
 	ctx := c.Request.Context()
 
-	activeCount, _ := h.Store.CountCenterTeachers(ctx, *admin.CenterID)
 	center, _ := h.Store.GetCenter(ctx, *admin.CenterID)
 	if center == nil {
 		c.Redirect(http.StatusFound, "/admin")
-		return
-	}
-	if activeCount >= center.SeatCount {
-		c.Redirect(http.StatusFound, "/admin/center/teachers?error=seat_limit")
 		return
 	}
 
@@ -130,13 +125,7 @@ func (h *Handler) CenterToggleTeacher(c *gin.Context) {
 	if teacher.Active {
 		h.Store.DeactivateTeacher(ctx, teacherID)
 	} else {
-		// Check seat limit before reactivating
-		activeCount, _ := h.Store.CountCenterTeachers(ctx, *admin.CenterID)
-		center, _ := h.Store.GetCenter(ctx, *admin.CenterID)
-		if center != nil && activeCount >= center.SeatCount {
-			c.Redirect(http.StatusFound, "/admin/center/teachers?error=seat_limit")
-			return
-		}
+		// Soft limit — allow reactivation regardless of seat count
 		h.Store.ActivateTeacher(ctx, teacherID)
 	}
 	c.Redirect(http.StatusFound, "/admin/center/teachers")
@@ -264,4 +253,111 @@ func (h *Handler) CenterCancelInvoice(c *gin.Context) {
 
 	h.Store.CancelInvoice(c.Request.Context(), invoiceID, *admin.CenterID)
 	c.Redirect(http.StatusFound, "/admin/center/billing?month="+month)
+}
+
+// ─── Center Students ────────────────────────────────────
+
+func (h *Handler) CenterStudents(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+	students, _ := h.Store.ListCenterStudents(ctx, center.ID)
+	classrooms, _ := h.Store.ListCenterClassrooms(ctx, center.ID)
+	studentCount := len(students)
+
+	h.render(c, "center_students.html", gin.H{
+		"Center":       center,
+		"Students":     students,
+		"Classrooms":   classrooms,
+		"StudentCount": studentCount,
+	})
+}
+
+func (h *Handler) CenterCreateStudent(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+
+	name := strings.TrimSpace(c.PostForm("name"))
+	email := strings.TrimSpace(c.PostForm("email"))
+	phone := strings.TrimSpace(c.PostForm("phone"))
+
+	if name == "" {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=missing_name")
+		return
+	}
+
+	_, err := h.Store.CreateCenterStudent(ctx, *admin.CenterID, name, email, phone)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=create_failed")
+		return
+	}
+	c.Redirect(http.StatusFound, "/admin/center/students?created=1")
+}
+
+func (h *Handler) CenterAssignStudent(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+
+	studentID, _ := strconv.Atoi(c.PostForm("student_id"))
+	classroomID, _ := strconv.Atoi(c.PostForm("classroom_id"))
+
+	if studentID == 0 || classroomID == 0 {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=invalid")
+		return
+	}
+
+	// Verify student belongs to this center
+	student, err := h.Store.GetStudent(ctx, studentID)
+	if err != nil || student.CenterID == nil || *student.CenterID != *admin.CenterID {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=not_found")
+		return
+	}
+
+	// Verify classroom belongs to this center (teacher's center_id matches)
+	classrooms, _ := h.Store.ListCenterClassrooms(ctx, *admin.CenterID)
+	found := false
+	for _, cl := range classrooms {
+		if cl.ID == classroomID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=classroom_not_found")
+		return
+	}
+
+	err = h.Store.AssignStudentToClassroom(ctx, studentID, classroomID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=assign_failed")
+		return
+	}
+	c.Redirect(http.StatusFound, "/admin/center/students?assigned=1")
+}
+
+func (h *Handler) CenterRemoveStudentFromClassroom(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+
+	studentID, _ := strconv.Atoi(c.PostForm("student_id"))
+	classroomID, _ := strconv.Atoi(c.PostForm("classroom_id"))
+
+	if studentID == 0 || classroomID == 0 {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=invalid")
+		return
+	}
+
+	// Verify student belongs to this center
+	student, err := h.Store.GetStudent(ctx, studentID)
+	if err != nil || student.CenterID == nil || *student.CenterID != *admin.CenterID {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=not_found")
+		return
+	}
+
+	h.Store.RemoveStudentFromClassroom(ctx, studentID, classroomID)
+	c.Redirect(http.StatusFound, "/admin/center/students?removed=1")
 }

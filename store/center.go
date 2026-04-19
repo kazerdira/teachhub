@@ -88,8 +88,8 @@ func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterT
 		                 WHERE c.admin_id = a.id AND cs.status='approved'), 0),
 		       a.last_login_at, a.created_at
 		FROM admin a
-		WHERE a.center_id = $1
-		ORDER BY a.role DESC, a.created_at ASC`, centerID)
+		WHERE a.center_id = $1 AND a.role = 'teacher'
+		ORDER BY a.created_at ASC`, centerID)
 	if err != nil {
 		return nil, err
 	}
@@ -248,4 +248,114 @@ func (s *Store) UpdateCenterSeats(ctx context.Context, centerID, seats int, pric
 		`UPDATE center SET seat_count=$1, price_per_seat=$2 WHERE id=$3`,
 		seats, price, centerID)
 	return err
+}
+
+// ─── Center students ────────────────────────────────────
+
+// CenterStudent is a view of a student at the center level with classroom assignments.
+type CenterStudent struct {
+	ID             int
+	Name           string
+	Email          string
+	Phone          string
+	ClassroomCount int
+	ClassroomNames string // comma-separated
+	CreatedAt      time.Time
+	LastLoginAt    *time.Time
+}
+
+// ListCenterStudents returns all students belonging to this center.
+func (s *Store) ListCenterStudents(ctx context.Context, centerID int) ([]CenterStudent, error) {
+	rows, err := s.DB.Query(ctx, `
+		SELECT s.id, s.name, COALESCE(s.email,''), COALESCE(s.phone,''),
+		       COALESCE((SELECT COUNT(DISTINCT cs.classroom_id)
+		                 FROM classroom_student cs
+		                 JOIN classroom c ON c.id = cs.classroom_id
+		                 JOIN admin a ON a.id = c.admin_id
+		                 WHERE cs.student_id = s.id AND a.center_id = $1 AND cs.status='approved'), 0),
+		       COALESCE((SELECT string_agg(DISTINCT c.name, ', ')
+		                 FROM classroom_student cs
+		                 JOIN classroom c ON c.id = cs.classroom_id
+		                 JOIN admin a ON a.id = c.admin_id
+		                 WHERE cs.student_id = s.id AND a.center_id = $1 AND cs.status='approved'), ''),
+		       s.created_at, s.last_login_at
+		FROM student s
+		WHERE s.center_id = $1
+		ORDER BY s.name ASC`, centerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var list []CenterStudent
+	for rows.Next() {
+		var st CenterStudent
+		if err := rows.Scan(&st.ID, &st.Name, &st.Email, &st.Phone,
+			&st.ClassroomCount, &st.ClassroomNames, &st.CreatedAt, &st.LastLoginAt); err != nil {
+			return nil, err
+		}
+		list = append(list, st)
+	}
+	return list, nil
+}
+
+// CountCenterStudents returns the total number of students at a center.
+func (s *Store) CountCenterStudents(ctx context.Context, centerID int) (int, error) {
+	var count int
+	err := s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM student WHERE center_id=$1`, centerID).Scan(&count)
+	return count, err
+}
+
+// CreateCenterStudent creates a student at the center level (not yet assigned to any classroom).
+func (s *Store) CreateCenterStudent(ctx context.Context, centerID int, name, email, phone string) (int, error) {
+	var id int
+	err := s.DB.QueryRow(ctx,
+		`INSERT INTO student (name, email, phone, center_id) VALUES ($1, $2, $3, $4) RETURNING id`,
+		name, email, phone, centerID).Scan(&id)
+	return id, err
+}
+
+// AssignStudentToClassroom assigns a center student to a classroom (auto-approved).
+func (s *Store) AssignStudentToClassroom(ctx context.Context, studentID, classroomID int) error {
+	_, err := s.DB.Exec(ctx,
+		`INSERT INTO classroom_student (classroom_id, student_id, status) VALUES ($1, $2, 'approved')
+		 ON CONFLICT (classroom_id, student_id) DO UPDATE SET status='approved'`,
+		classroomID, studentID)
+	return err
+}
+
+// ListCenterClassrooms returns all classrooms in a center (across all teachers).
+func (s *Store) ListCenterClassrooms(ctx context.Context, centerID int) ([]Classroom, error) {
+	rows, err := s.DB.Query(ctx, `
+		SELECT c.id, c.name, c.join_code, COALESCE(c.subject,''), COALESCE(c.level,''),
+		       a.id, COALESCE(a.display_name, a.username),
+		       COALESCE((SELECT COUNT(*) FROM classroom_student cs WHERE cs.classroom_id=c.id AND cs.status='approved'),0),
+		       c.created_at
+		FROM classroom c
+		JOIN admin a ON a.id = c.admin_id
+		WHERE a.center_id = $1
+		ORDER BY a.display_name, c.name`, centerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	type classWithTeacher struct {
+		Classroom
+		TeacherID   int
+		TeacherName string
+	}
+	var list []Classroom
+	for rows.Next() {
+		var cl Classroom
+		var teacherID int
+		var teacherName string
+		if err := rows.Scan(&cl.ID, &cl.Name, &cl.JoinCode, &cl.Subject, &cl.Level,
+			&teacherID, &teacherName, &cl.StudentCount, &cl.CreatedAt); err != nil {
+			return nil, err
+		}
+		// Store teacher name in the Subject field temporarily for display
+		// (we'll use a proper struct in the template)
+		cl.TeacherName = teacherName // teacher display name for center context
+		list = append(list, cl)
+	}
+	return list, nil
 }

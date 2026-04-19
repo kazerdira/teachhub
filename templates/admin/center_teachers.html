@@ -47,7 +47,6 @@
 {{end}}
 
 <!-- Add Teacher Form -->
-{{if lt .ActiveCount .SeatCount}}
 <div class="card" style="padding:1.5rem;margin-bottom:2rem;">
     <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Add Teacher</h2>
     <form method="POST" action="/admin/center/teachers/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
@@ -71,11 +70,11 @@
         </div>
     </form>
 </div>
-{{else}}
-<div class="card" style="padding:1.25rem;margin-bottom:2rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.05);">
+{{if ge .ActiveCount .SeatCount}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.05);">
     <div style="display:flex;align-items:center;gap:8px;">
         <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;">warning</span>
-        <span style="font-size:0.875rem;color:#92400e;font-weight:500;">All seats are used ({{.ActiveCount}}/{{.SeatCount}}). Contact support to add more seats.</span>
+        <span style="font-size:0.875rem;color:#92400e;font-weight:500;">You've reached your seat limit ({{.ActiveCount}}/{{.SeatCount}}). Contact support to increase seats.</span>
     </div>
 </div>
 {{end}}

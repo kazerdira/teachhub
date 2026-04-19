@@ -470,3 +470,20 @@ CREATE TABLE IF NOT EXISTS parent_view_log (
 );
 CREATE INDEX IF NOT EXISTS idx_pvl_code ON parent_view_log(parent_code);
 CREATE INDEX IF NOT EXISTS idx_pvl_date ON parent_view_log(viewed_at);
+
+-- ─── Center-level students (migration-safe) ─────────────
+-- Students belong to a center. They get assigned to classrooms by owner or teacher.
+ALTER TABLE student ADD COLUMN IF NOT EXISTS center_id INT REFERENCES center(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_student_center ON student(center_id);
+
+-- Backfill: assign existing students to the center of their first classroom's teacher
+DO $$ BEGIN
+    UPDATE student s SET center_id = (
+        SELECT a.center_id
+        FROM classroom_student cs
+        JOIN classroom c ON c.id = cs.classroom_id
+        JOIN admin a ON a.id = c.admin_id
+        WHERE cs.student_id = s.id AND a.center_id IS NOT NULL
+        LIMIT 1
+    ) WHERE s.center_id IS NULL;
+END $$;

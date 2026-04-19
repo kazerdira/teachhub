@@ -108,12 +108,25 @@
                 <span style="font-weight:700;font-size:16px;color:#1a1a2e;letter-spacing:-0.02em;">TeachHub</span>
                 <span style="font-size:11px;color:#6c5ce7;font-weight:600;background:rgba(108,92,231,0.1);padding:2px 8px;border-radius:6px;">admin</span>
             </a>
-            <div class="flex items-center gap-3">
+            <!-- Desktop nav -->
+            <div class="flex items-center gap-3" id="navDesktop" style="display:flex;">
                 {{if eq .AdminRole "owner"}}
-                <a href="/admin/center" style="font-size:13px;color:#8b8ba3;text-decoration:none;transition:color 0.15s;display:flex;align-items:center;gap:3px;" onmouseover="this.style.color='#6c5ce7'" onmouseout="this.style.color='#8b8ba3'"><span class="material-symbols-outlined" style="font-size:16px;">domain</span><span class="hidden sm:inline">Center</span></a>
-                <a href="/admin/center/teachers" style="font-size:13px;color:#8b8ba3;text-decoration:none;transition:color 0.15s;display:flex;align-items:center;gap:3px;" onmouseover="this.style.color='#6c5ce7'" onmouseout="this.style.color='#8b8ba3'"><span class="material-symbols-outlined" style="font-size:16px;">group</span><span class="hidden sm:inline">Teachers</span></a>
-                <a href="/admin/center/billing" style="font-size:13px;color:#8b8ba3;text-decoration:none;transition:color 0.15s;display:flex;align-items:center;gap:3px;" onmouseover="this.style.color='#6c5ce7'" onmouseout="this.style.color='#8b8ba3'"><span class="material-symbols-outlined" style="font-size:16px;">receipt_long</span><span class="hidden sm:inline">{{t .Lang "billing"}}</span></a>
-                <a href="/admin/center/settings" style="font-size:13px;color:#8b8ba3;text-decoration:none;transition:color 0.15s;display:flex;align-items:center;gap:3px;" onmouseover="this.style.color='#6c5ce7'" onmouseout="this.style.color='#8b8ba3'"><span class="material-symbols-outlined" style="font-size:16px;">settings</span><span class="hidden sm:inline">Settings</span></a>
+                <!-- Center dropdown -->
+                <div style="position:relative;" id="centerDropdown">
+                    <button onclick="document.getElementById('centerMenu').classList.toggle('show-menu')" style="font-size:13px;color:#6c5ce7;background:rgba(108,92,231,0.08);border:1px solid rgba(108,92,231,0.15);padding:5px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:4px;font-weight:600;transition:all 0.15s;" onmouseover="this.style.background='rgba(108,92,231,0.14)'" onmouseout="this.style.background='rgba(108,92,231,0.08)'">
+                        <span class="material-symbols-outlined" style="font-size:16px;">domain</span>
+                        Center
+                        <span class="material-symbols-outlined" style="font-size:14px;">expand_more</span>
+                    </button>
+                    <div id="centerMenu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.12);min-width:200px;padding:6px;z-index:100;">
+                        <a href="/admin/center" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;color:#374151;transition:background 0.1s;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:16px;color:#6c5ce7;">dashboard</span> Dashboard</a>
+                        <a href="/admin/center/teachers" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;color:#374151;transition:background 0.1s;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:16px;color:#6c5ce7;">group</span> Teachers</a>
+                        <a href="/admin/center/students" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;color:#374151;transition:background 0.1s;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:16px;color:#6c5ce7;">people</span> Students</a>
+                        <a href="/admin/center/billing" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;color:#374151;transition:background 0.1s;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:16px;color:#6c5ce7;">receipt_long</span> {{t .Lang "billing"}}</a>
+                        <div style="height:1px;background:rgba(0,0,0,0.06);margin:4px 8px;"></div>
+                        <a href="/admin/center/settings" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:13px;color:#374151;transition:background 0.1s;" onmouseover="this.style.background='rgba(99,102,241,0.06)'" onmouseout="this.style.background='transparent'"><span class="material-symbols-outlined" style="font-size:16px;color:#8b8ba3;">settings</span> Settings</a>
+                    </div>
+                </div>
                 <a href="/admin" style="font-size:13px;color:#8b8ba3;text-decoration:none;transition:color 0.15s;display:flex;align-items:center;gap:3px;" onmouseover="this.style.color='#6c5ce7'" onmouseout="this.style.color='#8b8ba3'"><span class="material-symbols-outlined" style="font-size:16px;">school</span><span class="hidden sm:inline">{{t .Lang "nav_my_classes"}}</span></a>
                 {{end}}
                 <a href="/admin/profile" style="font-size:13px;color:#8b8ba3;text-decoration:none;transition:color 0.15s;display:flex;align-items:center;gap:3px;" onmouseover="this.style.color='#6c5ce7'" onmouseout="this.style.color='#8b8ba3'"><span class="material-symbols-outlined" style="font-size:16px;">person</span><span class="hidden sm:inline">{{t .Lang "nav_profile"}}</span></a>
@@ -123,6 +136,17 @@
             </div>
         </div>
     </nav>
+    <style>
+    #centerMenu.show-menu{display:block!important;animation:dropIn 0.15s ease;}
+    @keyframes dropIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+    @media(max-width:640px){
+        #navDesktop .hidden{display:none!important;}
+        #navDesktop{gap:6px!important;}
+    }
+    </style>
+    <script>
+    document.addEventListener('click',function(e){var m=document.getElementById('centerMenu');if(m&&!e.target.closest('#centerDropdown'))m.classList.remove('show-menu');});
+    </script>
     <main class="max-w-5xl mx-auto px-4 py-8" style="flex:1;width:100%;position:relative;z-index:1;">
 {{end}}
 
