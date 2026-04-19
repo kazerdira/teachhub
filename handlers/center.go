@@ -29,11 +29,15 @@ func (h *Handler) CenterDashboard(c *gin.Context) {
 		stats.SeatCount = center.SeatCount
 	}
 	teachers, _ := h.Store.ListCenterTeachers(c.Request.Context(), center.ID)
+	dashStats, _ := h.Store.GetCenterDashboardStats(c.Request.Context(), center.ID)
+	performance, _ := h.Store.GetCenterTeacherPerformance(c.Request.Context(), center.ID)
 
 	h.render(c, "center_dashboard.html", gin.H{
-		"Center":   center,
-		"Stats":    stats,
-		"Teachers": teachers,
+		"Center":      center,
+		"Stats":       stats,
+		"Teachers":    teachers,
+		"DashStats":   dashStats,
+		"Performance": performance,
 	})
 }
 

@@ -644,3 +644,74 @@ func (h *Handler) PlatformChangePassword(c *gin.Context) {
 	h.Store.UpdatePlatformAdminPassword(c.Request.Context(), adminID, string(hashed))
 	c.Redirect(http.StatusFound, h.pp("/password?success=1"))
 }
+
+// ─── Platform Admin: Center Management ──────────────────
+
+func (h *Handler) PlatformCenters(c *gin.Context) {
+	ctx := c.Request.Context()
+	centers, _ := h.Store.ListCenters(ctx)
+	h.platformRender(c, "platform_centers.html", gin.H{
+		"Centers": centers,
+	})
+}
+
+func (h *Handler) PlatformCenterDetail(c *gin.Context) {
+	ctx := c.Request.Context()
+	centerID, _ := strconv.Atoi(c.Param("id"))
+	center, err := h.Store.GetCenter(ctx, centerID)
+	if err != nil {
+		c.Redirect(http.StatusFound, h.pp("/centers"))
+		return
+	}
+	teachers, _ := h.Store.ListCenterTeachers(ctx, centerID)
+	stats, _ := h.Store.GetCenterStats(ctx, centerID)
+	teacherCount, _ := h.Store.CountCenterTeachers(ctx, centerID)
+
+	h.platformRender(c, "platform_center_detail.html", gin.H{
+		"Center":       center,
+		"Teachers":     teachers,
+		"Stats":        stats,
+		"TeacherCount": teacherCount,
+		"Saved":        c.Query("saved"),
+		"Error":        c.Query("error"),
+	})
+}
+
+func (h *Handler) PlatformCenterUpdateSeats(c *gin.Context) {
+	ctx := c.Request.Context()
+	centerID, _ := strconv.Atoi(c.Param("id"))
+	seats, _ := strconv.Atoi(c.PostForm("seat_count"))
+	price, _ := strconv.ParseFloat(c.PostForm("price_per_seat"), 64)
+	if seats < 1 {
+		seats = 1
+	}
+	if price < 0 {
+		price = 0
+	}
+	h.Store.UpdateCenterSeats(ctx, centerID, seats, price)
+	c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?saved=seats"))
+}
+
+func (h *Handler) PlatformCenterUpdateSubscription(c *gin.Context) {
+	ctx := c.Request.Context()
+	centerID, _ := strconv.Atoi(c.Param("id"))
+	status := c.PostForm("status")
+	validStatuses := map[string]bool{"trial": true, "active": true, "expired": true, "suspended": true, "cancelled": true}
+	if !validStatuses[status] {
+		c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?error=invalid_status"))
+		return
+	}
+	var start, end *time.Time
+	if s := c.PostForm("subscription_start"); s != "" {
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			start = &t
+		}
+	}
+	if e := c.PostForm("subscription_end"); e != "" {
+		if t, err := time.Parse("2006-01-02", e); err == nil {
+			end = &t
+		}
+	}
+	h.Store.UpdateCenterSubscription(ctx, centerID, status, start, end)
+	c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?saved=subscription"))
+}

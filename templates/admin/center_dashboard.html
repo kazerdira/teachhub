@@ -50,6 +50,26 @@
         </div>
         <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{if .Stats}}{{.Stats.SessionCount}}{{else}}0{{end}}</div>
     </div>
+    {{if .DashStats}}
+    <div class="card" style="padding:1.25rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(34,197,94,0.1);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="color:#22c55e;font-size:18px;">payments</span>
+            </div>
+            <span style="font-size:0.75rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Revenue (month)</span>
+        </div>
+        <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{printf "%.0f" .DashStats.RevenueThisMonth}} <span style="font-size:0.875rem;font-weight:500;color:#8b8ba3;">DA</span></div>
+    </div>
+    <div class="card" style="padding:1.25rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;">
+                <span class="material-symbols-outlined" style="color:#3b82f6;font-size:18px;">visibility</span>
+            </div>
+            <span style="font-size:0.75rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Parent Views (week)</span>
+        </div>
+        <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{.DashStats.ParentViewsWeek}}</div>
+    </div>
+    {{end}}
 </div>
 
 <!-- Subscription Status -->
@@ -113,6 +133,46 @@
     <p style="text-align:center;color:#8b8ba3;padding:2rem;font-size:0.875rem;">No teachers yet. <a href="/admin/center/teachers" style="color:#6366f1;text-decoration:none;font-weight:600;">Add your first teacher</a></p>
     {{end}}
 </div>
+
+<!-- Teacher Performance -->
+{{if .Performance}}
+<div class="card" style="padding:1.5rem;margin-top:1.5rem;">
+    <h2 style="font-size:1.125rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Teacher Performance</h2>
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+            <thead>
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Teacher</th>
+                    <th style="text-align:center;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Classes</th>
+                    <th style="text-align:center;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Students</th>
+                    <th style="text-align:center;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Avg Quiz %</th>
+                    <th style="text-align:center;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Sessions (month)</th>
+                    <th style="text-align:center;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Last Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Performance}}
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.03);">
+                    <td style="padding:0.625rem 0.75rem;">
+                        <div style="font-weight:600;color:#1a1a2e;">{{.Username}}</div>
+                        <div style="font-size:0.6875rem;color:#8b8ba3;">{{.Email}}</div>
+                    </td>
+                    <td style="padding:0.625rem 0.75rem;text-align:center;color:#6b7280;">{{.ClassroomCount}}</td>
+                    <td style="padding:0.625rem 0.75rem;text-align:center;color:#6b7280;">{{.StudentCount}}</td>
+                    <td style="padding:0.625rem 0.75rem;text-align:center;">
+                        <span style="font-weight:600;{{if gt .AvgQuizPct 70.0}}color:#059669;{{else if gt .AvgQuizPct 50.0}}color:#d97706;{{else}}color:#dc2626;{{end}}">{{printf "%.0f" .AvgQuizPct}}%</span>
+                    </td>
+                    <td style="padding:0.625rem 0.75rem;text-align:center;color:#6b7280;">{{.SessionsThisMonth}}</td>
+                    <td style="padding:0.625rem 0.75rem;text-align:center;color:#8b8ba3;font-size:0.75rem;">
+                        {{if .LastActive}}{{.LastActive.Format "02 Jan 15:04"}}{{else}}Never{{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
 
 <!-- Quick Links -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1.5rem;">

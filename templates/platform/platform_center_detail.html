@@ -1,0 +1,195 @@
+{{define "platform_center_detail.html"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeachHub Platform — {{.Center.Name}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/fonts/inter.css">
+    <style>
+        .card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:0.75rem;transition:border-color 0.15s}
+        .card:hover{border-color:rgba(139,92,246,0.25)}
+        .stat-box{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:0.75rem;padding:1rem 1.25rem;text-align:center}
+        .form-label{display:block;font-size:0.6875rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem}
+        .form-input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.5rem;padding:0.5rem 0.75rem;color:#fff;font-size:0.8125rem;width:100%;outline:none;transition:border-color 0.15s}
+        .form-input:focus{border-color:rgba(139,92,246,0.5)}
+        .form-select{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:0.5rem;padding:0.5rem 0.75rem;color:#fff;font-size:0.8125rem;width:100%;outline:none}
+        .btn-save{background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;padding:0.5rem 1.25rem;border-radius:0.5rem;font-size:0.8125rem;font-weight:600;cursor:pointer;transition:opacity 0.15s}
+        .btn-save:hover{opacity:0.9}
+        .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+        .dot-g{background:#22c55e}.dot-r{background:#ef4444}
+        .alert-ok{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:0.5rem;padding:0.75rem 1rem;color:#4ade80;font-size:0.8125rem;margin-bottom:1.5rem}
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen font-sans text-white">
+    <nav class="bg-slate-900/80 backdrop-blur border-b border-white/10 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <a href="{{.PlatformPath}}" class="text-lg font-bold tracking-tight flex items-center gap-2">
+                🏢 TeachHub <span class="text-purple-400 text-xs font-normal">Platform</span>
+            </a>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="{{.PlatformPath}}" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_dashboard"}}</a>
+                <a href="{{.PlatformPath}}/applications" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_applications"}}</a>
+                <a href="{{.PlatformPath}}/teachers" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_teachers"}}</a>
+                <a href="{{.PlatformPath}}/centers" class="text-white font-medium">Centers</a>
+                <a href="{{.PlatformPath}}/analytics" class="text-slate-300 hover:text-white transition">{{t .Lang "plat_nav_analytics"}}</a>
+                <span class="text-white/20">|</span>
+                <a href="{{.PlatformPath}}/logout" class="text-slate-400 hover:text-red-400 transition">{{t .Lang "nav_logout"}}</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Breadcrumb -->
+        <div style="margin-bottom:1.5rem;">
+            <a href="{{.PlatformPath}}/centers" style="color:#a78bfa;text-decoration:none;font-size:0.8125rem;display:inline-flex;align-items:center;gap:4px;">
+                ← Back to Centers
+            </a>
+        </div>
+
+        {{if .Saved}}
+        <div class="alert-ok">
+            {{if eq .Saved "seats"}}Seat count updated successfully.
+            {{else if eq .Saved "subscription"}}Subscription updated successfully.
+            {{else}}Changes saved.{{end}}
+        </div>
+        {{end}}
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:2rem;">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🏫</div>
+            <div>
+                <h1 class="text-2xl font-bold" style="margin:0;">{{.Center.Name}}</h1>
+                <p style="color:#64748b;font-size:0.8125rem;margin:0.25rem 0 0;">{{.Center.Email}} · Created {{.Center.CreatedAt.Format "02 Jan 2006"}}</p>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1rem;margin-bottom:2rem;">
+            <div class="stat-box">
+                <div style="font-size:1.5rem;font-weight:800;color:#c4b5fd;">{{.TeacherCount}}</div>
+                <div style="font-size:0.6875rem;color:#64748b;">Teachers (excl. owner)</div>
+            </div>
+            <div class="stat-box">
+                <div style="font-size:1.5rem;font-weight:800;color:#c4b5fd;">{{.Center.SeatCount}}</div>
+                <div style="font-size:0.6875rem;color:#64748b;">Seat Limit</div>
+            </div>
+            {{if .Stats}}
+            <div class="stat-box">
+                <div style="font-size:1.5rem;font-weight:800;color:#4ade80;">{{.Stats.StudentCount}}</div>
+                <div style="font-size:0.6875rem;color:#64748b;">Students</div>
+            </div>
+            <div class="stat-box">
+                <div style="font-size:1.5rem;font-weight:800;color:#fbbf24;">{{.Stats.ClassCount}}</div>
+                <div style="font-size:0.6875rem;color:#64748b;">Classrooms</div>
+            </div>
+            <div class="stat-box">
+                <div style="font-size:1.5rem;font-weight:800;color:#38bdf8;">{{.Stats.SessionCount}}</div>
+                <div style="font-size:0.6875rem;color:#64748b;">Sessions</div>
+            </div>
+            {{end}}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
+            <!-- Seats Management -->
+            <div class="card" style="padding:1.5rem;">
+                <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Seats & Pricing</h2>
+                <form method="POST" action="{{.PlatformPath}}/centers/{{.Center.ID}}/seats">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div>
+                            <label class="form-label">Seat Count</label>
+                            <input type="number" name="seat_count" value="{{.Center.SeatCount}}" min="1" max="100" class="form-input">
+                        </div>
+                        <div>
+                            <label class="form-label">Price per Seat (DA)</label>
+                            <input type="number" name="price_per_seat" value="{{printf "%.0f" .Center.PricePerSeat}}" min="0" step="100" class="form-input">
+                        </div>
+                    </div>
+                    <p style="font-size:0.75rem;color:#64748b;margin:0 0 1rem;">Currently using <strong style="color:#c4b5fd;">{{.TeacherCount}}</strong> of <strong style="color:#c4b5fd;">{{.Center.SeatCount}}</strong> teacher seats (owner not counted).</p>
+                    <button type="submit" class="btn-save">Update Seats</button>
+                </form>
+            </div>
+
+            <!-- Subscription Management -->
+            <div class="card" style="padding:1.5rem;">
+                <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Subscription</h2>
+                <form method="POST" action="{{.PlatformPath}}/centers/{{.Center.ID}}/subscription">
+                    <div style="margin-bottom:1rem;">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="trial" {{if eq .Center.SubscriptionStatus "trial"}}selected{{end}}>Trial</option>
+                            <option value="active" {{if eq .Center.SubscriptionStatus "active"}}selected{{end}}>Active</option>
+                            <option value="expired" {{if eq .Center.SubscriptionStatus "expired"}}selected{{end}}>Expired</option>
+                            <option value="suspended" {{if eq .Center.SubscriptionStatus "suspended"}}selected{{end}}>Suspended</option>
+                            <option value="cancelled" {{if eq .Center.SubscriptionStatus "cancelled"}}selected{{end}}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                        <div>
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="subscription_start" value="{{if .Center.SubscriptionStart}}{{.Center.SubscriptionStart.Format "2006-01-02"}}{{end}}" class="form-input">
+                        </div>
+                        <div>
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="subscription_end" value="{{if .Center.SubscriptionEnd}}{{.Center.SubscriptionEnd.Format "2006-01-02"}}{{end}}" class="form-input">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-save">Update Subscription</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Teachers in this center -->
+        <div class="card" style="padding:1.5rem;">
+            <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Teachers ({{len .Teachers}})</h2>
+            {{if .Teachers}}
+            <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+                <thead>
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <th style="text-align:left;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Username</th>
+                        <th style="text-align:left;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Email</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Classes</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Students</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Teachers}}
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                        <td style="padding:0.625rem 0.75rem;font-weight:600;color:#e2e8f0;">
+                            {{.Username}}
+                        </td>
+                        <td style="padding:0.625rem 0.75rem;color:#94a3b8;">{{.Email}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;color:#94a3b8;">{{.ClassroomCount}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;color:#94a3b8;">{{.StudentCount}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;">
+                            {{if .Active}}
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;"><span class="dot dot-g"></span> Active</span>
+                            {{else}}
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;color:#64748b;"><span class="dot dot-r"></span> Inactive</span>
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            {{else}}
+            <p style="color:#64748b;font-size:0.875rem;text-align:center;padding:2rem 0;">No teachers in this center yet.</p>
+            {{end}}
+        </div>
+
+        <!-- Center Info -->
+        <div class="card" style="padding:1.5rem;margin-top:1.5rem;">
+            <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Center Info</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;font-size:0.8125rem;">
+                <div><span style="color:#64748b;">Address:</span> <span style="color:#e2e8f0;">{{if .Center.Address}}{{.Center.Address}}{{else}}—{{end}}</span></div>
+                <div><span style="color:#64748b;">City:</span> <span style="color:#e2e8f0;">{{if .Center.City}}{{.Center.City}}{{else}}—{{end}}</span></div>
+                <div><span style="color:#64748b;">Phone:</span> <span style="color:#e2e8f0;">{{if .Center.Phone}}{{.Center.Phone}}{{else}}—{{end}}</span></div>
+                <div><span style="color:#64748b;">Country:</span> <span style="color:#e2e8f0;">{{.Center.Country}}</span></div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
+{{end}}

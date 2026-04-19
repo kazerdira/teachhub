@@ -107,7 +107,7 @@ func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterT
 func (s *Store) CountCenterTeachers(ctx context.Context, centerID int) (int, error) {
 	var count int
 	err := s.DB.QueryRow(ctx,
-		`SELECT COUNT(*) FROM admin WHERE center_id=$1 AND active=true`, centerID).Scan(&count)
+		`SELECT COUNT(*) FROM admin WHERE center_id=$1 AND active=true AND role='teacher'`, centerID).Scan(&count)
 	return count, err
 }
 
@@ -159,9 +159,9 @@ type CenterStats struct {
 func (s *Store) GetCenterStats(ctx context.Context, centerID int) (*CenterStats, error) {
 	st := &CenterStats{}
 
-	// Active teachers
+	// Active teachers (exclude owner — owner doesn't occupy a seat)
 	s.DB.QueryRow(ctx,
-		`SELECT COUNT(*) FROM admin WHERE center_id=$1 AND active=true`, centerID).Scan(&st.ActiveSeats)
+		`SELECT COUNT(*) FROM admin WHERE center_id=$1 AND active=true AND role='teacher'`, centerID).Scan(&st.ActiveSeats)
 	st.TeacherCount = st.ActiveSeats
 
 	// Total students across center teachers
@@ -238,5 +238,12 @@ func (s *Store) UpdateCenterSubscription(ctx context.Context, centerID int, stat
 	_, err := s.DB.Exec(ctx,
 		`UPDATE center SET subscription_status=$1, subscription_start=$2, subscription_end=$3 WHERE id=$4`,
 		status, start, end, centerID)
+	return err
+}
+
+func (s *Store) UpdateCenterSeats(ctx context.Context, centerID, seats int, price float64) error {
+	_, err := s.DB.Exec(ctx,
+		`UPDATE center SET seat_count=$1, price_per_seat=$2 WHERE id=$3`,
+		seats, price, centerID)
 	return err
 }
