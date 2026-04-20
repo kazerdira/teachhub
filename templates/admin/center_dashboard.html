@@ -22,6 +22,7 @@
             <span style="font-size:0.75rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Teachers</span>
         </div>
         <div style="font-size:1.75rem;font-weight:800;color:#1a1a2e;">{{if .Stats}}{{.Stats.ActiveSeats}}{{else}}0{{end}} <span style="font-size:0.875rem;font-weight:500;color:#8b8ba3;">/ {{if .Stats}}{{.Stats.SeatCount}}{{else}}0{{end}} seats</span></div>
+        <div style="font-size:0.6875rem;color:#8b8ba3;margin-top:2px;">{{printf "%.0f" .PricePerSeat}} {{.Currency}}/seat/month</div>
     </div>
     <div class="card" style="padding:1.25rem;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.5rem;">
@@ -88,7 +89,13 @@
         </div>
     </div>
     <div style="font-size:0.8125rem;color:#8b8ba3;">
-        {{.Center.SeatCount}} seat{{if gt .Center.SeatCount 1}}s{{end}} included
+        {{.Center.SeatCount}} seat{{if gt .Center.SeatCount 1}}s{{end}} · {{printf "%.0f" .PricePerSeat}} {{.Currency}}/seat/month
+        {{if and (eq .Center.SubscriptionStatus "trial") .Center.TrialEndsAt}}
+         · Trial ends {{.Center.TrialEndsAt.Format "02 Jan 2006"}}
+        {{end}}
+        {{if .Center.SubscriptionEnd}}
+         · Renews {{.Center.SubscriptionEnd.Format "02 Jan 2006"}}
+        {{end}}
     </div>
 </div>
 

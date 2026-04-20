@@ -33,12 +33,19 @@ func (h *Handler) CenterDashboard(c *gin.Context) {
 	dashStats, _ := h.Store.GetCenterDashboardStats(c.Request.Context(), center.ID)
 	performance, _ := h.Store.GetCenterTeacherPerformance(c.Request.Context(), center.ID)
 
+	currency := "DA"
+	if center.Country == "FR" {
+		currency = "€"
+	}
+
 	h.render(c, "center_dashboard.html", gin.H{
-		"Center":      center,
-		"Stats":       stats,
-		"Teachers":    teachers,
-		"DashStats":   dashStats,
-		"Performance": performance,
+		"Center":       center,
+		"Stats":        stats,
+		"Teachers":     teachers,
+		"DashStats":    dashStats,
+		"Performance":  performance,
+		"Currency":     currency,
+		"PricePerSeat": center.PricePerSeat,
 	})
 }
 
@@ -54,11 +61,19 @@ func (h *Handler) CenterTeachers(c *gin.Context) {
 	teachers, _ := h.Store.ListCenterTeachers(c.Request.Context(), center.ID)
 	activeCount, _ := h.Store.CountCenterTeachers(c.Request.Context(), center.ID)
 
+	currency := "DA"
+	if center.Country == "FR" {
+		currency = "€"
+	}
+
 	h.render(c, "center_teachers.html", gin.H{
-		"Center":      center,
-		"Teachers":    teachers,
-		"ActiveCount": activeCount,
-		"SeatCount":   center.SeatCount,
+		"Center":       center,
+		"Teachers":     teachers,
+		"ActiveCount":  activeCount,
+		"SeatCount":    center.SeatCount,
+		"PricePerSeat": center.PricePerSeat,
+		"Currency":     currency,
+		"AtLimit":      activeCount >= center.SeatCount,
 	})
 }
 
@@ -69,6 +84,13 @@ func (h *Handler) CenterCreateTeacher(c *gin.Context) {
 	center, _ := h.Store.GetCenter(ctx, *admin.CenterID)
 	if center == nil {
 		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+
+	// Check seat availability (only role='teacher' counts, owner is free)
+	activeTeachers, _ := h.Store.CountCenterTeachers(ctx, center.ID)
+	if activeTeachers >= center.SeatCount {
+		c.Redirect(http.StatusFound, "/admin/center/teachers?error=seat_limit")
 		return
 	}
 
@@ -126,7 +148,13 @@ func (h *Handler) CenterToggleTeacher(c *gin.Context) {
 	if teacher.Active {
 		h.Store.DeactivateTeacher(ctx, teacherID)
 	} else {
-		// Soft limit — allow reactivation regardless of seat count
+		// Check seat availability before reactivation
+		center, _ := h.Store.GetCenter(ctx, *admin.CenterID)
+		activeTeachers, _ := h.Store.CountCenterTeachers(ctx, center.ID)
+		if activeTeachers >= center.SeatCount {
+			c.Redirect(http.StatusFound, "/admin/center/teachers?error=seat_limit")
+			return
+		}
 		h.Store.ActivateTeacher(ctx, teacherID)
 	}
 	c.Redirect(http.StatusFound, "/admin/center/teachers")
@@ -141,8 +169,16 @@ func (h *Handler) CenterSettings(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin")
 		return
 	}
+	activeCount, _ := h.Store.CountCenterTeachers(c.Request.Context(), center.ID)
+	currency := "DA"
+	if center.Country == "FR" {
+		currency = "€"
+	}
 	h.render(c, "center_settings.html", gin.H{
-		"Center": center,
+		"Center":       center,
+		"ActiveCount":  activeCount,
+		"PricePerSeat": center.PricePerSeat,
+		"Currency":     currency,
 	})
 }
 

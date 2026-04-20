@@ -62,10 +62,10 @@
     </form>
 </div>
 
-<!-- Read-Only Info -->
+<!-- Subscription & Billing -->
 <div class="card" style="padding:1.5rem;margin-top:1.5rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Subscription Info</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;font-size:0.8125rem;">
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Subscription & Billing</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;font-size:0.8125rem;margin-bottom:1.25rem;">
         <div>
             <span style="color:#8b8ba3;font-weight:500;">Status</span>
             <div style="margin-top:2px;">
@@ -79,23 +79,38 @@
             </div>
         </div>
         <div>
-            <span style="color:#8b8ba3;font-weight:500;">Seats</span>
-            <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{.Center.SeatCount}}</div>
+            <span style="color:#8b8ba3;font-weight:500;">Teacher Seats</span>
+            <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{.ActiveCount}} / {{.Center.SeatCount}} used</div>
+        </div>
+        <div>
+            <span style="color:#8b8ba3;font-weight:500;">Price per Seat</span>
+            <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{printf "%.0f" .PricePerSeat}} {{.Currency}} / month</div>
         </div>
         {{if .Center.SubscriptionEnd}}
         <div>
-            <span style="color:#8b8ba3;font-weight:500;">Expires</span>
+            <span style="color:#8b8ba3;font-weight:500;">Renews</span>
             <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{.Center.SubscriptionEnd.Format "02 Jan 2006"}}</div>
         </div>
         {{end}}
-        {{if .Center.TrialEndsAt}}
+        {{if and (eq .Center.SubscriptionStatus "trial") .Center.TrialEndsAt}}
         <div>
             <span style="color:#8b8ba3;font-weight:500;">Trial Ends</span>
-            <div style="margin-top:2px;font-weight:600;color:#1a1a2e;">{{.Center.TrialEndsAt.Format "02 Jan 2006"}}</div>
+            <div style="margin-top:2px;font-weight:600;color:#d97706;">{{.Center.TrialEndsAt.Format "02 Jan 2006"}}</div>
         </div>
         {{end}}
     </div>
-    <p style="font-size:0.75rem;color:#8b8ba3;margin:1rem 0 0;">Contact platform admin to change subscription or seat count.</p>
+    <div style="background:rgba(99,102,241,0.04);border-radius:10px;padding:1rem;font-size:0.8125rem;color:#374151;border:1px solid rgba(99,102,241,0.1);">
+        <div style="font-weight:600;color:#1a1a2e;margin-bottom:0.5rem;">
+            <span class="material-symbols-outlined" style="font-size:16px;vertical-align:text-bottom;color:#6366f1;">info</span>
+            Billing Info
+        </div>
+        <ul style="margin:0;padding-left:1.25rem;line-height:1.8;">
+            <li>Your account (center owner) is <strong>free</strong> — you only pay per teacher seat.</li>
+            <li>Each seat costs <strong>{{printf "%.0f" .PricePerSeat}} {{.Currency}}/month</strong>.</li>
+            <li>To add more seats or renew your subscription, contact TeachHub support.</li>
+            <li>Deactivating a teacher frees the seat for reuse.</li>
+        </ul>
+    </div>
 </div>
 
 {{template "admin_foot" .}}

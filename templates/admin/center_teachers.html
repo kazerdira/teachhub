@@ -15,7 +15,7 @@
 {{if .Query.error}}
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
     <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
-    {{if eq .Query.error "seat_limit"}}Seat limit reached. Upgrade your plan to add more teachers.
+    {{if eq .Query.error "seat_limit"}}You've used all your teacher seats ({{.ActiveCount}}/{{.SeatCount}}). Purchase additional seats to add more teachers.
     {{else if eq .Query.error "username_taken"}}Could not create account. Please try a different email.
     {{else if eq .Query.error "missing_fields"}}Full name and email are required.
     {{else if eq .Query.error "self"}}You cannot deactivate yourself.
@@ -46,7 +46,32 @@
 </div>
 {{end}}
 
-<!-- Add Teacher Form -->
+<!-- Add Teacher Form / Seat Limit -->
+{{if .AtLimit}}
+<div class="card" style="padding:1.5rem;margin-bottom:2rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.03);">
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="width:42px;height:42px;border-radius:10px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span class="material-symbols-outlined" style="color:#d97706;font-size:22px;">upgrade</span>
+        </div>
+        <div>
+            <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 0.5rem;">All seats used ({{.ActiveCount}}/{{.SeatCount}})</h2>
+            <p style="font-size:0.875rem;color:#6b7280;margin:0 0 0.75rem;">To add another teacher, purchase an additional seat at <strong>{{printf "%.0f" .PricePerSeat}} {{.Currency}}/month</strong> per teacher.</p>
+            <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:1rem;font-size:0.8125rem;color:#374151;">
+                <div style="font-weight:600;margin-bottom:0.5rem;">How to add more seats:</div>
+                <ol style="margin:0;padding-left:1.25rem;line-height:1.8;">
+                    <li>Contact TeachHub support or your account manager</li>
+                    <li>Pay for the additional seat(s) — {{printf "%.0f" .PricePerSeat}} {{.Currency}}/seat/month</li>
+                    <li>Your seat count will be updated and you can add the teacher immediately</li>
+                </ol>
+            </div>
+            <p style="font-size:0.75rem;color:#8b8ba3;margin:0.75rem 0 0;">
+                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;">info</span>
+                Tip: Deactivating a teacher frees up a seat. You can then add a new teacher without extra cost.
+            </p>
+        </div>
+    </div>
+</div>
+{{else}}
 <div class="card" style="padding:1.5rem;margin-bottom:2rem;">
     <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Add Teacher</h2>
     <form method="POST" action="/admin/center/teachers/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
@@ -69,13 +94,7 @@
             </button>
         </div>
     </form>
-</div>
-{{if ge .ActiveCount .SeatCount}}
-<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.05);">
-    <div style="display:flex;align-items:center;gap:8px;">
-        <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;">warning</span>
-        <span style="font-size:0.875rem;color:#92400e;font-weight:500;">You've reached your seat limit ({{.ActiveCount}}/{{.SeatCount}}). Contact support to increase seats.</span>
-    </div>
+    <p style="font-size:0.75rem;color:#8b8ba3;margin:0.75rem 0 0;">{{.ActiveCount}}/{{.SeatCount}} seats used · {{printf "%.0f" .PricePerSeat}} {{.Currency}}/seat/month</p>
 </div>
 {{end}}
 
