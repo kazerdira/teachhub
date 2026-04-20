@@ -6,8 +6,8 @@
             <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
         </a>
         <div>
-            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">Teachers</h1>
-            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.ActiveCount}} / {{.SeatCount}} seats used</p>
+            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "ct_title"}}</h1>
+            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.ActiveCount}} / {{.SeatCount}} {{t .Lang "ct_seats_info"}}</p>
         </div>
     </div>
 </div>
@@ -15,11 +15,11 @@
 {{if .Query.error}}
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
     <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
-    {{if eq .Query.error "seat_limit"}}You've used all your teacher seats ({{.ActiveCount}}/{{.SeatCount}}). Purchase additional seats to add more teachers.
-    {{else if eq .Query.error "username_taken"}}Could not create account. Please try a different email.
-    {{else if eq .Query.error "missing_fields"}}Full name and email are required.
-    {{else if eq .Query.error "self"}}You cannot deactivate yourself.
-    {{else}}An error occurred.{{end}}
+    {{if eq .Query.error "seat_limit"}}{{t .Lang "ct_err_seat_limit"}}
+    {{else if eq .Query.error "username_taken"}}{{t .Lang "ct_err_username"}}
+    {{else if eq .Query.error "missing_fields"}}{{t .Lang "ct_err_missing"}}
+    {{else if eq .Query.error "self"}}{{t .Lang "ct_err_self"}}
+    {{else}}{{t .Lang "ct_err_generic"}}{{end}}
     </span>
 </div>
 {{end}}
@@ -28,17 +28,17 @@
 <div class="card" style="padding:1.25rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem;">
         <span class="material-symbols-outlined" style="color:#059669;font-size:20px;">check_circle</span>
-        <span style="font-size:0.9375rem;color:#059669;font-weight:700;">Teacher created successfully</span>
+        <span style="font-size:0.9375rem;color:#059669;font-weight:700;">{{t .Lang "ct_created_ok"}}</span>
     </div>
-    <p style="font-size:0.8125rem;color:#374151;margin:0 0 0.75rem;">Share these credentials with the teacher. The password cannot be retrieved later.</p>
+    <p style="font-size:0.8125rem;color:#374151;margin:0 0 0.75rem;">{{t .Lang "ct_created_hint"}}</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;max-width:420px;">
         <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:0.625rem 0.875rem;">
-            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Username</div>
+            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">{{t .Lang "ct_username"}}</div>
             <div style="font-family:monospace;font-size:0.9375rem;font-weight:700;color:#1a1a2e;user-select:all;">{{.Query.created}}</div>
         </div>
         {{if .Query.pw}}
         <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:0.625rem 0.875rem;">
-            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Password</div>
+            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">{{t .Lang "ct_password"}}</div>
             <div style="font-family:monospace;font-size:0.9375rem;font-weight:700;color:#1a1a2e;user-select:all;">{{.Query.pw}}</div>
         </div>
         {{end}}
@@ -46,74 +46,58 @@
 </div>
 {{end}}
 
-<!-- Add Teacher Form / Seat Limit -->
-{{if .AtLimit}}
-<div class="card" style="padding:1.5rem;margin-bottom:2rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.03);">
-    <div style="display:flex;align-items:flex-start;gap:12px;">
-        <div style="width:42px;height:42px;border-radius:10px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <span class="material-symbols-outlined" style="color:#d97706;font-size:22px;">upgrade</span>
-        </div>
-        <div>
-            <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 0.5rem;">All seats used ({{.ActiveCount}}/{{.SeatCount}})</h2>
-            <p style="font-size:0.875rem;color:#6b7280;margin:0 0 0.75rem;">To add another teacher, purchase an additional seat at <strong>{{printf "%.0f" .PricePerSeat}} {{.Currency}}/month</strong> per teacher.</p>
-            <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:1rem;font-size:0.8125rem;color:#374151;">
-                <div style="font-weight:600;margin-bottom:0.5rem;">How to add more seats:</div>
-                <ol style="margin:0;padding-left:1.25rem;line-height:1.8;">
-                    <li>Contact TeachHub support or your account manager</li>
-                    <li>Pay for the additional seat(s) — {{printf "%.0f" .PricePerSeat}} {{.Currency}}/seat/month</li>
-                    <li>Your seat count will be updated and you can add the teacher immediately</li>
-                </ol>
-            </div>
-            <p style="font-size:0.75rem;color:#8b8ba3;margin:0.75rem 0 0;">
-                <span class="material-symbols-outlined" style="font-size:14px;vertical-align:text-bottom;">info</span>
-                Tip: Deactivating a teacher frees up a seat. You can then add a new teacher without extra cost.
-            </p>
-        </div>
+<!-- Over-limit soft warning -->
+{{if .OverLimit}}
+<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.03);">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;">warning</span>
+        <span style="font-size:0.875rem;color:#92400e;">{{t .Lang "ct_over_limit"}}</span>
     </div>
-</div>
-{{else}}
-<div class="card" style="padding:1.5rem;margin-bottom:2rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Add Teacher</h2>
-    <form method="POST" action="/admin/center/teachers/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
-        {{csrfField .CSRFToken}}
-        <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Full Name *</label>
-            <input type="text" name="display_name" required class="input" style="width:100%;" placeholder="Ahmed Benali">
-        </div>
-        <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Email *</label>
-            <input type="email" name="email" required class="input" style="width:100%;" placeholder="teacher@example.com">
-        </div>
-        <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Phone</label>
-            <input type="text" name="phone" class="input" style="width:100%;" placeholder="+213...">
-        </div>
-        <div>
-            <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size:16px;">person_add</span> Create
-            </button>
-        </div>
-    </form>
-    <p style="font-size:0.75rem;color:#8b8ba3;margin:0.75rem 0 0;">{{.ActiveCount}}/{{.SeatCount}} seats used · {{printf "%.0f" .PricePerSeat}} {{.Currency}}/seat/month</p>
 </div>
 {{end}}
 
+<!-- Add Teacher Form — always visible -->
+<div class="card" style="padding:1.5rem;margin-bottom:2rem;">
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">{{t .Lang "ct_add_title"}}</h2>
+    <form method="POST" action="/admin/center/teachers/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
+        {{csrfField .CSRFToken}}
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_fullname"}} *</label>
+            <input type="text" name="display_name" required class="input" style="width:100%;" placeholder="Ahmed Benali">
+        </div>
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_email"}} *</label>
+            <input type="email" name="email" required class="input" style="width:100%;" placeholder="teacher@example.com">
+        </div>
+        <div>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_phone"}}</label>
+            <input type="text" name="phone" class="input" style="width:100%;" placeholder="+33...">
+        </div>
+        <div>
+            <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">person_add</span> {{t .Lang "ct_create"}}
+            </button>
+        </div>
+    </form>
+    <p style="font-size:0.75rem;color:#8b8ba3;margin:0.75rem 0 0;">{{.ActiveCount}}/{{.SeatCount}} {{t .Lang "ct_seats_info"}} · {{printf "%.0f" .PricePerSeat}} {{.Currency}}{{t .Lang "ct_per_seat"}}</p>
+</div>
+
 <!-- Teachers List -->
 <div class="card" style="padding:1.5rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">All Teachers</h2>
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">{{t .Lang "ct_list_title"}}</h2>
     {{if .Teachers}}
     <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
             <thead>
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Name</th>
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Login</th>
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Email</th>
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Role</th>
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Classes</th>
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Students</th>
-                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Status</th>
-                    <th style="text-align:right;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Action</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_name"}}</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_login"}}</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_email"}}</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_role"}}</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_classes"}}</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_students"}}</th>
+                    <th style="text-align:left;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_status"}}</th>
+                    <th style="text-align:right;padding:0.5rem 0.75rem;color:#8b8ba3;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_action"}}</th>
                 </tr>
             </thead>
             <tbody>
@@ -126,18 +110,18 @@
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.Email}}</td>
                     <td style="padding:0.625rem 0.75rem;">
                         {{if eq .Role "owner"}}
-                        <span class="badge" style="background:rgba(99,102,241,0.1);color:#6366f1;">Owner</span>
+                        <span class="badge" style="background:rgba(99,102,241,0.1);color:#6366f1;">{{t $.Lang "ct_role_owner"}}</span>
                         {{else}}
-                        <span class="badge" style="background:rgba(107,114,128,0.1);color:#6b7280;">Teacher</span>
+                        <span class="badge" style="background:rgba(107,114,128,0.1);color:#6b7280;">{{t $.Lang "ct_role_teacher"}}</span>
                         {{end}}
                     </td>
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.ClassroomCount}}</td>
                     <td style="padding:0.625rem 0.75rem;color:#6b7280;">{{.StudentCount}}</td>
                     <td style="padding:0.625rem 0.75rem;">
                         {{if .Active}}
-                        <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;">Active</span>
+                        <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;">{{t $.Lang "ct_active"}}</span>
                         {{else}}
-                        <span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">Inactive</span>
+                        <span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">{{t $.Lang "ct_inactive"}}</span>
                         {{end}}
                     </td>
                     <td style="padding:0.625rem 0.75rem;text-align:right;">
@@ -145,9 +129,9 @@
                         <form method="POST" action="/admin/center/teachers/{{.ID}}/toggle" style="display:inline;">
                             {{csrfField $.CSRFToken}}
                             {{if .Active}}
-                            <button type="submit" style="font-size:0.75rem;color:#dc2626;background:rgba(239,68,68,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.15)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">Deactivate</button>
+                            <button type="submit" style="font-size:0.75rem;color:#dc2626;background:rgba(239,68,68,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.15)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">{{t $.Lang "ct_deactivate"}}</button>
                             {{else}}
-                            <button type="submit" style="font-size:0.75rem;color:#059669;background:rgba(16,185,129,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">Activate</button>
+                            <button type="submit" style="font-size:0.75rem;color:#059669;background:rgba(16,185,129,0.08);border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-weight:500;transition:background 0.15s;" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">{{t $.Lang "ct_activate"}}</button>
                             {{end}}
                         </form>
                         {{else}}
@@ -160,7 +144,7 @@
         </table>
     </div>
     {{else}}
-    <p style="text-align:center;color:#8b8ba3;padding:2rem;font-size:0.875rem;">No teachers yet. Add your first teacher above.</p>
+    <p style="text-align:center;color:#8b8ba3;padding:2rem;font-size:0.875rem;">{{t .Lang "ct_empty"}}</p>
     {{end}}
 </div>
 

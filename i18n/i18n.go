@@ -795,6 +795,45 @@ var Translations = map[string]map[string]string{
 	"apply_success_another": {"en": "Submit Another", "fr": "Autre demande"},
 
 	// ─────────────────────────────────────────────────
+	// CENTER TEACHERS
+	// ─────────────────────────────────────────────────
+	"ct_title":             {"en": "Teachers", "fr": "Enseignants"},
+	"ct_seats_used":        {"en": "%d / %d seats used", "fr": "%d / %d places utilisées"},
+	"ct_add_title":         {"en": "Add a Teacher", "fr": "Ajouter un enseignant"},
+	"ct_fullname":          {"en": "Full Name", "fr": "Nom complet"},
+	"ct_email":             {"en": "Email", "fr": "Email"},
+	"ct_phone":             {"en": "Phone", "fr": "Téléphone"},
+	"ct_create":            {"en": "Create", "fr": "Créer"},
+	"ct_seats_info":        {"en": "seats used", "fr": "places utilisées"},
+	"ct_per_seat":          {"en": "/seat/month", "fr": "/place/mois"},
+	"ct_over_limit":        {"en": "You are using more seats than your plan includes. Contact support to upgrade your plan.", "fr": "Vous utilisez plus de places que votre forfait ne le permet. Contactez le support pour mettre à jour votre forfait."},
+	"ct_created_ok":        {"en": "Teacher created successfully", "fr": "Enseignant créé avec succès"},
+	"ct_created_hint":      {"en": "Share these credentials with the teacher. The password cannot be retrieved later.", "fr": "Partagez ces identifiants avec l'enseignant. Le mot de passe ne pourra plus être consulté."},
+	"ct_username":          {"en": "Username", "fr": "Identifiant"},
+	"ct_password":          {"en": "Password", "fr": "Mot de passe"},
+	"ct_err_seat_limit":    {"en": "You are over your seat limit. The teacher was not added. Please contact support to upgrade.", "fr": "Vous dépassez votre limite de places. L'enseignant n'a pas été ajouté. Contactez le support pour augmenter votre forfait."},
+	"ct_err_username":      {"en": "Could not create account. Please try a different email.", "fr": "Impossible de créer le compte. Essayez une autre adresse email."},
+	"ct_err_missing":       {"en": "Full name and email are required.", "fr": "Le nom complet et l'email sont obligatoires."},
+	"ct_err_self":          {"en": "You cannot deactivate yourself.", "fr": "Vous ne pouvez pas vous désactiver vous-même."},
+	"ct_err_generic":       {"en": "An error occurred.", "fr": "Une erreur est survenue."},
+	"ct_list_title":        {"en": "All Teachers", "fr": "Tous les enseignants"},
+	"ct_col_name":          {"en": "Name", "fr": "Nom"},
+	"ct_col_login":         {"en": "Login", "fr": "Identifiant"},
+	"ct_col_email":         {"en": "Email", "fr": "Email"},
+	"ct_col_role":          {"en": "Role", "fr": "Rôle"},
+	"ct_col_classes":       {"en": "Classes", "fr": "Classes"},
+	"ct_col_students":      {"en": "Students", "fr": "Élèves"},
+	"ct_col_status":        {"en": "Status", "fr": "Statut"},
+	"ct_col_action":        {"en": "Action", "fr": "Action"},
+	"ct_role_owner":        {"en": "Owner", "fr": "Propriétaire"},
+	"ct_role_teacher":      {"en": "Teacher", "fr": "Enseignant"},
+	"ct_active":            {"en": "Active", "fr": "Actif"},
+	"ct_inactive":          {"en": "Inactive", "fr": "Inactif"},
+	"ct_deactivate":        {"en": "Deactivate", "fr": "Désactiver"},
+	"ct_activate":          {"en": "Activate", "fr": "Activer"},
+	"ct_empty":             {"en": "No teachers yet. Add your first teacher above.", "fr": "Aucun enseignant. Ajoutez votre premier enseignant ci-dessus."},
+
+	// ─────────────────────────────────────────────────
 	// CENTER BILLING
 	// ─────────────────────────────────────────────────
 	"billing":               {"en": "Billing", "fr": "Facturation"},

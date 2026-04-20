@@ -64,3 +64,13 @@ func CountryFromIP(ipStr string) string {
 
 	return result.Country.ISOCode
 }
+
+// CurrencyForCountry returns the display currency for a country code.
+func CurrencyForCountry(country string) string {
+	switch country {
+	case "FR":
+		return "€"
+	default:
+		return "DA"
+	}
+}
