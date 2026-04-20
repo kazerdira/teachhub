@@ -45,10 +45,12 @@ type Admin struct {
 	Region        string
 	PublicProfile bool
 	// Center
-	Role        string // "owner" or "teacher"
-	CenterID    *int
-	Active      bool
-	DisplayName string
+	Role          string // "owner" or "teacher"
+	CenterID      *int
+	Active        bool
+	DisplayName   string
+	BillableFrom  *time.Time
+	DeactivatedAt *time.Time
 }
 
 type TeacherListItem struct {
@@ -100,21 +102,18 @@ type Payment struct {
 	RecordedAt time.Time
 }
 
-type StudentInvoice struct {
+type CenterInvoice struct {
 	ID               int
 	CenterID         int
-	ClassroomID      int
-	StudentID        int
-	StudentName      string // joined
-	ClassroomName    string // joined
 	PeriodMonth      time.Time
-	SessionsAttended int
-	RatePerSession   float64
+	TeacherCount     int
+	PricePerTeacher  float64
+	Currency         string
 	TotalAmount      float64
 	Status           string
 	PaidAt           *time.Time
 	PaidMethod       string
-	Notes            string
+	PaidReference    string
 	GeneratedAt      time.Time
 }
 
@@ -135,17 +134,15 @@ type JoinRequest struct {
 }
 
 type Classroom struct {
-	ID             int
-	Name           string
-	JoinCode       string
-	TeacherPic     string
-	Subject        string
-	Level          string
-	CreatedAt      time.Time
-	SessionRate    float64
-	BillingEnabled bool
-	AdminID        int    // teacher who owns it
-	TeacherName    string // populated in center context
+	ID          int
+	Name        string
+	JoinCode    string
+	TeacherPic  string
+	Subject     string
+	Level       string
+	CreatedAt   time.Time
+	AdminID     int    // teacher who owns it
+	TeacherName string // populated in center context
 	// computed
 	StudentCount  int
 	ResourceCount int
@@ -290,14 +287,16 @@ func (s *Store) GetAdmin(ctx context.Context, username string) (*Admin, error) {
 		        subscription_start, subscription_end, created_by_platform, application_id, pending_password,
 		        last_login_at, COALESCE(last_login_ip,''),
 		        COALESCE(bio,''), COALESCE(subjects,'{}'), COALESCE(levels,'{}'), COALESCE(country,''), COALESCE(region,''), COALESCE(public_profile,false),
-		        COALESCE(role,'teacher'), center_id, COALESCE(active,true), COALESCE(display_name,'')
+		        COALESCE(role,'teacher'), center_id, COALESCE(active,true), COALESCE(display_name,''),
+		        billable_from, deactivated_at
 		 FROM admin WHERE username=$1`, username).
 		Scan(&a.ID, &a.Username, &a.Password, &a.Email, &a.Phone, &a.SchoolName,
 			&a.SubscriptionStatus, &a.SubscriptionStart, &a.SubscriptionEnd,
 			&a.CreatedByPlatform, &a.ApplicationID, &a.PendingPassword,
 			&a.LastLoginAt, &a.LastLoginIP,
 			&a.Bio, &a.Subjects, &a.Levels, &a.Country, &a.Region, &a.PublicProfile,
-			&a.Role, &a.CenterID, &a.Active, &a.DisplayName)
+			&a.Role, &a.CenterID, &a.Active, &a.DisplayName,
+			&a.BillableFrom, &a.DeactivatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -316,7 +315,6 @@ func (s *Store) CreateAdmin(ctx context.Context, username, hashedPassword string
 func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT c.id, c.name, c.join_code, c.teacher_pic, COALESCE(c.subject,''), COALESCE(c.level,''), c.created_at,
-			COALESCE(c.session_rate,0), COALESCE(c.billing_enabled,false),
 			(SELECT COUNT(*) FROM classroom_student WHERE classroom_id=c.id AND status='approved') AS student_count,
 			(SELECT COUNT(*) FROM resource WHERE classroom_id=c.id) AS resource_count,
 			(SELECT COUNT(*) FROM quiz WHERE classroom_id=c.id) AS quiz_count,
@@ -329,7 +327,7 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 	var list []Classroom
 	for rows.Next() {
 		var c Classroom
-		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.StudentCount, &c.ResourceCount, &c.QuizCount, &c.PendingCount); err != nil {
 			return nil, err
 		}
 		list = append(list, c)
@@ -339,8 +337,8 @@ func (s *Store) ListClassrooms(ctx context.Context, adminID int) ([]Classroom, e
 
 func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at, COALESCE(session_rate,0), COALESCE(billing_enabled,false) FROM classroom WHERE id=$1`, id).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE id=$1`, id).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -349,8 +347,8 @@ func (s *Store) GetClassroom(ctx context.Context, id int) (*Classroom, error) {
 
 func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at, COALESCE(session_rate,0), COALESCE(billing_enabled,false) FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE id=$1 AND admin_id=$2`, id, adminID).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +362,7 @@ func (s *Store) GetClassroomForAdminOrOwner(ctx context.Context, classroomID, ad
 	var isOwnerAccess bool
 	err := s.DB.QueryRow(ctx, `
 		SELECT c.id, c.name, c.join_code, c.teacher_pic, COALESCE(c.subject,''), COALESCE(c.level,''),
-		       c.created_at, COALESCE(c.session_rate,0), COALESCE(c.billing_enabled,false), c.admin_id,
+		       c.created_at, c.admin_id,
 		       CASE WHEN c.admin_id = $2 THEN false ELSE true END AS is_owner_access
 		FROM classroom c
 		JOIN admin a ON a.id = c.admin_id
@@ -373,7 +371,7 @@ func (s *Store) GetClassroomForAdminOrOwner(ctx context.Context, classroomID, ad
 			OR a.center_id = (SELECT center_id FROM admin WHERE id = $2 AND role='owner')
 		)`, classroomID, adminID).
 		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level,
-			&c.CreatedAt, &c.SessionRate, &c.BillingEnabled, &c.AdminID, &isOwnerAccess)
+			&c.CreatedAt, &c.AdminID, &isOwnerAccess)
 	if err != nil {
 		return nil, false, err
 	}
@@ -383,12 +381,6 @@ func (s *Store) GetClassroomForAdminOrOwner(ctx context.Context, classroomID, ad
 // UpdateClassroomTagsAny updates tags without admin_id check (caller must validate access).
 func (s *Store) UpdateClassroomTagsAny(ctx context.Context, classroomID int, subject, level string) error {
 	_, err := s.DB.Exec(ctx, `UPDATE classroom SET subject=$1, level=$2 WHERE id=$3`, subject, level, classroomID)
-	return err
-}
-
-// UpdateClassroomBillingAny updates billing without admin_id check (caller must validate access).
-func (s *Store) UpdateClassroomBillingAny(ctx context.Context, classroomID int, sessionRate float64, billingEnabled bool) error {
-	_, err := s.DB.Exec(ctx, `UPDATE classroom SET session_rate=$1, billing_enabled=$2 WHERE id=$3`, sessionRate, billingEnabled, classroomID)
 	return err
 }
 
@@ -409,8 +401,8 @@ func (s *Store) RegenerateJoinCodeAny(ctx context.Context, classroomID int) (str
 
 func (s *Store) GetClassroomByCode(ctx context.Context, code string) (*Classroom, error) {
 	c := &Classroom{}
-	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at, COALESCE(session_rate,0), COALESCE(billing_enabled,false) FROM classroom WHERE join_code=$1`, code).
-		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt, &c.SessionRate, &c.BillingEnabled)
+	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at FROM classroom WHERE join_code=$1`, code).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -450,11 +442,6 @@ func (s *Store) RegenerateJoinCode(ctx context.Context, id, adminID int) (string
 
 func (s *Store) SetClassroomTeacherPic(ctx context.Context, classroomID, adminID int, picPath string) error {
 	_, err := s.DB.Exec(ctx, `UPDATE classroom SET teacher_pic=$1 WHERE id=$2 AND admin_id=$3`, picPath, classroomID, adminID)
-	return err
-}
-
-func (s *Store) UpdateClassroomBilling(ctx context.Context, classroomID, adminID int, sessionRate float64, billingEnabled bool) error {
-	_, err := s.DB.Exec(ctx, `UPDATE classroom SET session_rate=$1, billing_enabled=$2 WHERE id=$3 AND admin_id=$4`, sessionRate, billingEnabled, classroomID, adminID)
 	return err
 }
 

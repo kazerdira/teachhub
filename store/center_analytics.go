@@ -10,8 +10,6 @@ type CenterDashboardStats struct {
 	TeacherCount      int
 	ActiveStudents    int
 	SessionsThisMonth int
-	RevenueThisMonth  float64
-	ParentViewsWeek   int
 }
 
 func (s *Store) GetCenterDashboardStats(ctx context.Context, centerID int) (*CenterDashboardStats, error) {
@@ -31,17 +29,6 @@ func (s *Store) GetCenterDashboardStats(ctx context.Context, centerID int) (*Cen
 		JOIN classroom cl ON cl.id=ls.classroom_id
 		JOIN admin a ON a.id=cl.admin_id
 		WHERE a.center_id=$1 AND ls.created_at >= date_trunc('month', NOW())`, centerID).Scan(&st.SessionsThisMonth)
-
-	s.DB.QueryRow(ctx, `
-		SELECT COALESCE(SUM(total_amount),0) FROM student_invoice
-		WHERE center_id=$1 AND status='paid' AND paid_at >= date_trunc('month', NOW())`, centerID).Scan(&st.RevenueThisMonth)
-
-	s.DB.QueryRow(ctx, `
-		SELECT COUNT(*) FROM parent_view_log pvl
-		JOIN classroom_student cs ON cs.parent_code = pvl.parent_code
-		JOIN classroom cl ON cl.id = cs.classroom_id
-		JOIN admin a ON a.id = cl.admin_id
-		WHERE a.center_id=$1 AND pvl.viewed_at >= NOW() - INTERVAL '7 days'`, centerID).Scan(&st.ParentViewsWeek)
 
 	return st, nil
 }

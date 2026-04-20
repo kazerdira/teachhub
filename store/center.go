@@ -20,8 +20,9 @@ type Center struct {
 	SubscriptionStatus string // trial, active, expired, suspended, cancelled
 	SubscriptionStart  *time.Time
 	SubscriptionEnd    *time.Time
-	SeatCount          int
-	PricePerSeat       float64
+	PricePerTeacher    float64
+	Currency           string
+	BillingMode        string
 	TrialEndsAt        *time.Time
 	CreatedAt          time.Time
 }
@@ -39,16 +40,18 @@ type CenterTeacher struct {
 	StudentCount   int
 	LastLoginAt    *time.Time
 	CreatedAt      time.Time
+	BillableFrom   *time.Time
+	DeactivatedAt  *time.Time
 }
 
 // ─── Center CRUD ────────────────────────────────────────
 
-func (s *Store) CreateCenter(ctx context.Context, name, email string, ownerID int) (int, error) {
+func (s *Store) CreateCenter(ctx context.Context, name, email string, ownerID int, currency string, pricePerTeacher float64) (int, error) {
 	var id int
 	err := s.DB.QueryRow(ctx,
-		`INSERT INTO center (name, email, subscription_status, trial_ends_at)
-		 VALUES ($1, $2, 'trial', NOW() + INTERVAL '30 days')
-		 RETURNING id`, name, email).Scan(&id)
+		`INSERT INTO center (name, email, subscription_status, trial_ends_at, currency, price_per_teacher)
+		 VALUES ($1, $2, 'trial', NOW() + INTERVAL '30 days', $3, $4)
+		 RETURNING id`, name, email, currency, pricePerTeacher).Scan(&id)
 	return id, err
 }
 
@@ -57,12 +60,12 @@ func (s *Store) GetCenter(ctx context.Context, id int) (*Center, error) {
 	err := s.DB.QueryRow(ctx,
 		`SELECT id, name, owner_admin_id, address, city, country, phone, email, logo_path,
 		        subscription_status, subscription_start, subscription_end,
-		        seat_count, price_per_seat, trial_ends_at, created_at
+		        price_per_teacher, currency, billing_mode, trial_ends_at, created_at
 		 FROM center WHERE id=$1`, id).
 		Scan(&c.ID, &c.Name, &c.OwnerAdminID, &c.Address, &c.City, &c.Country,
 			&c.Phone, &c.Email, &c.LogoPath,
 			&c.SubscriptionStatus, &c.SubscriptionStart, &c.SubscriptionEnd,
-			&c.SeatCount, &c.PricePerSeat, &c.TrialEndsAt, &c.CreatedAt)
+			&c.PricePerTeacher, &c.Currency, &c.BillingMode, &c.TrialEndsAt, &c.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +89,8 @@ func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterT
 		                 FROM classroom_student cs
 		                 JOIN classroom c ON c.id = cs.classroom_id
 		                 WHERE c.admin_id = a.id AND cs.status='approved'), 0),
-		       a.last_login_at, a.created_at
+		       a.last_login_at, a.created_at,
+		       a.billable_from, a.deactivated_at
 		FROM admin a
 		WHERE a.center_id = $1 AND a.role = 'teacher'
 		ORDER BY a.created_at ASC`, centerID)
@@ -98,7 +102,8 @@ func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterT
 	for rows.Next() {
 		var t CenterTeacher
 		if err := rows.Scan(&t.ID, &t.Username, &t.DisplayName, &t.Email, &t.Phone, &t.Role, &t.Active,
-			&t.ClassroomCount, &t.StudentCount, &t.LastLoginAt, &t.CreatedAt); err != nil {
+			&t.ClassroomCount, &t.StudentCount, &t.LastLoginAt, &t.CreatedAt,
+			&t.BillableFrom, &t.DeactivatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, t)
@@ -138,12 +143,12 @@ func (s *Store) CreateTeacherInCenter(ctx context.Context, centerID int, usernam
 }
 
 func (s *Store) DeactivateTeacher(ctx context.Context, teacherID int) error {
-	_, err := s.DB.Exec(ctx, `UPDATE admin SET active=false WHERE id=$1`, teacherID)
+	_, err := s.DB.Exec(ctx, `UPDATE admin SET active=false, deactivated_at=NOW() WHERE id=$1`, teacherID)
 	return err
 }
 
 func (s *Store) ActivateTeacher(ctx context.Context, teacherID int) error {
-	_, err := s.DB.Exec(ctx, `UPDATE admin SET active=true WHERE id=$1`, teacherID)
+	_, err := s.DB.Exec(ctx, `UPDATE admin SET active=true, deactivated_at=NULL WHERE id=$1`, teacherID)
 	return err
 }
 
@@ -154,17 +159,14 @@ type CenterStats struct {
 	StudentCount int
 	ClassCount   int
 	SessionCount int
-	ActiveSeats  int
-	SeatCount    int
 }
 
 func (s *Store) GetCenterStats(ctx context.Context, centerID int) (*CenterStats, error) {
 	st := &CenterStats{}
 
-	// Active teachers (exclude owner — owner doesn't occupy a seat)
+	// Active teachers (exclude owner)
 	s.DB.QueryRow(ctx,
-		`SELECT COUNT(*) FROM admin WHERE center_id=$1 AND active=true AND role='teacher'`, centerID).Scan(&st.ActiveSeats)
-	st.TeacherCount = st.ActiveSeats
+		`SELECT COUNT(*) FROM admin WHERE center_id=$1 AND active=true AND role='teacher'`, centerID).Scan(&st.TeacherCount)
 
 	// Total students across center teachers
 	s.DB.QueryRow(ctx,
@@ -200,7 +202,6 @@ type CenterListItem struct {
 	OwnerUsername      string
 	Email              string
 	SubscriptionStatus string
-	SeatCount          int
 	ActiveTeachers     int
 	StudentCount       int
 	CreatedAt          time.Time
@@ -209,7 +210,6 @@ type CenterListItem struct {
 func (s *Store) ListCenters(ctx context.Context) ([]CenterListItem, error) {
 	rows, err := s.DB.Query(ctx, `
 		SELECT c.id, c.name, COALESCE(a.username,''), c.email, c.subscription_status,
-		       c.seat_count,
 		       COALESCE((SELECT COUNT(*) FROM admin WHERE center_id=c.id AND active=true), 0),
 		       COALESCE((SELECT COUNT(DISTINCT cs.student_id)
 		                 FROM classroom_student cs
@@ -228,7 +228,7 @@ func (s *Store) ListCenters(ctx context.Context) ([]CenterListItem, error) {
 	for rows.Next() {
 		var ci CenterListItem
 		if err := rows.Scan(&ci.ID, &ci.Name, &ci.OwnerUsername, &ci.Email, &ci.SubscriptionStatus,
-			&ci.SeatCount, &ci.ActiveTeachers, &ci.StudentCount, &ci.CreatedAt); err != nil {
+			&ci.ActiveTeachers, &ci.StudentCount, &ci.CreatedAt); err != nil {
 			return nil, err
 		}
 		list = append(list, ci)
@@ -243,10 +243,24 @@ func (s *Store) UpdateCenterSubscription(ctx context.Context, centerID int, stat
 	return err
 }
 
-func (s *Store) UpdateCenterSeats(ctx context.Context, centerID, seats int, price float64) error {
+func (s *Store) UpdateCenterPricing(ctx context.Context, centerID int, pricePerTeacher float64, currency string) error {
 	_, err := s.DB.Exec(ctx,
-		`UPDATE center SET seat_count=$1, price_per_seat=$2 WHERE id=$3`,
-		seats, price, centerID)
+		`UPDATE center SET price_per_teacher=$1, currency=$2 WHERE id=$3`,
+		pricePerTeacher, currency, centerID)
+	return err
+}
+
+func (s *Store) SetBillableFrom(ctx context.Context, adminID int, t time.Time) error {
+	_, err := s.DB.Exec(ctx,
+		`UPDATE admin SET billable_from=$2 WHERE id=$1 AND billable_from IS NULL`,
+		adminID, t)
+	return err
+}
+
+func (s *Store) SetDeactivatedAt(ctx context.Context, adminID int, t *time.Time) error {
+	_, err := s.DB.Exec(ctx,
+		`UPDATE admin SET deactivated_at=$2 WHERE id=$1`,
+		adminID, t)
 	return err
 }
 
