@@ -59,15 +59,15 @@ func (h *Handler) CenterTeachers(c *gin.Context) {
 	activeCount, _ := h.Store.CountCenterTeachers(c.Request.Context(), center.ID)
 
 	currency := geo.CurrencyForCountry(center.Country)
+	monthlyTotal := float64(activeCount) * center.PricePerSeat
 
 	h.render(c, "center_teachers.html", gin.H{
 		"Center":       center,
 		"Teachers":     teachers,
 		"ActiveCount":  activeCount,
-		"SeatCount":    center.SeatCount,
 		"PricePerSeat": center.PricePerSeat,
 		"Currency":     currency,
-		"OverLimit":    activeCount > center.SeatCount,
+		"MonthlyTotal": monthlyTotal,
 	})
 }
 
