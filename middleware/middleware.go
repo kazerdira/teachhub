@@ -150,6 +150,73 @@ func OwnerRequired() gin.HandlerFunc {
 	}
 }
 
+// CenterOwnerRequired is a standalone middleware for center routes.
+// It uses a separate session cookie ("teachhub-owner") so the center owner
+// can stay logged in even when a teacher logs into /admin in the same browser.
+func CenterOwnerRequired(db *store.Store) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session, _ := SessionStore.Get(c.Request, "teachhub-owner")
+		if session.Values["admin_id"] == nil {
+			c.Redirect(http.StatusFound, "/admin/login")
+			c.Abort()
+			return
+		}
+		id, ok := session.Values["admin_id"].(int)
+		if !ok {
+			c.Redirect(http.StatusFound, "/admin/login")
+			c.Abort()
+			return
+		}
+		admin, err := db.GetAdminByID(c.Request.Context(), id)
+		if err != nil {
+			ClearOwnerSession(c)
+			c.Redirect(http.StatusFound, "/admin/login")
+			c.Abort()
+			return
+		}
+		if !admin.Active {
+			ClearOwnerSession(c)
+			c.Redirect(http.StatusFound, "/admin/login?error=deactivated")
+			c.Abort()
+			return
+		}
+		if admin.Role != "owner" || admin.CenterID == nil {
+			c.Redirect(http.StatusFound, "/admin")
+			c.Abort()
+			return
+		}
+		// Check center subscription
+		center, err := db.GetCenter(c.Request.Context(), *admin.CenterID)
+		if err != nil {
+			ClearOwnerSession(c)
+			c.Redirect(http.StatusFound, "/admin/login")
+			c.Abort()
+			return
+		}
+		if center.SubscriptionEnd != nil && center.SubscriptionEnd.Before(time.Now()) && center.SubscriptionStatus == "active" {
+			db.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
+			center.SubscriptionStatus = "expired"
+		}
+		if center.TrialEndsAt != nil && center.TrialEndsAt.Before(time.Now()) && center.SubscriptionStatus == "trial" {
+			db.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
+			center.SubscriptionStatus = "expired"
+		}
+		if center.SubscriptionStatus != "active" && center.SubscriptionStatus != "trial" {
+			ClearOwnerSession(c)
+			errKey := "suspended"
+			if center.SubscriptionStatus == "expired" {
+				errKey = "expired"
+			}
+			c.Redirect(http.StatusFound, "/admin/login?error="+errKey)
+			c.Abort()
+			return
+		}
+		c.Set("admin", admin)
+		c.Set("center", center)
+		c.Next()
+	}
+}
+
 func SetAdminSession(c *gin.Context, adminID int) error {
 	session, _ := SessionStore.Get(c.Request, "teachhub-admin")
 	session.Values["admin_id"] = adminID
@@ -158,6 +225,19 @@ func SetAdminSession(c *gin.Context, adminID int) error {
 
 func ClearAdminSession(c *gin.Context) error {
 	session, _ := SessionStore.Get(c.Request, "teachhub-admin")
+	session.Options.MaxAge = -1
+	return session.Save(c.Request, c.Writer)
+}
+
+// SetOwnerSession stores admin_id in a separate "teachhub-owner" cookie.
+func SetOwnerSession(c *gin.Context, adminID int) error {
+	session, _ := SessionStore.Get(c.Request, "teachhub-owner")
+	session.Values["admin_id"] = adminID
+	return session.Save(c.Request, c.Writer)
+}
+
+func ClearOwnerSession(c *gin.Context) error {
+	session, _ := SessionStore.Get(c.Request, "teachhub-owner")
 	session.Options.MaxAge = -1
 	return session.Save(c.Request, c.Writer)
 }

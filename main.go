@@ -376,31 +376,31 @@ func main() {
 	r.POST("/admin/login", middleware.RateLimit(loginRL), h.AdminLogin)
 	r.GET("/admin/logout", h.AdminLogout)
 
+	// Center management — separate session cookie so owner + teacher can coexist in same browser
+	center := r.Group("/admin/center", middleware.CenterOwnerRequired(s))
+	{
+		center.GET("", h.CenterDashboard)
+		center.GET("/teachers", h.CenterTeachers)
+		center.POST("/teachers/create", h.CenterCreateTeacher)
+		center.POST("/teachers/:id/toggle", h.CenterToggleTeacher)
+		center.GET("/settings", h.CenterSettings)
+		center.POST("/settings", h.CenterSettingsSave)
+		center.GET("/billing", h.CenterBilling)
+		center.POST("/billing/generate", h.CenterGenerateInvoices)
+		center.POST("/billing/:invoiceId/paid", h.CenterMarkInvoicePaid)
+		center.POST("/billing/:invoiceId/cancel", h.CenterCancelInvoice)
+		center.GET("/students", h.CenterStudents)
+		center.POST("/students/create", h.CenterCreateStudent)
+		center.POST("/students/assign", h.CenterAssignStudent)
+		center.POST("/students/remove", h.CenterRemoveStudentFromClassroom)
+		center.GET("/classrooms", h.CenterClassrooms)
+		center.POST("/classrooms/create", h.CenterCreateClassroom)
+		center.POST("/classrooms/:id/delete", h.CenterDeleteClassroom)
+	}
+
 	admin := r.Group("/admin", middleware.AdminRequired(), middleware.AdminSubscriptionCheck(s))
 	{
 		admin.GET("", h.AdminDashboard)
-
-		// Center management (owner only)
-		center := admin.Group("/center", middleware.OwnerRequired())
-		{
-			center.GET("", h.CenterDashboard)
-			center.GET("/teachers", h.CenterTeachers)
-			center.POST("/teachers/create", h.CenterCreateTeacher)
-			center.POST("/teachers/:id/toggle", h.CenterToggleTeacher)
-			center.GET("/settings", h.CenterSettings)
-			center.POST("/settings", h.CenterSettingsSave)
-			center.GET("/billing", h.CenterBilling)
-			center.POST("/billing/generate", h.CenterGenerateInvoices)
-			center.POST("/billing/:invoiceId/paid", h.CenterMarkInvoicePaid)
-			center.POST("/billing/:invoiceId/cancel", h.CenterCancelInvoice)
-			center.GET("/students", h.CenterStudents)
-			center.POST("/students/create", h.CenterCreateStudent)
-			center.POST("/students/assign", h.CenterAssignStudent)
-			center.POST("/students/remove", h.CenterRemoveStudentFromClassroom)
-			center.GET("/classrooms", h.CenterClassrooms)
-			center.POST("/classrooms/create", h.CenterCreateClassroom)
-			center.POST("/classrooms/:id/delete", h.CenterDeleteClassroom)
-		}
 
 		// Profile & Join Requests
 		admin.GET("/profile", h.AdminProfilePage)

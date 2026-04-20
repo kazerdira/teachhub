@@ -194,6 +194,7 @@ func (h *Handler) AdminLogin(c *gin.Context) {
 	}
 	// Redirect owners to center dashboard
 	if admin.Role == "owner" && admin.CenterID != nil {
+		middleware.SetOwnerSession(c, admin.ID)
 		c.Redirect(http.StatusFound, "/admin/center")
 		return
 	}
@@ -202,6 +203,7 @@ func (h *Handler) AdminLogin(c *gin.Context) {
 
 func (h *Handler) AdminLogout(c *gin.Context) {
 	middleware.ClearAdminSession(c)
+	middleware.ClearOwnerSession(c)
 	c.Redirect(http.StatusFound, "/admin/login")
 }
 
