@@ -148,46 +148,13 @@ func (h *Handler) AdminLogin(c *gin.Context) {
 		return
 	}
 
-	// Check subscription: center-based or legacy individual
-	if admin.CenterID != nil {
-		center, err := h.Store.GetCenter(c.Request.Context(), *admin.CenterID)
-		if err != nil {
-			c.Redirect(http.StatusFound, "/admin/login?error=invalid")
-			return
-		}
-		if center.SubscriptionEnd != nil && center.SubscriptionEnd.Before(time.Now()) && center.SubscriptionStatus == "active" {
-			h.Store.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
-			center.SubscriptionStatus = "expired"
-		}
-		if center.TrialEndsAt != nil && center.TrialEndsAt.Before(time.Now()) && center.SubscriptionStatus == "trial" {
-			h.Store.UpdateCenterSubscription(c.Request.Context(), center.ID, "expired", center.SubscriptionStart, center.SubscriptionEnd)
-			center.SubscriptionStatus = "expired"
-		}
-		if center.SubscriptionStatus != "active" && center.SubscriptionStatus != "trial" {
-			errKey := "suspended"
-			if center.SubscriptionStatus == "expired" {
-				errKey = "expired"
-			}
-			c.Redirect(http.StatusFound, "/admin/login?error="+errKey)
-			return
-		}
-	} else if admin.CreatedByPlatform {
-		if admin.SubscriptionEnd != nil && admin.SubscriptionEnd.Before(time.Now()) && admin.SubscriptionStatus == "active" {
-			h.Store.UpdateTeacherSubscription(c.Request.Context(), admin.ID, "expired")
-			admin.SubscriptionStatus = "expired"
-		}
-		if admin.SubscriptionStatus != "active" {
-			errKey := "suspended"
-			if admin.SubscriptionStatus == "expired" {
-				errKey = "expired"
-			}
-			c.Redirect(http.StatusFound, "/admin/login?error="+errKey)
-			return
-		}
-	}
 	middleware.SetAdminSession(c, admin.ID)
 	// Record last login IP and time
 	h.Store.UpdateAdminLastLogin(c.Request.Context(), admin.ID, c.ClientIP())
+	// Set billable_from on teacher's first ever login (30-day trial window)
+	if admin.Role == "teacher" && admin.BillableFrom == nil {
+		h.Store.SetBillableFrom(c.Request.Context(), admin.ID, time.Now().Add(30*24*time.Hour))
+	}
 	// Clear pending password on first login so platform owner can no longer see it
 	if admin.PendingPassword != nil {
 		h.Store.ClearPendingPassword(c.Request.Context(), admin.ID)
@@ -265,22 +232,6 @@ func (h *Handler) UpdateClassroomTags(c *gin.Context) {
 	subject := strings.TrimSpace(c.PostForm("subject"))
 	level := strings.TrimSpace(c.PostForm("level"))
 	h.Store.UpdateClassroomTagsAny(c.Request.Context(), classID, subject, level)
-	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
-}
-
-func (h *Handler) UpdateClassroomBilling(c *gin.Context) {
-	// OWNER only for center classrooms
-	classID := h.ownsClassroomOwnerOnly(c)
-	if classID == 0 {
-		return
-	}
-	rateStr := strings.TrimSpace(c.PostForm("session_rate"))
-	rate, _ := strconv.ParseFloat(rateStr, 64)
-	if rate < 0 {
-		rate = 0
-	}
-	enabled := c.PostForm("billing_enabled") == "on"
-	h.Store.UpdateClassroomBillingAny(c.Request.Context(), classID, rate, enabled)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
 }
 

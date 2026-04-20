@@ -25,24 +25,26 @@ func (h *Handler) CenterDashboard(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin")
 		return
 	}
-	stats, _ := h.Store.GetCenterStats(c.Request.Context(), center.ID)
-	if stats != nil {
-		stats.SeatCount = center.SeatCount
-	}
 	teachers, _ := h.Store.ListCenterTeachers(c.Request.Context(), center.ID)
-	dashStats, _ := h.Store.GetCenterDashboardStats(c.Request.Context(), center.ID)
-	performance, _ := h.Store.GetCenterTeacherPerformance(c.Request.Context(), center.ID)
+	stats, _ := h.Store.GetCenterStats(c.Request.Context(), center.ID)
+	hasUnpaid := h.Store.HasUnpaidCenterInvoice(c.Request.Context(), center.ID)
 
-	currency := geo.CurrencyForCountry(center.Country)
+	activeCount := 0
+	for _, t := range teachers {
+		if t.Active {
+			activeCount++
+		}
+	}
+	now := time.Now()
+	nextInvoice := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC)
 
 	h.render(c, "center_dashboard.html", gin.H{
-		"Center":       center,
-		"Stats":        stats,
-		"Teachers":     teachers,
-		"DashStats":    dashStats,
-		"Performance":  performance,
-		"Currency":     currency,
-		"PricePerSeat": center.PricePerSeat,
+		"Center":             center,
+		"Stats":              stats,
+		"Teachers":           teachers,
+		"ActiveTeacherCount": activeCount,
+		"HasUnpaidInvoice":   hasUnpaid,
+		"NextInvoiceDate":    nextInvoice,
 	})
 }
 
@@ -56,18 +58,25 @@ func (h *Handler) CenterTeachers(c *gin.Context) {
 		return
 	}
 	teachers, _ := h.Store.ListCenterTeachers(c.Request.Context(), center.ID)
-	activeCount, _ := h.Store.CountCenterTeachers(c.Request.Context(), center.ID)
 
-	currency := geo.CurrencyForCountry(center.Country)
-	monthlyTotal := float64(activeCount) * center.PricePerSeat
+	// Handle reset-password flash: if ?reset=username, read pending password from DB then clear it
+	var resetUsername, resetPassword string
+	if un := c.Query("reset"); un != "" {
+		resetAdmin, err := h.Store.GetAdmin(c.Request.Context(), un)
+		if err == nil && resetAdmin.CenterID != nil && *resetAdmin.CenterID == center.ID && resetAdmin.PendingPassword != nil {
+			resetUsername = un
+			resetPassword = *resetAdmin.PendingPassword
+			h.Store.ClearPendingPassword(c.Request.Context(), resetAdmin.ID)
+		}
+	}
 
 	h.render(c, "center_teachers.html", gin.H{
-		"Center":       center,
-		"Teachers":     teachers,
-		"ActiveCount":  activeCount,
-		"PricePerSeat": center.PricePerSeat,
-		"Currency":     currency,
-		"MonthlyTotal": monthlyTotal,
+		"Center":        center,
+		"Teachers":      teachers,
+		"Error":         c.Query("error"),
+		"Created":       c.Query("created"),
+		"ResetUsername": resetUsername,
+		"ResetPassword": resetPassword,
 	})
 }
 
@@ -149,14 +158,38 @@ func (h *Handler) CenterSettings(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin")
 		return
 	}
-	activeCount, _ := h.Store.CountCenterTeachers(c.Request.Context(), center.ID)
-	currency := geo.CurrencyForCountry(center.Country)
 	h.render(c, "center_settings.html", gin.H{
-		"Center":       center,
-		"ActiveCount":  activeCount,
-		"PricePerSeat": center.PricePerSeat,
-		"Currency":     currency,
+		"Center": center,
 	})
+}
+
+func (h *Handler) CenterResetTeacherPassword(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	teacherID, _ := strconv.Atoi(c.Param("id"))
+
+	// Verify teacher belongs to same center and is a teacher
+	teacher, err := h.Store.GetAdminByID(ctx, teacherID)
+	if err != nil || teacher.CenterID == nil || *teacher.CenterID != *admin.CenterID || teacher.Role != "teacher" {
+		c.Redirect(http.StatusFound, "/admin/center/teachers?error=not_found")
+		return
+	}
+
+	password := generateCenterPassword(10)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/teachers?error=password")
+		return
+	}
+
+	_, err = h.Store.DB.Exec(ctx,
+		`UPDATE admin SET password=$1, pending_password=$2 WHERE id=$3`,
+		string(hashed), password, teacherID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/teachers?error=reset_failed")
+		return
+	}
+	c.Redirect(http.StatusFound, "/admin/center/teachers?reset="+teacher.Username)
 }
 
 func (h *Handler) CenterSettingsSave(c *gin.Context) {
@@ -188,85 +221,6 @@ func generateCenterPassword(length int) string {
 		result[i] = chars[n.Int64()]
 	}
 	return string(result)
-}
-
-// ─── Center Billing ─────────────────────────────────────
-
-func (h *Handler) CenterBilling(c *gin.Context) {
-	admin := c.MustGet("admin").(*store.Admin)
-	ctx := c.Request.Context()
-	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
-	if err != nil {
-		c.Redirect(http.StatusFound, "/admin")
-		return
-	}
-
-	// Parse month param, default to current month
-	monthStr := c.Query("month")
-	var period time.Time
-	if monthStr != "" {
-		period, err = time.Parse("2006-01", monthStr)
-		if err != nil {
-			period = time.Now()
-		}
-	} else {
-		period = time.Now()
-	}
-	period = time.Date(period.Year(), period.Month(), 1, 0, 0, 0, 0, time.UTC)
-
-	statusFilter := c.DefaultQuery("status", "all")
-	invoices, _ := h.Store.ListCenterInvoices(ctx, center.ID, period, statusFilter)
-	totalAmount, paidAmount, unpaidCount, _ := h.Store.GetCenterBillingSummary(ctx, center.ID, period)
-	parentViews := h.Store.GetParentViewsWeek(ctx, center.ID)
-
-	h.render(c, "center_billing.html", gin.H{
-		"Center":       center,
-		"Invoices":     invoices,
-		"Period":       period,
-		"PeriodStr":    period.Format("2006-01"),
-		"StatusFilter": statusFilter,
-		"TotalAmount":  totalAmount,
-		"PaidAmount":   paidAmount,
-		"UnpaidCount":  unpaidCount,
-		"ParentViews":  parentViews,
-	})
-}
-
-func (h *Handler) CenterGenerateInvoices(c *gin.Context) {
-	admin := c.MustGet("admin").(*store.Admin)
-	ctx := c.Request.Context()
-
-	monthStr := c.PostForm("month")
-	period, err := time.Parse("2006-01", monthStr)
-	if err != nil {
-		period = time.Now()
-	}
-
-	count, err := h.Store.GenerateMonthlyInvoices(ctx, *admin.CenterID, period)
-	if err != nil {
-		c.Redirect(http.StatusFound, "/admin/center/billing?month="+period.Format("2006-01")+"&error=generate")
-		return
-	}
-	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/billing?month=%s&generated=%d", period.Format("2006-01"), count))
-}
-
-func (h *Handler) CenterMarkInvoicePaid(c *gin.Context) {
-	admin := c.MustGet("admin").(*store.Admin)
-	invoiceID, _ := strconv.Atoi(c.Param("invoiceId"))
-	method := c.DefaultPostForm("method", "cash")
-	month := c.DefaultPostForm("month", time.Now().Format("2006-01"))
-
-	h.Store.MarkInvoicePaid(c.Request.Context(), invoiceID, *admin.CenterID, method)
-	c.Redirect(http.StatusFound, "/admin/center/billing?month="+month)
-}
-
-func (h *Handler) CenterCancelInvoice(c *gin.Context) {
-	admin := c.MustGet("admin").(*store.Admin)
-	invoiceID, _ := strconv.Atoi(c.Param("invoiceId"))
-	month := c.DefaultPostForm("month", time.Now().Format("2006-01"))
-
-	h.Store.CancelInvoice(c.Request.Context(), invoiceID, *admin.CenterID)
-	c.Redirect(http.StatusFound, "/admin/center/billing?month="+month)
 }
 
 // ─── Center Students ────────────────────────────────────

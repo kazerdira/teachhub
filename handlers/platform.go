@@ -236,13 +236,13 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 		if seats < 1 {
 			seats = 1
 		}
-		centerID, err := h.Store.CreateCenter(ctx, centerName, app.Email, 0)
+		centerID, err := h.Store.CreateCenter(ctx, centerName, app.Email, 0, "DZD", 0)
 		if err != nil {
 			c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=center"))
 			return
 		}
-		// Set seat count
-		h.Store.DB.Exec(ctx, `UPDATE center SET seat_count=$1 WHERE id=$2`, seats, centerID)
+		// Set expected teacher count for reference
+		_ = seats
 
 		// 2) Create owner admin with center_id
 		ownerID, err := h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id, app.FullName)
@@ -666,30 +666,66 @@ func (h *Handler) PlatformCenterDetail(c *gin.Context) {
 	teachers, _ := h.Store.ListCenterTeachers(ctx, centerID)
 	stats, _ := h.Store.GetCenterStats(ctx, centerID)
 	teacherCount, _ := h.Store.CountCenterTeachers(ctx, centerID)
+	invoices, _ := h.Store.ListCenterInvoices(ctx, centerID)
 
 	h.platformRender(c, "platform_center_detail.html", gin.H{
 		"Center":       center,
 		"Teachers":     teachers,
 		"Stats":        stats,
 		"TeacherCount": teacherCount,
+		"Invoices":     invoices,
 		"Saved":        c.Query("saved"),
 		"Error":        c.Query("error"),
 	})
 }
 
-func (h *Handler) PlatformCenterUpdateSeats(c *gin.Context) {
+func (h *Handler) PlatformCenterUpdatePricing(c *gin.Context) {
 	ctx := c.Request.Context()
 	centerID, _ := strconv.Atoi(c.Param("id"))
-	seats, _ := strconv.Atoi(c.PostForm("seat_count"))
-	price, _ := strconv.ParseFloat(c.PostForm("price_per_seat"), 64)
-	if seats < 1 {
-		seats = 1
-	}
+	price, _ := strconv.ParseFloat(c.PostForm("price_per_teacher"), 64)
+	currency := strings.TrimSpace(c.PostForm("currency"))
 	if price < 0 {
 		price = 0
 	}
-	h.Store.UpdateCenterSeats(ctx, centerID, seats, price)
-	c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?saved=seats"))
+	if currency == "" {
+		currency = "DZD"
+	}
+	h.Store.UpdateCenterPricing(ctx, centerID, price, currency)
+	c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?saved=pricing"))
+}
+
+func (h *Handler) PlatformGenerateCenterInvoice(c *gin.Context) {
+	ctx := c.Request.Context()
+	centerID, _ := strconv.Atoi(c.Param("id"))
+	monthStr := c.PostForm("month")
+	period, err := time.Parse("2006-01", monthStr)
+	if err != nil {
+		period = time.Now()
+	}
+	_, err = h.Store.GenerateCenterMonthlyInvoice(ctx, centerID, period)
+	if err != nil {
+		c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?error=invoice_failed"))
+		return
+	}
+	c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?saved=invoice"))
+}
+
+func (h *Handler) PlatformMarkCenterInvoicePaid(c *gin.Context) {
+	ctx := c.Request.Context()
+	centerID, _ := strconv.Atoi(c.Param("id"))
+	invoiceID, _ := strconv.Atoi(c.Param("invoiceId"))
+	method := strings.TrimSpace(c.PostForm("method"))
+	reference := strings.TrimSpace(c.PostForm("reference"))
+	h.Store.MarkCenterInvoicePaid(ctx, invoiceID, centerID, method, reference)
+	c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?saved=invoice"))
+}
+
+func (h *Handler) PlatformCancelCenterInvoice(c *gin.Context) {
+	ctx := c.Request.Context()
+	centerID, _ := strconv.Atoi(c.Param("id"))
+	invoiceID, _ := strconv.Atoi(c.Param("invoiceId"))
+	h.Store.CancelCenterInvoice(ctx, invoiceID, centerID)
+	c.Redirect(http.StatusFound, h.pp("/centers/"+strconv.Itoa(centerID)+"?saved=invoice"))
 }
 
 func (h *Handler) PlatformCenterUpdateSubscription(c *gin.Context) {

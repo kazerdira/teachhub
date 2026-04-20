@@ -27,9 +27,6 @@ func (h *Handler) ParentReport(c *gin.Context) {
 		return
 	}
 
-	// Log this view for center analytics
-	h.Store.LogParentView(ctx, code, c.ClientIP())
-
 	// Fetch all data using existing store functions
 	quizDetails, _ := h.Store.GetStudentQuizDetails(ctx, data.StudentID, data.ClassroomID)
 	assignDetails, _ := h.Store.GetStudentAssignmentDetails(ctx, data.StudentID, data.ClassroomID)
@@ -150,9 +147,6 @@ func (h *Handler) ParentReport(c *gin.Context) {
 		lang = "fr"
 	}
 
-	// Fetch student invoices for this classroom
-	invoices, _ := h.Store.GetStudentInvoices(ctx, data.StudentID, data.ClassroomID)
-
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.Status(http.StatusOK)
 	if err := h.Tmpl.ExecuteTemplate(c.Writer, "parent_report.html", gin.H{
@@ -172,7 +166,6 @@ func (h *Handler) ParentReport(c *gin.Context) {
 		"ClassAvg":      classOverallAvg,
 		"Banner":        banner,
 		"Trend":         trend,
-		"Invoices":      invoices,
 		"GeneratedAt":   time.Now(),
 		"Lang":          lang,
 		"BaseURL":       h.BaseURL,
