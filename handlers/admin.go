@@ -95,17 +95,12 @@ func adminID(c *gin.Context) int {
 	return 0
 }
 
-// ownsClassroom verifies the logged-in teacher owns the classroom identified by the "id" URL param.
-// Center owners can also access classrooms belonging to their center's teachers.
-// Returns the classroomID if owned, or 0 and aborts with redirect if not.
+// ownsClassroom verifies the logged-in admin owns the classroom (teacher) or is the center owner.
+// Returns the classroomID if accessible, or 0 and aborts with redirect if not.
 func (h *Handler) ownsClassroom(c *gin.Context) int {
 	classID, _ := strconv.Atoi(c.Param("id"))
-	_, err := h.Store.GetClassroomForAdmin(c.Request.Context(), classID, adminID(c))
+	_, _, err := h.Store.GetClassroomForAdminOrOwner(c.Request.Context(), classID, adminID(c))
 	if err != nil {
-		// Check if owner can access this classroom via their center
-		if h.ownerCanAccessClassroom(c, classID) {
-			return classID
-		}
 		c.Redirect(http.StatusFound, "/admin")
 		c.Abort()
 		return 0
@@ -113,20 +108,25 @@ func (h *Handler) ownsClassroom(c *gin.Context) int {
 	return classID
 }
 
-// ownerCanAccessClassroom checks if the current admin is a center owner
-// and the classroom belongs to a teacher in their center.
-func (h *Handler) ownerCanAccessClassroom(c *gin.Context, classroomID int) bool {
+// ownsClassroomOwnerOnly verifies access AND requires owner role.
+// Returns classroomID if the admin is the center owner, 0 otherwise.
+func (h *Handler) ownsClassroomOwnerOnly(c *gin.Context) int {
+	classID, _ := strconv.Atoi(c.Param("id"))
 	admin := c.MustGet("admin").(*store.Admin)
-	if admin.Role != "owner" || admin.CenterID == nil {
-		return false
+	_, isOwnerAccess, err := h.Store.GetClassroomForAdminOrOwner(c.Request.Context(), classID, adminID(c))
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		c.Abort()
+		return 0
 	}
-	classrooms, _ := h.Store.ListCenterClassrooms(c.Request.Context(), *admin.CenterID)
-	for _, cl := range classrooms {
-		if cl.ID == classroomID {
-			return true
-		}
+	// For center classrooms, only owner can perform management actions
+	if admin.CenterID != nil && admin.Role != "owner" && !isOwnerAccess {
+		// Teacher owns this classroom directly but is a center teacher — still block management
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
+		c.Abort()
+		return 0
 	}
-	return false
+	return classID
 }
 
 func (h *Handler) AdminLoginPage(c *gin.Context) {
@@ -255,18 +255,20 @@ func (h *Handler) CreateClassroom(c *gin.Context) {
 }
 
 func (h *Handler) UpdateClassroomTags(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}
 	subject := strings.TrimSpace(c.PostForm("subject"))
 	level := strings.TrimSpace(c.PostForm("level"))
-	h.Store.UpdateClassroomTags(c.Request.Context(), classID, adminID(c), subject, level)
+	h.Store.UpdateClassroomTagsAny(c.Request.Context(), classID, subject, level)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
 }
 
 func (h *Handler) UpdateClassroomBilling(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}
@@ -276,36 +278,38 @@ func (h *Handler) UpdateClassroomBilling(c *gin.Context) {
 		rate = 0
 	}
 	enabled := c.PostForm("billing_enabled") == "on"
-	h.Store.UpdateClassroomBilling(c.Request.Context(), classID, adminID(c), rate, enabled)
+	h.Store.UpdateClassroomBillingAny(c.Request.Context(), classID, rate, enabled)
 	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
 }
 
 func (h *Handler) DeleteClassroom(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	h.Store.DeleteClassroom(c.Request.Context(), id, adminID(c))
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
+	if classID == 0 {
+		return
+	}
+	h.Store.DeleteClassroomAny(c.Request.Context(), classID)
 	c.Redirect(http.StatusFound, "/admin")
 }
 
 func (h *Handler) RegenerateCode(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	h.Store.RegenerateJoinCode(c.Request.Context(), id, adminID(c))
-	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", id))
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
+	if classID == 0 {
+		return
+	}
+	h.Store.RegenerateJoinCodeAny(c.Request.Context(), classID)
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/classroom/%d", classID))
 }
 
 // ─── Classroom Detail (admin) ───────────────────────────
 
 func (h *Handler) AdminClassroom(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	classroom, err := h.Store.GetClassroomForAdmin(c.Request.Context(), id, adminID(c))
+	classroom, _, err := h.Store.GetClassroomForAdminOrOwner(c.Request.Context(), id, adminID(c))
 	if err != nil {
-		// Owner can view classrooms belonging to their center's teachers
-		if h.ownerCanAccessClassroom(c, id) {
-			classroom, err = h.Store.GetClassroom(c.Request.Context(), id)
-		}
-		if err != nil {
-			c.String(404, "Classroom not found")
-			return
-		}
+		c.String(404, "Classroom not found")
+		return
 	}
 	students, _ := h.Store.ListClassroomStudents(c.Request.Context(), id)
 	categories, _ := h.Store.ListCategories(c.Request.Context(), id)
@@ -742,7 +746,8 @@ func (h *Handler) DownloadSubmission(c *gin.Context) {
 // ─── Remove Student ─────────────────────────────────────
 
 func (h *Handler) RemoveStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}
@@ -754,7 +759,8 @@ func (h *Handler) RemoveStudent(c *gin.Context) {
 // ─── Allowed Students (Pre-registration) ───────────────
 
 func (h *Handler) AddAllowedStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}
@@ -767,7 +773,8 @@ func (h *Handler) AddAllowedStudent(c *gin.Context) {
 }
 
 func (h *Handler) AddAllowedStudentsBulk(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}
@@ -793,7 +800,8 @@ func (h *Handler) AddAllowedStudentsBulk(c *gin.Context) {
 }
 
 func (h *Handler) DeleteAllowedStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}
@@ -805,7 +813,8 @@ func (h *Handler) DeleteAllowedStudent(c *gin.Context) {
 // ─── Student Approval ─────────────────────────────────
 
 func (h *Handler) ApproveStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}
@@ -815,7 +824,8 @@ func (h *Handler) ApproveStudent(c *gin.Context) {
 }
 
 func (h *Handler) RejectStudent(c *gin.Context) {
-	classID := h.ownsClassroom(c)
+	// OWNER only for center classrooms
+	classID := h.ownsClassroomOwnerOnly(c)
 	if classID == 0 {
 		return
 	}

@@ -6,12 +6,15 @@
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
     <h1 style="font-size:clamp(1.25rem,3vw,1.75rem);font-weight:800;color:#1a1a2e;letter-spacing:-0.03em;line-height:1.1;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{.Classroom.Name}}</h1>
+    {{if ne .AdminRole "teacher"}}
     <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/delete" onsubmit="return confirm('{{t .Lang "confirm_delete"}}')">
 {{csrfField $.CSRFToken}}
         <button class="text-sm text-red-500 hover:underline">{{t .Lang "delete"}}</button>
     </form>
+    {{end}}
 </div>
 
+{{if ne .AdminRole "teacher"}}
 <!-- Subject & Level Tags -->
 <form method="POST" action="/admin/classroom/{{.Classroom.ID}}/tags" style="margin-bottom:0.75rem;">
     {{csrfField $.CSRFToken}}
@@ -48,7 +51,15 @@
         </button>
     </div>
 </form>
+{{else}}
+<!-- Read-only tags display for teachers -->
+<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:0.75rem;">
+    {{if .Classroom.Subject}}{{$subj := subjectInfo .Classroom.Subject}}<span style="font-size:12px;color:#6c5ce7;background:rgba(108,92,231,0.06);padding:3px 10px;border-radius:8px;font-weight:600;">{{$subj.Emoji}} {{if eq $.Lang "fr"}}{{$subj.Fr}}{{else}}{{$subj.En}}{{end}}</span>{{end}}
+    {{if .Classroom.Level}}<span style="font-size:12px;color:#00b894;background:rgba(0,184,148,0.06);padding:3px 10px;border-radius:8px;font-weight:600;">{{.Classroom.Level}}</span>{{end}}
+</div>
+{{end}}
 
+{{if ne .AdminRole "teacher"}}
 <div style="background:#fff;border-radius:14px;padding:0.75rem 1rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);" class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm overflow-hidden">
     <div class="min-w-0">
         <span style="color:#8b8ba3;"><span class="material-symbols-outlined" style="font-size:16px;vertical-align:-3px;margin-right:4px">link</span>{{t .Lang "join_link"}}</span> <a href="{{.JoinURL}}" style="color:#6c5ce7;font-family:'Manrope',monospace;font-size:0.8125rem;word-break:break-all;" target="_blank">{{.JoinURL}}</a>
@@ -58,6 +69,7 @@
         <button class="text-xs text-gray-500 hover:text-red-500 whitespace-nowrap">{{t .Lang "regenerate_code"}}</button>
     </form>
 </div>
+{{end}}
 
 <!-- Live Class Banner -->
 {{if .LiveSession}}
@@ -504,6 +516,49 @@ document.addEventListener('DOMContentLoaded',function(){
 <!-- STUDENTS TAB -->
 <div id="tabPanel-students" class="tab-panel"{{if ne .Tab "students"}} style="display:none"{{end}}>
 
+{{if eq .AdminRole "teacher"}}
+<!-- Center teacher: read-only student list -->
+<div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+    <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined" style="font-size:18px;color:#3b82f6">info</span>
+        <span class="text-sm text-blue-800 font-medium">{{if eq .Lang "fr"}}L'inscription des élèves est gérée par le directeur du centre.{{else}}Student enrolment is managed by the center director.{{end}}</span>
+    </div>
+</div>
+
+{{if .PendingStudents}}
+<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+    <h3 class="font-medium text-yellow-800 mb-3">{{t .Lang "students_pending"}} ({{len .PendingStudents}})</h3>
+    <div class="space-y-2">
+        {{range .PendingStudents}}
+        <div class="bg-white border border-yellow-200 rounded-lg p-3">
+            <span class="font-medium text-gray-900 text-sm">{{.Name}}</span>
+            {{if .Email}}<span class="text-xs text-gray-400 sm:ml-2">{{.Email}}</span>{{end}}
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}
+
+<h3 class="font-medium text-gray-700 mb-3">{{t .Lang "students_approved"}} ({{len .Students}})</h3>
+{{if .Students}}
+<div class="space-y-2 mb-6">
+    {{range .Students}}
+    <div class="bg-white border border-gray-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="min-w-0">
+            <a href="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}" class="font-medium text-gray-900 text-sm hover:text-indigo-600">{{.Name}}</a>
+            {{if .Email}}<span class="text-xs text-gray-400 sm:ml-2 block sm:inline">{{.Email}}</span>{{end}}
+        </div>
+        <a href="/admin/classroom/{{$.Classroom.ID}}/student/{{.ID}}" class="text-indigo-600 text-xs hover:underline font-medium">📊 {{t $.Lang "profile"}}</a>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<p class="text-gray-400 text-center py-4">{{t .Lang "students_empty"}}</p>
+{{end}}
+
+{{else}}
+<!-- Owner / solo teacher: full student management -->
+
 <!-- Pending Approvals -->
 {{if .PendingStudents}}
 <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
@@ -619,6 +674,8 @@ function copyParentLink(url) {
     <p class="text-gray-400 text-center py-4 text-sm">{{t .Lang "prereg_empty"}}</p>
     {{end}}
 </div>
+
+{{end}}{{/* end if AdminRole teacher/owner */}}
 
 </div>
 

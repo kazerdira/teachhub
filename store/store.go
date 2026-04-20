@@ -357,6 +357,56 @@ func (s *Store) GetClassroomForAdmin(ctx context.Context, id, adminID int) (*Cla
 	return c, nil
 }
 
+// GetClassroomForAdminOrOwner returns a classroom if the admin either owns it directly (teacher)
+// or is the center owner of the teacher who owns it.
+func (s *Store) GetClassroomForAdminOrOwner(ctx context.Context, classroomID, adminID int) (*Classroom, bool, error) {
+	c := &Classroom{}
+	var isOwnerAccess bool
+	err := s.DB.QueryRow(ctx, `
+		SELECT c.id, c.name, c.join_code, c.teacher_pic, COALESCE(c.subject,''), COALESCE(c.level,''),
+		       c.created_at, COALESCE(c.session_rate,0), COALESCE(c.billing_enabled,false), c.admin_id,
+		       CASE WHEN c.admin_id = $2 THEN false ELSE true END AS is_owner_access
+		FROM classroom c
+		JOIN admin a ON a.id = c.admin_id
+		WHERE c.id = $1 AND (
+			c.admin_id = $2
+			OR a.center_id = (SELECT center_id FROM admin WHERE id = $2 AND role='owner')
+		)`, classroomID, adminID).
+		Scan(&c.ID, &c.Name, &c.JoinCode, &c.TeacherPic, &c.Subject, &c.Level,
+			&c.CreatedAt, &c.SessionRate, &c.BillingEnabled, &c.AdminID, &isOwnerAccess)
+	if err != nil {
+		return nil, false, err
+	}
+	return c, isOwnerAccess, nil
+}
+
+// UpdateClassroomTagsAny updates tags without admin_id check (caller must validate access).
+func (s *Store) UpdateClassroomTagsAny(ctx context.Context, classroomID int, subject, level string) error {
+	_, err := s.DB.Exec(ctx, `UPDATE classroom SET subject=$1, level=$2 WHERE id=$3`, subject, level, classroomID)
+	return err
+}
+
+// UpdateClassroomBillingAny updates billing without admin_id check (caller must validate access).
+func (s *Store) UpdateClassroomBillingAny(ctx context.Context, classroomID int, sessionRate float64, billingEnabled bool) error {
+	_, err := s.DB.Exec(ctx, `UPDATE classroom SET session_rate=$1, billing_enabled=$2 WHERE id=$3`, sessionRate, billingEnabled, classroomID)
+	return err
+}
+
+// DeleteClassroomAny deletes a classroom without admin_id check (caller must validate access).
+func (s *Store) DeleteClassroomAny(ctx context.Context, classroomID int) error {
+	_, err := s.DB.Exec(ctx, `DELETE FROM classroom WHERE id=$1`, classroomID)
+	return err
+}
+
+// RegenerateJoinCodeAny regenerates join code without admin_id check (caller must validate access).
+func (s *Store) RegenerateJoinCodeAny(ctx context.Context, classroomID int) (string, error) {
+	var code string
+	err := s.DB.QueryRow(ctx,
+		`UPDATE classroom SET join_code=encode(gen_random_bytes(4),'hex') WHERE id=$1 RETURNING join_code`, classroomID).
+		Scan(&code)
+	return code, err
+}
+
 func (s *Store) GetClassroomByCode(ctx context.Context, code string) (*Classroom, error) {
 	c := &Classroom{}
 	err := s.DB.QueryRow(ctx, `SELECT id, name, join_code, teacher_pic, COALESCE(subject,''), COALESCE(level,''), created_at, COALESCE(session_rate,0), COALESCE(billing_enabled,false) FROM classroom WHERE join_code=$1`, code).
