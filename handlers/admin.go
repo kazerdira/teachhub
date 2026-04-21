@@ -190,10 +190,7 @@ func (h *Handler) AdminDashboard(c *gin.Context) {
 		country = admin.Country
 	}
 	if country == "" {
-		country = geo.CountryFromIP(c.ClientIP())
-		if country == "" {
-			country = "DZ"
-		}
+		country = inferCountry(c)
 	}
 	h.render(c, "admin_dashboard.html", gin.H{
 		"Classrooms": classrooms,
@@ -290,10 +287,7 @@ func (h *Handler) AdminClassroom(c *gin.Context) {
 		country = admin.Country
 	}
 	if country == "" {
-		country = geo.CountryFromIP(c.ClientIP())
-		if country == "" {
-			country = "DZ"
-		}
+		country = inferCountry(c)
 	}
 	h.render(c, "admin_classroom.html", gin.H{
 		"Classroom":       classroom,

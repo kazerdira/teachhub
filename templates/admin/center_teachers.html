@@ -7,7 +7,7 @@
         </a>
         <div>
             <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "ct_title"}}</h1>
-            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}/enseignant/mois</p>
+            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "ct_per_seat"}}</p>
         </div>
     </div>
 </div>
@@ -49,15 +49,15 @@
 <div class="card" style="padding:1.25rem;margin-bottom:1.5rem;border-left:4px solid #6366f1;background:rgba(99,102,241,0.05);">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem;">
         <span class="material-symbols-outlined" style="color:#6366f1;font-size:20px;">lock_reset</span>
-        <span style="font-size:0.9375rem;color:#6366f1;font-weight:700;">Mot de passe réinitialisé</span>
+        <span style="font-size:0.9375rem;color:#6366f1;font-weight:700;">{{t .Lang "ct_reset_ok"}}</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;max-width:420px;">
         <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:0.625rem 0.875rem;">
-            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Identifiant</div>
+            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">{{t .Lang "ct_username"}}</div>
             <div style="font-family:monospace;font-size:0.9375rem;font-weight:700;color:#1a1a2e;user-select:all;">{{.ResetUsername}}</div>
         </div>
         <div style="background:rgba(0,0,0,0.03);border-radius:10px;padding:0.625rem 0.875rem;">
-            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">Nouveau mot de passe</div>
+            <div style="font-size:0.6875rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:2px;">{{t .Lang "ct_new_password"}}</div>
             <div style="font-family:monospace;font-size:0.9375rem;font-weight:700;color:#1a1a2e;user-select:all;">{{.ResetPassword}}</div>
         </div>
     </div>
@@ -71,7 +71,7 @@
         {{csrfField .CSRFToken}}
         <div>
             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_fullname"}} *</label>
-            <input type="text" name="display_name" required class="input" style="width:100%;" placeholder="Ahmed Benali">
+            <input type="text" name="display_name" required class="input" style="width:100%;" placeholder="{{t .Lang "ct_name_ph"}}">
         </div>
         <div>
             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_email"}} *</label>
@@ -79,7 +79,7 @@
         </div>
         <div>
             <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_phone"}}</label>
-            <input type="text" name="phone" class="input" style="width:100%;" placeholder="+213...">
+            <input type="text" name="phone" class="input" style="width:100%;" placeholder="{{t .Lang "ct_phone_ph"}}">
         </div>
         <div>
             <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
@@ -88,7 +88,7 @@
         </div>
     </form>
     <p style="font-size:0.75rem;color:#8b8ba3;margin:0.75rem 0 0;">
-        Chaque enseignant actif est facturé <strong style="color:#6366f1;">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}/mois</strong>.
+        {{t .Lang "ct_each_billed"}} <strong style="color:#6366f1;">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "ct_per_seat"}}</strong>.
     </p>
 </div>
 
@@ -105,27 +105,27 @@
                 <div style="font-weight:700;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</div>
                 <div style="font-size:0.75rem;color:#8b8ba3;">@{{.Username}}</div>
             </div>
-            {{if eq .Role "owner"}}<span class="badge" style="background:rgba(99,102,241,0.1);color:#6366f1;margin-left:auto;flex-shrink:0;">Owner</span>
-            {{else if not .Active}}<span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;margin-left:auto;flex-shrink:0;">Inactif</span>{{end}}
+            {{if eq .Role "owner"}}<span class="badge" style="background:rgba(99,102,241,0.1);color:#6366f1;margin-left:auto;flex-shrink:0;">{{t $.Lang "ct_role_owner"}}</span>
+            {{else if not .Active}}<span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;margin-left:auto;flex-shrink:0;">{{t $.Lang "ct_inactive"}}</span>{{end}}
         </div>
         <div style="font-size:0.75rem;color:#6b7280;display:grid;gap:2px;margin-bottom:0.75rem;">
             {{if .Email}}<div>✉ {{.Email}}</div>{{end}}
             {{if .Phone}}<div>📞 {{.Phone}}</div>{{end}}
-            <div>{{.ClassroomCount}} salles · {{.StudentCount}} élèves</div>
-            <div>{{if .LastLoginAt}}Dernière cnx : {{.LastLoginAt.Format "02 Jan 2006"}}{{else}}Jamais connecté{{end}}</div>
+            <div>{{.ClassroomCount}} {{t $.Lang "cd_stat_classes"}} · {{.StudentCount}} {{t $.Lang "cd_stat_students"}}</div>
+            <div>{{if .LastLoginAt}}{{t $.Lang "ct_last_login"}} {{.LastLoginAt.Format "02 Jan 2006"}}{{else}}{{t $.Lang "ct_never_logged_in"}}{{end}}</div>
         </div>
         {{if eq .Role "teacher"}}
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <form method="POST" action="/admin/center/teachers/{{.ID}}/toggle">
                 {{csrfField $.CSRFToken}}
                 <button type="submit" style="font-size:0.75rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.1);background:#fff;cursor:pointer;color:#374151;">
-                    {{if .Active}}Désactiver{{else}}Activer{{end}}
+                    {{if .Active}}{{t $.Lang "ct_deactivate"}}{{else}}{{t $.Lang "ct_activate"}}{{end}}
                 </button>
             </form>
             <form method="POST" action="/admin/center/teachers/{{.ID}}/reset-password">
                 {{csrfField $.CSRFToken}}
                 <button type="submit" style="font-size:0.75rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.05);cursor:pointer;color:#6366f1;">
-                    Réinit. MDP
+                    {{t $.Lang "ct_reset_password"}}
                 </button>
             </form>
         </div>
@@ -138,8 +138,5 @@
     <p style="color:#8b8ba3;font-size:0.875rem;">{{t .Lang "ct_empty"}}</p>
 </div>
 {{end}}
-
-{{template "admin_foot" .}}
-
 
 {{template "admin_foot" .}}

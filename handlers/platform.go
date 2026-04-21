@@ -57,6 +57,7 @@ func (h *Handler) ApplySubmit(c *gin.Context) {
 	email := strings.TrimSpace(c.PostForm("email"))
 	phone := strings.TrimSpace(c.PostForm("phone"))
 	school := strings.TrimSpace(c.PostForm("school_name"))
+	country := strings.ToUpper(strings.TrimSpace(c.PostForm("country")))
 	centerName := strings.TrimSpace(c.PostForm("center_name"))
 	message := strings.TrimSpace(c.PostForm("message"))
 	expectedTeachers, _ := strconv.Atoi(c.PostForm("expected_teachers"))
@@ -70,7 +71,7 @@ func (h *Handler) ApplySubmit(c *gin.Context) {
 		return
 	}
 
-	err := h.Store.CreateTeacherApplication(c.Request.Context(), fullName, email, phone, school, "", message, centerName, expectedTeachers, expectedStudents)
+	err := h.Store.CreateTeacherApplication(c.Request.Context(), fullName, email, phone, school, country, message, centerName, expectedTeachers, expectedStudents)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/apply?error=submit_failed")
 		return
@@ -236,7 +237,11 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 		if seats < 1 {
 			seats = 1
 		}
-		centerID, err := h.Store.CreateCenter(ctx, centerName, app.Email, 0, "DZD", 0)
+		currency := "DZD"
+		if strings.EqualFold(app.Wilaya, "FR") {
+			currency = "EUR"
+		}
+		centerID, err := h.Store.CreateCenter(ctx, centerName, app.Email, 0, currency, 0)
 		if err != nil {
 			c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=center"))
 			return

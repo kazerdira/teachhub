@@ -5,22 +5,22 @@
         <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
     </a>
     <div>
-        <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">Center Settings</h1>
+        <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "cs_title"}}</h1>
         <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.Center.Name}}</p>
     </div>
 </div>
 
 {{if .Query.saved}}
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
-    <span style="font-size:0.875rem;color:#059669;font-weight:500;">Settings saved successfully.</span>
+    <span style="font-size:0.875rem;color:#059669;font-weight:500;">{{t .Lang "cs_saved"}}</span>
 </div>
 {{end}}
 
 {{if .Query.error}}
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
     <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
-    {{if eq .Query.error "name_required"}}Center name is required.
-    {{else}}An error occurred while saving.{{end}}
+    {{if eq .Query.error "name_required"}}{{t .Lang "cs_error_name"}}
+    {{else}}{{t .Lang "cs_error_generic"}}{{end}}
     </span>
 </div>
 {{end}}
@@ -30,23 +30,23 @@
         {{csrfField .CSRFToken}}
 
         <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Center Name *</label>
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_center_name"}} *</label>
             <input type="text" name="name" required value="{{.Center.Name}}" class="input" style="width:100%;">
         </div>
 
         <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Address</label>
-            <input type="text" name="address" value="{{.Center.Address}}" class="input" style="width:100%;" placeholder="Street address">
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_address"}}</label>
+            <input type="text" name="address" value="{{.Center.Address}}" class="input" style="width:100%;" placeholder="{{t .Lang "cs_address"}}">
         </div>
 
         <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">City</label>
-            <input type="text" name="city" value="{{.Center.City}}" class="input" style="width:100%;" placeholder="City / Wilaya">
+            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_city"}}</label>
+            <input type="text" name="city" value="{{.Center.City}}" class="input" style="width:100%;" placeholder="{{t .Lang "cs_city"}}">
         </div>
 
         <div>
             <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">Phone</label>
-            <input type="text" name="phone" value="{{.Center.Phone}}" class="input" style="width:100%;" placeholder="+213...">
+            <input type="text" name="phone" value="{{.Center.Phone}}" class="input" style="width:100%;" placeholder="{{t .Lang "ct_phone_ph"}}">
         </div>
 
         <div>
@@ -56,7 +56,7 @@
 
         <div style="padding-top:0.5rem;">
             <button type="submit" class="btn-primary" style="padding:0.65rem 1.5rem;font-size:0.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size:16px;">save</span> Save Settings
+                <span class="material-symbols-outlined" style="font-size:16px;">save</span> {{t .Lang "cs_save"}}
             </button>
         </div>
     </form>
@@ -64,8 +64,8 @@
 
 <!-- Pricing -->
 <div class="card" style="padding:1.5rem;margin-top:1.5rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 0.5rem;">Tarification</h2>
-    <p style="font-size:0.875rem;color:#374151;">Prix par enseignant : <strong>{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}/mois</strong></p>
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 0.5rem;">{{t .Lang "cs_pricing_title"}}</h2>
+    <p style="font-size:0.875rem;color:#374151;">{{t .Lang "cs_price_per_teacher"}} <strong>{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "cd_per_month"}}</strong></p>
 </div>
 
 {{template "admin_foot" .}}

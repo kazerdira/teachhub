@@ -758,11 +758,11 @@ var Translations = map[string]map[string]string{
 	"apply_subheading":      {"en": "Apply for a teacher account and start managing your classrooms", "fr": "Demandez un compte enseignant et commencez à gérer vos classes"},
 	"apply_already_teacher": {"en": "Already a teacher? Sign in →", "fr": "Déjà enseignant ? Connexion →"},
 	"apply_full_name":       {"en": "Full Name", "fr": "Nom complet"},
-	"apply_name_ph":         {"en": "Mohamed Amine Bourega", "fr": "Mohamed Amine Bourega"},
+	"apply_name_ph":         {"en": "John Smith", "fr": "Marie Dupont"},
 	"apply_email":           {"en": "Email Address", "fr": "Adresse email"},
-	"apply_email_ph":        {"en": "teacher@school.dz", "fr": "enseignant@ecole.dz"},
+	"apply_email_ph":        {"en": "teacher@example.com", "fr": "enseignant@exemple.fr"},
 	"apply_phone":           {"en": "Phone Number", "fr": "Numéro de téléphone"},
-	"apply_phone_ph":        {"en": "0555 12 34 56", "fr": "0555 12 34 56"},
+	"apply_phone_ph":        {"en": "+1 555 123 4567", "fr": "+33 6 12 34 56 78"},
 	"apply_school":          {"en": "School / University", "fr": "École / Université"},
 	"apply_school_ph":       {"en": "Your school or university", "fr": "Votre école ou université"},
 	"apply_wilaya":          {"en": "Wilaya", "fr": "Wilaya"},
@@ -833,6 +833,58 @@ var Translations = map[string]map[string]string{
 	"ct_deactivate":        {"en": "Deactivate", "fr": "Désactiver"},
 	"ct_activate":          {"en": "Activate", "fr": "Activer"},
 	"ct_empty":             {"en": "No teachers yet. Add your first teacher above.", "fr": "Aucun enseignant. Ajoutez votre premier enseignant ci-dessus."},
+	"ct_reset_ok":          {"en": "Password Reset", "fr": "Mot de passe réinitialisé"},
+	"ct_new_password":      {"en": "New Password", "fr": "Nouveau mot de passe"},
+	"ct_each_billed":       {"en": "Each active teacher is billed", "fr": "Chaque enseignant actif est facturé"},
+	"ct_name_ph":           {"en": "John Smith", "fr": "Marie Dupont"},
+	"ct_phone_ph":          {"en": "+1 555 000 0000", "fr": "+33 6 00 00 00 00"},
+	"ct_rooms_students":    {"en": "rooms · students", "fr": "salles · élèves"},
+	"ct_last_login":        {"en": "Last login:", "fr": "Dernière cnx :"},
+	"ct_never_logged_in":   {"en": "Never logged in", "fr": "Jamais connecté"},
+	"ct_reset_password":    {"en": "Reset Password", "fr": "Réinit. MDP"},
+	"ct_manage":            {"en": "Manage", "fr": "Gérer"},
+
+	// ─────────────────────────────────────────────────
+	// CENTER DASHBOARD
+	// ─────────────────────────────────────────────────
+	"cd_subtitle":          {"en": "Center Dashboard", "fr": "Tableau de bord"},
+	"cd_unpaid_banner":     {"en": "Unpaid invoice — Please contact the TeachHub team to resolve your account.", "fr": "Facture impayée — Veuillez contacter l'équipe TeachHub pour régulariser votre situation."},
+	"cd_billing_month":     {"en": "This month's billing", "fr": "Facturation du mois"},
+	"cd_active_teachers_x":{"en": "active teachers ×", "fr": "enseignants actifs ×"},
+	"cd_per_month":         {"en": "/ month", "fr": "/mois"},
+	"cd_next_invoice":      {"en": "Next invoice: 1st of", "fr": "Prochaine facture : 1er"},
+	"cd_stat_teachers":     {"en": "teachers", "fr": "enseignants"},
+	"cd_stat_students":     {"en": "students", "fr": "élèves"},
+	"cd_stat_classes":      {"en": "rooms", "fr": "salles"},
+	"cd_my_classes":        {"en": "My Classes", "fr": "Mes classes"},
+	"cd_manage_classes":    {"en": "Manage your classrooms", "fr": "Gérer vos salles de classe"},
+	"cd_settings":          {"en": "Settings", "fr": "Paramètres"},
+	"cd_settings_desc":     {"en": "Name, address, contact info", "fr": "Nom, adresse, coordonnées"},
+	"cd_no_teacher":        {"en": "No teachers yet.", "fr": "Aucun enseignant."},
+	"cd_add_teacher_link":  {"en": "Add a teacher", "fr": "Ajouter un enseignant"},
+
+	// ─────────────────────────────────────────────────
+	// CENTER SETTINGS
+	// ─────────────────────────────────────────────────
+	"cs_title":             {"en": "Center Settings", "fr": "Paramètres du centre"},
+	"cs_saved":             {"en": "Settings saved successfully.", "fr": "Paramètres enregistrés avec succès."},
+	"cs_error_name":        {"en": "Center name is required.", "fr": "Le nom du centre est obligatoire."},
+	"cs_error_generic":     {"en": "An error occurred while saving.", "fr": "Une erreur est survenue lors de l'enregistrement."},
+	"cs_center_name":       {"en": "Center Name", "fr": "Nom du centre"},
+	"cs_address":           {"en": "Address", "fr": "Adresse"},
+	"cs_city":              {"en": "City", "fr": "Ville"},
+	"cs_save":              {"en": "Save Settings", "fr": "Enregistrer"},
+	"cs_pricing_title":     {"en": "Pricing", "fr": "Tarification"},
+	"cs_price_per_teacher": {"en": "Price per teacher:", "fr": "Prix par enseignant :"},
+
+	// ─────────────────────────────────────────────────
+	// APPLY FORM
+	// ─────────────────────────────────────────────────
+	"apply_country":        {"en": "Country", "fr": "Pays"},
+	"apply_select_country": {"en": "Select your country...", "fr": "Sélectionnez votre pays..."},
+	"apply_country_dz":     {"en": "Algeria", "fr": "Algérie"},
+	"apply_country_fr":     {"en": "France", "fr": "France"},
+	"apply_country_other":  {"en": "Other", "fr": "Autre"},
 
 	// ─────────────────────────────────────────────────
 	// CENTER BILLING
