@@ -47,11 +47,20 @@ type CenterTeacher struct {
 // ─── Center CRUD ────────────────────────────────────────
 
 func (s *Store) CreateCenter(ctx context.Context, name, email string, ownerID int, currency string, pricePerTeacher float64) (int, error) {
+	return s.CreateCenterWithCountry(ctx, name, email, ownerID, currency, pricePerTeacher, "")
+}
+
+// CreateCenterWithCountry inserts a new center, persisting the ISO country code so that
+// downstream features (subjects, levels, billing) reflect the right locale from day one.
+func (s *Store) CreateCenterWithCountry(ctx context.Context, name, email string, ownerID int, currency string, pricePerTeacher float64, country string) (int, error) {
+	if country == "" {
+		country = "DZ"
+	}
 	var id int
 	err := s.DB.QueryRow(ctx,
-		`INSERT INTO center (name, email, subscription_status, trial_ends_at, currency, price_per_teacher)
-		 VALUES ($1, $2, 'trial', NOW() + INTERVAL '30 days', $3, $4)
-		 RETURNING id`, name, email, currency, pricePerTeacher).Scan(&id)
+		`INSERT INTO center (name, email, country, subscription_status, trial_ends_at, currency, price_per_teacher)
+		 VALUES ($1, $2, $3, 'trial', NOW() + INTERVAL '30 days', $4, $5)
+		 RETURNING id`, name, email, country, currency, pricePerTeacher).Scan(&id)
 	return id, err
 }
 

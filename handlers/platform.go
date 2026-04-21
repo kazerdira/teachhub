@@ -239,10 +239,15 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 			seats = 1
 		}
 		currency := "DZD"
-		if strings.EqualFold(app.Wilaya, "FR") {
+		country := strings.ToUpper(strings.TrimSpace(app.Wilaya))
+		if country == "" {
+			country = "DZ"
+		}
+		// FR (and other EU) → EUR; everything else stays DZD until we add more locales
+		if country == "FR" {
 			currency = "EUR"
 		}
-		centerID, err := h.Store.CreateCenter(ctx, centerName, app.Email, 0, currency, 0)
+		centerID, err := h.Store.CreateCenterWithCountry(ctx, centerName, app.Email, 0, currency, 0, country)
 		if err != nil {
 			log.Printf("[approve] CreateCenter failed (app=%d): %v", id, err)
 			c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=center"))
