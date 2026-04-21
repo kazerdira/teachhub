@@ -50,7 +50,8 @@
 
         {{if .Saved}}
         <div class="alert-ok">
-            {{if eq .Saved "seats"}}Seat count updated successfully.
+            {{if eq .Saved "pricing"}}Pricing updated.
+            {{else if eq .Saved "invoice"}}Invoice generated.
             {{else if eq .Saved "subscription"}}Subscription updated successfully.
             {{else}}Changes saved.{{end}}
         </div>
@@ -71,10 +72,6 @@
                 <div style="font-size:1.5rem;font-weight:800;color:#c4b5fd;">{{.TeacherCount}}</div>
                 <div style="font-size:0.6875rem;color:#64748b;">Teachers (excl. owner)</div>
             </div>
-            <div class="stat-box">
-                <div style="font-size:1.5rem;font-weight:800;color:#c4b5fd;">{{.Center.SeatCount}}</div>
-                <div style="font-size:0.6875rem;color:#64748b;">Seat Limit</div>
-            </div>
             {{if .Stats}}
             <div class="stat-box">
                 <div style="font-size:1.5rem;font-weight:800;color:#4ade80;">{{.Stats.StudentCount}}</div>
@@ -91,54 +88,90 @@
             {{end}}
         </div>
 
+        <!-- Pricing & Invoice Generation -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
-            <!-- Seats Management -->
+            <!-- Pricing -->
             <div class="card" style="padding:1.5rem;">
-                <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Seats & Pricing</h2>
-                <form method="POST" action="{{.PlatformPath}}/centers/{{.Center.ID}}/seats">
+                <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Pricing</h2>
+                <form method="POST" action="{{.PlatformPath}}/centers/{{.Center.ID}}/pricing">
+                    {{csrfField .CSRFToken}}
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
                         <div>
-                            <label class="form-label">Seat Count</label>
-                            <input type="number" name="seat_count" value="{{.Center.SeatCount}}" min="1" max="100" class="form-input">
+                            <label class="form-label">Price per Teacher</label>
+                            <input type="number" name="price_per_teacher" value="{{printf "%.0f" .Center.PricePerTeacher}}" min="0" step="100" class="form-input">
                         </div>
                         <div>
-                            <label class="form-label">Price per Seat (DA)</label>
-                            <input type="number" name="price_per_seat" value="{{printf "%.0f" .Center.PricePerSeat}}" min="0" step="100" class="form-input">
+                            <label class="form-label">Currency</label>
+                            <input type="text" name="currency" value="{{.Center.Currency}}" maxlength="3" class="form-input" placeholder="DZD">
                         </div>
                     </div>
-                    <p style="font-size:0.75rem;color:#64748b;margin:0 0 1rem;">Currently using <strong style="color:#c4b5fd;">{{.TeacherCount}}</strong> of <strong style="color:#c4b5fd;">{{.Center.SeatCount}}</strong> teacher seats (owner not counted).</p>
-                    <button type="submit" class="btn-save">Update Seats</button>
+                    <button type="submit" class="btn-save">Update Pricing</button>
                 </form>
             </div>
 
-            <!-- Subscription Management -->
+            <!-- Generate Invoice -->
             <div class="card" style="padding:1.5rem;">
-                <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Subscription</h2>
-                <form method="POST" action="{{.PlatformPath}}/centers/{{.Center.ID}}/subscription">
+                <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Generate Invoice</h2>
+                <form method="POST" action="{{.PlatformPath}}/centers/{{.Center.ID}}/generate-invoices">
+                    {{csrfField .CSRFToken}}
                     <div style="margin-bottom:1rem;">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="trial" {{if eq .Center.SubscriptionStatus "trial"}}selected{{end}}>Trial</option>
-                            <option value="active" {{if eq .Center.SubscriptionStatus "active"}}selected{{end}}>Active</option>
-                            <option value="expired" {{if eq .Center.SubscriptionStatus "expired"}}selected{{end}}>Expired</option>
-                            <option value="suspended" {{if eq .Center.SubscriptionStatus "suspended"}}selected{{end}}>Suspended</option>
-                            <option value="cancelled" {{if eq .Center.SubscriptionStatus "cancelled"}}selected{{end}}>Cancelled</option>
-                        </select>
+                        <label class="form-label">Month</label>
+                        <input type="month" name="month" class="form-input" required>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
-                        <div>
-                            <label class="form-label">Start Date</label>
-                            <input type="date" name="subscription_start" value="{{if .Center.SubscriptionStart}}{{.Center.SubscriptionStart.Format "2006-01-02"}}{{end}}" class="form-input">
-                        </div>
-                        <div>
-                            <label class="form-label">End Date</label>
-                            <input type="date" name="subscription_end" value="{{if .Center.SubscriptionEnd}}{{.Center.SubscriptionEnd.Format "2006-01-02"}}{{end}}" class="form-input">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-save">Update Subscription</button>
+                    <button type="submit" class="btn-save">Generate</button>
                 </form>
             </div>
         </div>
+
+        <!-- Invoice History -->
+        {{if .Invoices}}
+        <div class="card" style="padding:1.5rem;margin-bottom:2rem;">
+            <h2 style="font-size:1rem;font-weight:700;color:#e2e8f0;margin:0 0 1rem;">Invoice History</h2>
+            <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+                <thead>
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                        <th style="text-align:left;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Period</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Teachers</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Price/Teacher</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Total</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Status</th>
+                        <th style="text-align:center;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Paid At</th>
+                        <th style="text-align:right;padding:0.5rem 0.75rem;color:#64748b;font-weight:600;font-size:0.6875rem;text-transform:uppercase;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Invoices}}
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                        <td style="padding:0.625rem 0.75rem;color:#e2e8f0;">{{.PeriodMonth.Format "Jan 2006"}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;color:#94a3b8;">{{.TeacherCount}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;color:#94a3b8;">{{printf "%.0f" .PricePerTeacher}} {{.Currency}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;font-weight:600;color:#c4b5fd;">{{printf "%.0f" .TotalAmount}} {{.Currency}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;">
+                            {{if eq .Status "paid"}}<span style="color:#4ade80;">Paid</span>
+                            {{else if eq .Status "cancelled"}}<span style="color:#64748b;">Cancelled</span>
+                            {{else}}<span style="color:#fbbf24;">Pending</span>{{end}}
+                        </td>
+                        <td style="padding:0.625rem 0.75rem;text-align:center;color:#64748b;">{{if .PaidAt}}{{.PaidAt.Format "02 Jan 2006"}}{{else}}—{{end}}</td>
+                        <td style="padding:0.625rem 0.75rem;text-align:right;">
+                            {{if eq .Status "pending"}}
+                            <form method="POST" action="{{$.PlatformPath}}/centers/{{$.Center.ID}}/invoices/{{.ID}}/paid" style="display:inline;">
+                                {{csrfField $.CSRFToken}}
+                                <input type="hidden" name="method" value="manual">
+                                <input type="hidden" name="reference" value="">
+                                <button type="submit" style="font-size:0.75rem;color:#4ade80;background:rgba(34,197,94,0.1);border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">Mark Paid</button>
+                            </form>
+                            <form method="POST" action="{{$.PlatformPath}}/centers/{{$.Center.ID}}/invoices/{{.ID}}/cancel" style="display:inline;margin-left:4px;">
+                                {{csrfField $.CSRFToken}}
+                                <button type="submit" style="font-size:0.75rem;color:#f87171;background:rgba(239,68,68,0.1);border:none;padding:3px 8px;border-radius:4px;cursor:pointer;">Cancel</button>
+                            </form>
+                            {{end}}
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        {{end}}
 
         <!-- Teachers in this center -->
         <div class="card" style="padding:1.5rem;">

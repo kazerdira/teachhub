@@ -43,6 +43,7 @@ func (h *Handler) CenterDashboard(c *gin.Context) {
 		"Stats":              stats,
 		"Teachers":           teachers,
 		"ActiveTeacherCount": activeCount,
+		"MonthlyTotal":       float64(activeCount) * center.PricePerTeacher,
 		"HasUnpaidInvoice":   hasUnpaid,
 		"NextInvoiceDate":    nextInvoice,
 	})

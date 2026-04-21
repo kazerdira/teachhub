@@ -37,20 +37,6 @@
     </div>
 </form>
 
-<!-- Billing Settings -->
-<form method="POST" action="/admin/classroom/{{.Classroom.ID}}/billing" style="margin-bottom:0.75rem;">
-    {{csrfField $.CSRFToken}}
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:0.8125rem;color:#6b6b80;cursor:pointer;">
-            <input type="checkbox" name="billing_enabled" {{if .Classroom.BillingEnabled}}checked{{end}} style="accent-color:#6c5ce7;">
-            {{t .Lang "billing_enabled"}}
-        </label>
-        <input type="number" name="session_rate" value="{{printf "%.0f" .Classroom.SessionRate}}" min="0" step="50" class="input" style="max-width:120px;font-size:0.8125rem;padding:6px 10px;" placeholder="DA/session">
-        <button type="submit" style="background:#6c5ce7;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;">
-            <span class="material-symbols-outlined" style="font-size:14px;">save</span> {{t .Lang "profile_save"}}
-        </button>
-    </div>
-</form>
 {{else}}
 <!-- Read-only tags display for teachers -->
 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:0.75rem;">
