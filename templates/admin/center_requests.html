@@ -1,0 +1,50 @@
+{{template "admin_head" .}}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem;">
+    <a href="/admin/center" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
+        <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
+    </a>
+    <div>
+        <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "cr_title"}}</h1>
+        <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{t .Lang "cr_subtitle"}}</p>
+    </div>
+</div>
+
+{{if .Requests}}
+<div class="card" style="padding:0;overflow:hidden;">
+    <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
+        <thead>
+            <tr style="background:rgba(99,102,241,0.04);">
+                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cr_student"}}</th>
+                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cr_teacher"}}</th>
+                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cr_classroom"}}</th>
+                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cr_received"}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Requests}}
+            <tr style="border-top:1px solid rgba(0,0,0,0.05);">
+                <td style="padding:0.75rem 1rem;">
+                    <div style="font-weight:600;color:#1a1a2e;">{{.FullName}}</div>
+                    <div style="font-size:0.75rem;color:#8b8ba3;">{{.Email}}{{if .Phone}} · {{.Phone}}{{end}}{{if .Level}} · {{.Level}}{{end}}</div>
+                </td>
+                <td style="padding:0.75rem 1rem;color:#374151;">{{.TeacherName}}</td>
+                <td style="padding:0.75rem 1rem;color:#374151;">{{if .ClassroomName}}{{.ClassroomName}}{{else}}<span style="color:#8b8ba3;">—</span>{{end}}</td>
+                <td style="padding:0.75rem 1rem;color:#8b8ba3;font-size:0.8125rem;">{{.CreatedAt.Format "02 Jan 2006 15:04"}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</div>
+<div style="margin-top:1rem;padding:0.875rem 1rem;background:rgba(99,102,241,0.04);border-radius:10px;font-size:0.8125rem;color:#6b7280;">
+    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;color:#6366f1;">info</span>
+    {{t .Lang "cr_help_owner"}}
+</div>
+{{else}}
+<div class="card" style="padding:2.5rem;text-align:center;">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#d1d5db;">inbox</span>
+    <p style="font-size:0.875rem;color:#8b8ba3;margin:0.75rem 0 0;">{{t .Lang "cr_empty"}}</p>
+</div>
+{{end}}
+
+{{template "admin_foot" .}}

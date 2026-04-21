@@ -396,6 +396,8 @@ func main() {
 		center.GET("/classrooms", h.CenterClassrooms)
 		center.POST("/classrooms/create", h.CenterCreateClassroom)
 		center.POST("/classrooms/:id/delete", h.CenterDeleteClassroom)
+		center.GET("/billing", h.CenterBilling)
+		center.GET("/requests", h.CenterPendingRequests)
 	}
 
 	admin := r.Group("/admin", middleware.AdminRequired(), middleware.AdminSubscriptionCheck(s))

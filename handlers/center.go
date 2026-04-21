@@ -212,6 +212,68 @@ func generateCenterPassword(length int) string {
 	return string(result)
 }
 
+// ─── Center Billing ─────────────────────────────────────
+
+func (h *Handler) CenterBilling(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+	invoices, _ := h.Store.ListCenterInvoices(ctx, center.ID)
+	teachers, _ := h.Store.ListCenterTeachers(ctx, center.ID)
+
+	activeCount := 0
+	for _, t := range teachers {
+		if t.Active {
+			activeCount++
+		}
+	}
+	now := time.Now()
+	currentPeriod := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	nextInvoice := currentPeriod.AddDate(0, 1, 0)
+	estimate := float64(activeCount) * center.PricePerTeacher
+
+	unpaidTotal := 0.0
+	unpaidCount := 0
+	for _, inv := range invoices {
+		if inv.Status == "unpaid" {
+			unpaidTotal += inv.TotalAmount
+			unpaidCount++
+		}
+	}
+
+	h.render(c, "center_billing.html", gin.H{
+		"Center":             center,
+		"Invoices":           invoices,
+		"ActiveTeacherCount": activeCount,
+		"CurrentPeriod":      currentPeriod,
+		"NextInvoiceDate":    nextInvoice,
+		"Estimate":           estimate,
+		"UnpaidTotal":        unpaidTotal,
+		"UnpaidCount":        unpaidCount,
+	})
+}
+
+// ─── Center Pending Join Requests (read-only aggregate) ─
+
+func (h *Handler) CenterPendingRequests(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+	requests, _ := h.Store.ListCenterPendingJoinRequests(ctx, center.ID)
+	h.render(c, "center_requests.html", gin.H{
+		"Center":   center,
+		"Requests": requests,
+	})
+}
+
 // ─── Center Students ────────────────────────────────────
 
 func (h *Handler) CenterStudents(c *gin.Context) {

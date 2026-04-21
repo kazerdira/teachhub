@@ -65,6 +65,11 @@ func (h *Handler) render(c *gin.Context, tmplName string, data gin.H) {
 		data["AdminRole"] = a.Role
 		if a.CenterID != nil {
 			data["AdminCenterID"] = *a.CenterID
+			if a.Role == "owner" {
+				if _, ok := data["CenterPendingRequests"]; !ok {
+					data["CenterPendingRequests"] = h.Store.CountCenterPendingJoinRequests(c.Request.Context(), *a.CenterID)
+				}
+			}
 		}
 	}
 	// Query params map for flash messages etc.

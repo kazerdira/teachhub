@@ -2999,6 +2999,63 @@ func (s *Store) CountPendingJoinRequests(ctx context.Context, teacherID int) int
 	return n
 }
 
+// CountCenterPendingJoinRequests returns the total pending join_request rows
+// across every teacher belonging to the given center.
+func (s *Store) CountCenterPendingJoinRequests(ctx context.Context, centerID int) int {
+	var n int
+	s.DB.QueryRow(ctx, `
+		SELECT COUNT(*)
+		FROM join_request jr
+		JOIN admin a ON a.id = jr.teacher_id
+		WHERE a.center_id = $1 AND jr.status = 'pending'`, centerID).Scan(&n)
+	return n
+}
+
+// CenterPendingJoinRequest is a read-only view used by the center owner.
+type CenterPendingJoinRequest struct {
+	ID            int
+	TeacherID     int
+	TeacherName   string
+	ClassroomID   *int
+	ClassroomName string
+	FullName      string
+	Email         string
+	Phone         string
+	Level         string
+	Message       string
+	CreatedAt     time.Time
+}
+
+// ListCenterPendingJoinRequests returns all pending join requests for every
+// teacher of the given center, newest first.
+func (s *Store) ListCenterPendingJoinRequests(ctx context.Context, centerID int) ([]CenterPendingJoinRequest, error) {
+	rows, err := s.DB.Query(ctx, `
+		SELECT jr.id, jr.teacher_id,
+		       COALESCE(NULLIF(a.display_name,''), a.username),
+		       jr.classroom_id, COALESCE(c.name,''),
+		       jr.full_name, jr.email, COALESCE(jr.phone,''),
+		       jr.level, COALESCE(jr.message,''), jr.created_at
+		FROM join_request jr
+		JOIN admin a ON a.id = jr.teacher_id
+		LEFT JOIN classroom c ON c.id = jr.classroom_id
+		WHERE a.center_id = $1 AND jr.status = 'pending'
+		ORDER BY jr.created_at DESC`, centerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []CenterPendingJoinRequest
+	for rows.Next() {
+		var r CenterPendingJoinRequest
+		if err := rows.Scan(&r.ID, &r.TeacherID, &r.TeacherName, &r.ClassroomID, &r.ClassroomName,
+			&r.FullName, &r.Email, &r.Phone, &r.Level, &r.Message, &r.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, nil
+}
+
 func (s *Store) ApproveJoinRequest(ctx context.Context, requestID, teacherID, classroomID int) error {
 	// Mark request as approved
 	tag, err := s.DB.Exec(ctx,

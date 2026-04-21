@@ -19,19 +19,15 @@
 </div>
 {{end}}
 
-<div class="card" style="padding:1.25rem;margin-bottom:2rem;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.75rem;">
-        <span class="material-symbols-outlined" style="color:#6366f1;font-size:20px;">payments</span>
-        <span style="font-size:0.875rem;font-weight:700;color:#1a1a2e;">{{t .Lang "cd_billing_month"}}</span>
-    </div>
-    <div style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin-bottom:4px;">
-        {{.ActiveTeacherCount}} {{t .Lang "cd_active_teachers_x"}} {{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "cd_per_month"}}
-        = <span style="color:#6366f1;">{{printf "%.0f" .MonthlyTotal}} {{.Center.Currency}}</span>
-    </div>
-    <div style="font-size:0.8125rem;color:#8b8ba3;">
-        {{t .Lang "cd_next_invoice"}} {{.NextInvoiceDate.Format "January 2006"}}
-    </div>
+{{if gt .Center.PricePerTeacher 0.0}}
+<div style="display:flex;align-items:center;gap:10px;padding:0.625rem 0.875rem;margin-bottom:1.5rem;border:1px solid rgba(99,102,241,0.15);border-radius:10px;background:rgba(99,102,241,0.03);font-size:0.8125rem;color:#374151;flex-wrap:wrap;">
+    <span class="material-symbols-outlined" style="color:#6366f1;font-size:18px;">payments</span>
+    <span><strong>{{.ActiveTeacherCount}}</strong> {{t .Lang "cd_active_teachers_x"}} <strong>{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}</strong> = <strong style="color:#6366f1;">{{printf "%.0f" .MonthlyTotal}} {{.Center.Currency}}</strong>{{t .Lang "cd_per_month"}}</span>
+    <span style="color:#8b8ba3;">·</span>
+    <span style="color:#8b8ba3;">{{t .Lang "cd_next_invoice"}} {{.NextInvoiceDate.Format "January 2006"}}</span>
+    <a href="/admin/center/billing" style="margin-left:auto;font-size:0.75rem;color:#6366f1;text-decoration:none;font-weight:600;">{{t .Lang "cb_view_all"}} →</a>
 </div>
+{{end}}
 
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;">
     <div class="card" style="padding:1rem;text-align:center;">
