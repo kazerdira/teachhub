@@ -57,7 +57,7 @@ func (h *Handler) ApplySubmit(c *gin.Context) {
 	email := strings.TrimSpace(c.PostForm("email"))
 	phone := strings.TrimSpace(c.PostForm("phone"))
 	school := strings.TrimSpace(c.PostForm("school_name"))
-	country := strings.ToUpper(strings.TrimSpace(c.PostForm("country")))
+	country := inferCountry(c)
 	centerName := strings.TrimSpace(c.PostForm("center_name"))
 	message := strings.TrimSpace(c.PostForm("message"))
 	expectedTeachers, _ := strconv.Atoi(c.PostForm("expected_teachers"))
