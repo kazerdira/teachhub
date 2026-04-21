@@ -6,8 +6,8 @@
             <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
         </a>
         <div>
-            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">Students</h1>
-            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.StudentCount}} students enrolled</p>
+            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "cst_title"}}</h1>
+            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.StudentCount}} {{t .Lang "cst_enrolled"}}</p>
         </div>
     </div>
 </div>
@@ -15,11 +15,11 @@
 {{if .Query.error}}
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
     <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
-    {{if eq .Query.error "missing_name"}}Student name is required.
-    {{else if eq .Query.error "create_failed"}}Could not create student. The email may already exist.
-    {{else if eq .Query.error "not_found"}}Student not found.
-    {{else if eq .Query.error "assign_failed"}}Could not assign student to classroom.
-    {{else}}An error occurred.{{end}}
+    {{if eq .Query.error "missing_name"}}{{t .Lang "cst_err_name"}}
+    {{else if eq .Query.error "create_failed"}}{{t .Lang "cst_err_create"}}
+    {{else if eq .Query.error "not_found"}}{{t .Lang "cst_err_notfound"}}
+    {{else if eq .Query.error "assign_failed"}}{{t .Lang "cst_err_assign"}}
+    {{else}}{{t .Lang "cst_err_generic"}}{{end}}
     </span>
 </div>
 {{end}}
@@ -28,7 +28,7 @@
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
     <div style="display:flex;align-items:center;gap:8px;">
         <span class="material-symbols-outlined" style="color:#059669;font-size:20px;">check_circle</span>
-        <span style="font-size:0.875rem;color:#059669;font-weight:600;">Student registered successfully.</span>
+        <span style="font-size:0.875rem;color:#059669;font-weight:600;">{{t .Lang "cst_created_ok"}}</span>
     </div>
 </div>
 {{end}}
@@ -37,7 +37,7 @@
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
     <div style="display:flex;align-items:center;gap:8px;">
         <span class="material-symbols-outlined" style="color:#059669;font-size:20px;">check_circle</span>
-        <span style="font-size:0.875rem;color:#059669;font-weight:600;">Student assigned to classroom.</span>
+        <span style="font-size:0.875rem;color:#059669;font-weight:600;">{{t .Lang "cst_assigned_ok"}}</span>
     </div>
 </div>
 {{end}}
@@ -46,31 +46,31 @@
 <div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #f59e0b;background:rgba(245,158,11,0.05);">
     <div style="display:flex;align-items:center;gap:8px;">
         <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;">info</span>
-        <span style="font-size:0.875rem;color:#92400e;font-weight:600;">Student removed from classroom.</span>
+        <span style="font-size:0.875rem;color:#92400e;font-weight:600;">{{t .Lang "cst_removed_ok"}}</span>
     </div>
 </div>
 {{end}}
 
 <!-- Add Student Form -->
 <div class="card" style="padding:1.5rem;margin-bottom:2rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Register New Student</h2>
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">{{t .Lang "cst_form_title"}}</h2>
     <form method="POST" action="/admin/center/students/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
         {{csrfField .CSRFToken}}
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Full Name *</label>
-            <input type="text" name="name" required class="input" style="width:100%;" placeholder="Student full name">
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "cst_full_name"}}</label>
+            <input type="text" name="name" required class="input" style="width:100%;" placeholder="{{t .Lang "cst_name_ph"}}">
         </div>
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Email</label>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_email"}}</label>
             <input type="email" name="email" class="input" style="width:100%;" placeholder="student@example.com">
         </div>
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Phone</label>
-            <input type="text" name="phone" class="input" style="width:100%;" placeholder="+213...">
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_phone"}}</label>
+            <input type="text" name="phone" class="input" style="width:100%;" placeholder="{{t .Lang "ct_phone_ph"}}">
         </div>
         <div>
             <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size:16px;">person_add</span> Register
+                <span class="material-symbols-outlined" style="font-size:16px;">person_add</span> {{t .Lang "cst_register_btn"}}
             </button>
         </div>
     </form>
@@ -79,22 +79,22 @@
 <!-- Assign Student to Classroom -->
 {{if and .Students .Classrooms}}
 <div class="card" style="padding:1.5rem;margin-bottom:2rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">Assign Student to Classroom</h2>
+    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">{{t .Lang "cst_assign_title"}}</h2>
     <form method="POST" action="/admin/center/students/assign" style="display:grid;grid-template-columns:1fr 1fr auto;gap:0.75rem;align-items:end;">
         {{csrfField .CSRFToken}}
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Student</label>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "cst_title"}}</label>
             <select name="student_id" required class="input" style="width:100%;">
-                <option value="">Select student...</option>
+                <option value="">{{t .Lang "cst_select_student"}}</option>
                 {{range .Students}}
                 <option value="{{.ID}}">{{.Name}}{{if .Email}} ({{.Email}}){{end}}</option>
                 {{end}}
             </select>
         </div>
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Classroom</label>
+            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "cc_title"}}</label>
             <select name="classroom_id" required class="input" style="width:100%;">
-                <option value="">Select classroom...</option>
+                <option value="">{{t .Lang "cc_select_assign"}}</option>
                 {{range .Classrooms}}
                 <option value="{{.ID}}">{{.Name}}{{if .TeacherName}} — {{.TeacherName}}{{end}}</option>
                 {{end}}
@@ -102,7 +102,7 @@
         </div>
         <div>
             <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;display:flex;align-items:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size:16px;">assignment_ind</span> Assign
+                <span class="material-symbols-outlined" style="font-size:16px;">assignment_ind</span> {{t .Lang "cst_assign_btn"}}
             </button>
         </div>
     </form>
@@ -116,12 +116,12 @@
         <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
             <thead>
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
-                    <th style="text-align:left;padding:0.875rem 1rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Name</th>
-                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Email</th>
-                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Phone</th>
-                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Classrooms</th>
-                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Enrolled</th>
-                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">Last Login</th>
+                    <th style="text-align:left;padding:0.875rem 1rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_name"}}</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_col_email"}}</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_phone"}}</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "cc_title"}}</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "cst_enrolled"}}</th>
+                    <th style="text-align:left;padding:0.875rem 0.75rem;font-weight:600;color:#8b8ba3;font-size:0.6875rem;text-transform:uppercase;letter-spacing:0.05em;">{{t .Lang "ct_last_login"}}</th>
                 </tr>
             </thead>
             <tbody>
@@ -134,14 +134,14 @@
                     <td style="padding:0.75rem;color:#6b7280;">{{if .Phone}}{{.Phone}}{{else}}<span style="color:#c7c7d4;">—</span>{{end}}</td>
                     <td style="padding:0.75rem;">
                         {{if gt .ClassroomCount 0}}
-                        <span style="font-size:0.75rem;background:rgba(99,102,241,0.1);color:#4f46e5;padding:2px 8px;border-radius:6px;font-weight:600;">{{.ClassroomCount}} class{{if gt .ClassroomCount 1}}es{{end}}</span>
+                        <span style="font-size:0.75rem;background:rgba(99,102,241,0.1);color:#4f46e5;padding:2px 8px;border-radius:6px;font-weight:600;">{{.ClassroomCount}} {{t $.Lang "cc_title"}}</span>
                         {{if .ClassroomNames}}<div style="font-size:0.6875rem;color:#8b8ba3;margin-top:2px;">{{.ClassroomNames}}</div>{{end}}
                         {{else}}
-                        <span style="font-size:0.75rem;color:#c7c7d4;">Not assigned</span>
+                        <span style="font-size:0.75rem;color:#c7c7d4;">{{t $.Lang "cst_not_assigned"}}</span>
                         {{end}}
                     </td>
                     <td style="padding:0.75rem;color:#8b8ba3;font-size:0.75rem;">{{.CreatedAt.Format "Jan 2, 2006"}}</td>
-                    <td style="padding:0.75rem;color:#8b8ba3;font-size:0.75rem;">{{if .LastLoginAt}}{{.LastLoginAt.Format "Jan 2, 15:04"}}{{else}}<span style="color:#c7c7d4;">Never</span>{{end}}</td>
+                    <td style="padding:0.75rem;color:#8b8ba3;font-size:0.75rem;">{{if .LastLoginAt}}{{.LastLoginAt.Format "Jan 2, 15:04"}}{{else}}<span style="color:#c7c7d4;">{{t $.Lang "cst_never"}}</span>{{end}}</td>
                 </tr>
                 {{end}}
             </tbody>
@@ -151,8 +151,8 @@
 {{else}}
 <div class="card" style="padding:3rem;text-align:center;">
     <span class="material-symbols-outlined" style="font-size:48px;color:#d1d5db;margin-bottom:1rem;">school</span>
-    <p style="font-size:1rem;color:#8b8ba3;font-weight:500;margin:0;">No students registered yet</p>
-    <p style="font-size:0.8125rem;color:#b2b2c9;margin:0.5rem 0 0;">Use the form above to register your first student.</p>
+    <p style="font-size:1rem;color:#8b8ba3;font-weight:500;margin:0;">{{t .Lang "cst_empty"}}</p>
+    <p style="font-size:0.8125rem;color:#b2b2c9;margin:0.5rem 0 0;">{{t .Lang "cst_empty_hint"}}</p>
 </div>
 {{end}}
 

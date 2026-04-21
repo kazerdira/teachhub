@@ -887,6 +887,69 @@ var Translations = map[string]map[string]string{
 	"apply_country_other":  {"en": "Other", "fr": "Autre"},
 
 	// ─────────────────────────────────────────────────
+	// CENTER CLASSROOMS (cc_)
+	// ─────────────────────────────────────────────────
+	"cc_title":             {"en": "Classrooms", "fr": "Salles de classe"},
+	"cc_err_missing":       {"en": "Classroom name and teacher are required.", "fr": "Le nom de la salle et l'enseignant sont obligatoires."},
+	"cc_err_teacher":       {"en": "Selected teacher does not belong to this center.", "fr": "L'enseignant sélectionné n'appartient pas à ce centre."},
+	"cc_err_create":        {"en": "Could not create classroom.", "fr": "Impossible de créer la salle."},
+	"cc_err_notfound":      {"en": "Classroom not found.", "fr": "Salle introuvable."},
+	"cc_err_generic":       {"en": "An error occurred.", "fr": "Une erreur est survenue."},
+	"cc_created_ok":        {"en": "Classroom created successfully.", "fr": "Salle créée avec succès."},
+	"cc_deleted":           {"en": "Classroom deleted.", "fr": "Salle supprimée."},
+	"cc_form_title":        {"en": "Create New Classroom", "fr": "Créer une nouvelle salle"},
+	"cc_col_classroom":     {"en": "Classroom", "fr": "Salle"},
+	"cc_col_teacher":       {"en": "Teacher", "fr": "Enseignant"},
+	"cc_col_subject":       {"en": "Subject", "fr": "Matière"},
+	"cc_col_level":         {"en": "Level", "fr": "Niveau"},
+	"cc_col_students":      {"en": "Students", "fr": "Élèves"},
+	"cc_col_code":          {"en": "Code", "fr": "Code"},
+	"cc_col_created":       {"en": "Created", "fr": "Créé le"},
+	"cc_name_label":        {"en": "Name *", "fr": "Nom *"},
+	"cc_teacher_label":     {"en": "Teacher *", "fr": "Enseignant *"},
+	"cc_subject_label":     {"en": "Subject", "fr": "Matière"},
+	"cc_level_label":       {"en": "Level", "fr": "Niveau"},
+	"cc_create_btn":        {"en": "Create", "fr": "Créer"},
+	"cc_name_ph":           {"en": "e.g. Math 3AM Group A", "fr": "ex. Maths 3AM Groupe A"},
+	"cc_select_teacher":    {"en": "Select teacher...", "fr": "Sélectionnez un enseignant..."},
+	"cc_need_teacher":      {"en": "You need to create a teacher first before you can create classrooms.", "fr": "Vous devez d'abord créer un enseignant avant de créer des salles."},
+	"cc_delete_confirm":    {"en": "Delete this classroom? This cannot be undone.", "fr": "Supprimer cette salle ? Cette action est irréversible."},
+	"cc_empty":             {"en": "No classrooms yet", "fr": "Aucune salle pour l'instant"},
+	"cc_empty_hint":        {"en": "Use the form above to create your first classroom.", "fr": "Utilisez le formulaire ci-dessus pour créer votre première salle."},
+	"cc_select_assign":     {"en": "Select classroom...", "fr": "Sélectionnez une salle..."},
+
+	// ─────────────────────────────────────────────────
+	// CENTER STUDENTS (cst_)
+	// ─────────────────────────────────────────────────
+	"cst_title":            {"en": "Students", "fr": "Élèves"},
+	"cst_enrolled":         {"en": "students enrolled", "fr": "élèves inscrits"},
+	"cst_err_name":         {"en": "Student name is required.", "fr": "Le nom de l'élève est obligatoire."},
+	"cst_err_create":       {"en": "Could not create student. The email may already exist.", "fr": "Impossible de créer l'élève. L'adresse email existe peut-être déjà."},
+	"cst_err_notfound":     {"en": "Student not found.", "fr": "Élève introuvable."},
+	"cst_err_assign":       {"en": "Could not assign student to classroom.", "fr": "Impossible d'assigner l'élève à la salle."},
+	"cst_err_generic":      {"en": "An error occurred.", "fr": "Une erreur est survenue."},
+	"cst_created_ok":       {"en": "Student registered successfully.", "fr": "Élève inscrit avec succès."},
+	"cst_assigned_ok":      {"en": "Student assigned to classroom.", "fr": "Élève assigné à la salle."},
+	"cst_removed_ok":       {"en": "Student removed from classroom.", "fr": "Élève retiré de la salle."},
+	"cst_form_title":       {"en": "Register New Student", "fr": "Inscrire un nouvel élève"},
+	"cst_full_name":        {"en": "Full Name *", "fr": "Nom complet *"},
+	"cst_name_ph":          {"en": "Student full name", "fr": "Nom et prénom de l'élève"},
+	"cst_assign_title":     {"en": "Assign Student to Classroom", "fr": "Assigner un élève à une salle"},
+	"cst_select_student":   {"en": "Select student...", "fr": "Sélectionnez un élève..."},
+	"cst_assign_btn":       {"en": "Assign", "fr": "Assigner"},
+	"cst_not_assigned":     {"en": "Not assigned", "fr": "Non assigné"},
+	"cst_never":            {"en": "Never", "fr": "Jamais"},
+	"cst_empty":            {"en": "No students registered yet", "fr": "Aucun élève inscrit pour l'instant"},
+	"cst_empty_hint":       {"en": "Use the form above to register your first student.", "fr": "Utilisez le formulaire ci-dessus pour inscrire votre premier élève."},
+	"cst_register_btn":     {"en": "Register", "fr": "Inscrire"},
+
+	// ─────────────────────────────────────────────────
+	// CENTER SETTINGS extras (cs_)
+	// ─────────────────────────────────────────────────
+	"cs_phone":             {"en": "Phone", "fr": "Téléphone"},
+	"cs_email":             {"en": "Email", "fr": "Email"},
+
+	// ─────────────────────────────────────────────────
 	// CENTER BILLING
 	// ─────────────────────────────────────────────────
 	"billing":               {"en": "Billing", "fr": "Facturation"},
