@@ -60,24 +60,12 @@ func (h *Handler) CenterTeachers(c *gin.Context) {
 	}
 	teachers, _ := h.Store.ListCenterTeachers(c.Request.Context(), center.ID)
 
-	// Handle reset-password flash: if ?reset=username, read pending password from DB then clear it
-	var resetUsername, resetPassword string
-	if un := c.Query("reset"); un != "" {
-		resetAdmin, err := h.Store.GetAdmin(c.Request.Context(), un)
-		if err == nil && resetAdmin.CenterID != nil && *resetAdmin.CenterID == center.ID && resetAdmin.PendingPassword != nil {
-			resetUsername = un
-			resetPassword = *resetAdmin.PendingPassword
-			h.Store.ClearPendingPassword(c.Request.Context(), resetAdmin.ID)
-		}
-	}
-
 	h.render(c, "center_teachers.html", gin.H{
-		"Center":        center,
-		"Teachers":      teachers,
-		"Error":         c.Query("error"),
-		"Created":       c.Query("created"),
-		"ResetUsername": resetUsername,
-		"ResetPassword": resetPassword,
+		"Center":   center,
+		"Teachers": teachers,
+		"Error":    c.Query("error"),
+		"Created":  c.Query("created"),
+		"Reset":    c.Query("reset"),
 	})
 }
 
@@ -122,7 +110,7 @@ func (h *Handler) CenterCreateTeacher(c *gin.Context) {
 		}
 	}
 
-	c.Redirect(http.StatusFound, "/admin/center/teachers?created="+username+"&pw="+password)
+	c.Redirect(http.StatusFound, "/admin/center/teachers?created="+username)
 }
 
 func (h *Handler) CenterToggleTeacher(c *gin.Context) {

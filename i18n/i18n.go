@@ -835,6 +835,8 @@ var Translations = map[string]map[string]string{
 	"ct_empty":             {"en": "No teachers yet. Add your first teacher above.", "fr": "Aucun enseignant. Ajoutez votre premier enseignant ci-dessus."},
 	"ct_reset_ok":          {"en": "Password Reset", "fr": "Mot de passe réinitialisé"},
 	"ct_new_password":      {"en": "New Password", "fr": "Nouveau mot de passe"},
+	"ct_show_credentials":  {"en": "Show login credentials", "fr": "Afficher les identifiants"},
+	"ct_credentials_in_card": {"en": "credentials are available on the teacher's card.", "fr": "les identifiants sont disponibles sur la fiche de l'enseignant."},
 	"ct_each_billed":       {"en": "Each active teacher is billed", "fr": "Chaque enseignant actif est facturé"},
 	"ct_name_ph":           {"en": "John Smith", "fr": "Marie Dupont"},
 	"ct_phone_ph":          {"en": "+1 555 000 0000", "fr": "+33 6 00 00 00 00"},

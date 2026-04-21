@@ -29,19 +29,20 @@ type Center struct {
 
 // CenterTeacher is a lightweight view used in the center teacher list.
 type CenterTeacher struct {
-	ID             int
-	Username       string
-	DisplayName    string
-	Email          string
-	Phone          string
-	Role           string
-	Active         bool
-	ClassroomCount int
-	StudentCount   int
-	LastLoginAt    *time.Time
-	CreatedAt      time.Time
-	BillableFrom   *time.Time
-	DeactivatedAt  *time.Time
+	ID              int
+	Username        string
+	DisplayName     string
+	Email           string
+	Phone           string
+	Role            string
+	Active          bool
+	ClassroomCount  int
+	StudentCount    int
+	LastLoginAt     *time.Time
+	CreatedAt       time.Time
+	BillableFrom    *time.Time
+	DeactivatedAt   *time.Time
+	PendingPassword *string
 }
 
 // ─── Center CRUD ────────────────────────────────────────
@@ -99,7 +100,7 @@ func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterT
 		                 JOIN classroom c ON c.id = cs.classroom_id
 		                 WHERE c.admin_id = a.id AND cs.status='approved'), 0),
 		       a.last_login_at, a.created_at,
-		       a.billable_from, a.deactivated_at
+		       a.billable_from, a.deactivated_at, a.pending_password
 		FROM admin a
 		WHERE a.center_id = $1 AND a.role = 'teacher'
 		ORDER BY a.created_at ASC`, centerID)
@@ -112,7 +113,7 @@ func (s *Store) ListCenterTeachers(ctx context.Context, centerID int) ([]CenterT
 		var t CenterTeacher
 		if err := rows.Scan(&t.ID, &t.Username, &t.DisplayName, &t.Email, &t.Phone, &t.Role, &t.Active,
 			&t.ClassroomCount, &t.StudentCount, &t.LastLoginAt, &t.CreatedAt,
-			&t.BillableFrom, &t.DeactivatedAt); err != nil {
+			&t.BillableFrom, &t.DeactivatedAt, &t.PendingPassword); err != nil {
 			return nil, err
 		}
 		list = append(list, t)
