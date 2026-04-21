@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/csv"
 	"fmt"
+	"log"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -243,6 +244,7 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 		}
 		centerID, err := h.Store.CreateCenter(ctx, centerName, app.Email, 0, currency, 0)
 		if err != nil {
+			log.Printf("[approve] CreateCenter failed (app=%d): %v", id, err)
 			c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=center"))
 			return
 		}
@@ -256,6 +258,7 @@ func (h *Handler) PlatformUpdateAppStatus(c *gin.Context) {
 			username = fmt.Sprintf("%s%d", username, id)
 			ownerID, err = h.Store.CreateOwnerAdmin(ctx, centerID, username, string(hashed), password, app.Email, app.Phone, app.SchoolName, id, app.FullName)
 			if err != nil {
+				log.Printf("[approve] CreateOwnerAdmin failed (app=%d, center=%d): %v", id, centerID, err)
 				c.Redirect(http.StatusFound, h.pp("/applications/"+strconv.Itoa(id)+"?error=create"))
 				return
 			}
