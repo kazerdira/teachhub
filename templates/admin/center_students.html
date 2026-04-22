@@ -21,181 +21,182 @@
 </div>
 {{end}}
 
-{{if .Query.created}}
-<div class="ch-toast ok"><span class="material-symbols-outlined">check_circle</span><span>{{t .Lang "cst_created_ok"}}</span></div>
-{{end}}
-{{if .Query.assigned}}
-<div class="ch-toast ok"><span class="material-symbols-outlined">check_circle</span><span>{{t .Lang "cst_assigned_ok"}}</span></div>
-{{end}}
-{{if .Query.removed}}
-<div class="ch-toast warn"><span class="material-symbols-outlined">info</span><span>{{t .Lang "cst_removed_ok"}}</span></div>
-{{end}}
+{{if .Query.created}}<div class="ch-toast ok"><span class="material-symbols-outlined">check_circle</span><span>{{t .Lang "cst_created_ok"}}</span></div>{{end}}
+{{if .Query.assigned}}<div class="ch-toast ok"><span class="material-symbols-outlined">check_circle</span><span>{{t .Lang "cst_assigned_ok"}}</span></div>{{end}}
+{{if .Query.removed}}<div class="ch-toast warn"><span class="material-symbols-outlined">info</span><span>{{t .Lang "cst_removed_ok"}}</span></div>{{end}}
 
-<!-- Stat strip -->
-<div class="ch-strip">
-    <div>
-        <div class="ch-strip-num">{{.StudentCount}}</div>
-        <div class="ch-strip-label">{{t .Lang "cst_enrolled"}}</div>
-    </div>
-    <div>
-        <div class="ch-strip-num ok">{{.AssignedCount}}</div>
-        <div class="ch-strip-label">{{t .Lang "cst_strip_assigned"}}</div>
-    </div>
-    <div>
-        <div class="ch-strip-num warn">{{.UnassignedCount}}</div>
-        <div class="ch-strip-label">{{t .Lang "cst_strip_unassigned"}}</div>
-    </div>
-    <div>
-        <div class="ch-strip-num">{{.NewThisMonth}}</div>
-        <div class="ch-strip-label">{{t .Lang "cst_strip_new_month"}}</div>
-    </div>
+<!-- Header strip — bare numerals on grey -->
+<div class="ch-panel" style="margin-bottom:1.25rem;">
+    <section class="ch-section">
+        <div class="ch-strip">
+            <div>
+                <div class="ch-strip-num">{{.StudentCount}}</div>
+                <div class="ch-strip-label">{{t .Lang "cst_enrolled"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num ok">{{.AssignedCount}}</div>
+                <div class="ch-strip-label">{{t .Lang "cst_strip_assigned"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num warn">{{.UnassignedCount}}</div>
+                <div class="ch-strip-label">{{t .Lang "cst_strip_unassigned"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num">{{.NewThisMonth}}</div>
+                <div class="ch-strip-label">{{t .Lang "cst_strip_new_month"}}</div>
+            </div>
+        </div>
+    </section>
 </div>
 
-<!-- Quick add — single line, no card -->
-<section class="ch-section">
-    <div class="ch-section-intro">
-        <div class="ch-section-meta">
-            <div class="ch-label" style="margin-bottom:8px;">01 — {{t .Lang "cst_action_label"}}</div>
-            <h3>{{t .Lang "cst_form_title"}}</h3>
-            <p>{{t .Lang "cst_form_help"}}</p>
+<!-- Forms panel — Add + Assign sections separated by hairline -->
+<div class="ch-panel" style="margin-bottom:1.25rem;">
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <span class="ch-section-num">01 — {{t .Lang "cst_action_label"}}</span>
+                <h3>{{t .Lang "cst_form_title"}}</h3>
+                <p>{{t .Lang "cst_form_help"}}</p>
+            </div>
+            <form method="POST" action="/admin/center/students/create" class="ch-form-stack">
+                {{csrfField .CSRFToken}}
+                <div>
+                    <label>{{t .Lang "cst_full_name"}} <span class="req">*</span></label>
+                    <input type="text" name="name" required placeholder="{{t .Lang "cst_name_ph"}}">
+                </div>
+                <div class="row-2">
+                    <div>
+                        <label>{{t .Lang "ct_email"}}</label>
+                        <input type="email" name="email" placeholder="student@example.com">
+                    </div>
+                    <div>
+                        <label>{{t .Lang "ct_phone"}}</label>
+                        <input type="text" name="phone" placeholder="{{t .Lang "ct_phone_ph"}}">
+                    </div>
+                </div>
+                <div class="ch-save-bar">
+                    <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                        <span class="material-symbols-outlined" style="font-size:16px;">person_add</span> {{t .Lang "cst_register_btn"}}
+                    </button>
+                </div>
+            </form>
         </div>
-        <form method="POST" action="/admin/center/students/create" class="ch-form-stack">
-            {{csrfField .CSRFToken}}
-            <div>
-                <label>{{t .Lang "cst_full_name"}} *</label>
-                <input type="text" name="name" required placeholder="{{t .Lang "cst_name_ph"}}">
-            </div>
-            <div class="row-2">
-                <div>
-                    <label>{{t .Lang "ct_email"}}</label>
-                    <input type="email" name="email" placeholder="student@example.com">
-                </div>
-                <div>
-                    <label>{{t .Lang "ct_phone"}}</label>
-                    <input type="text" name="phone" placeholder="{{t .Lang "ct_phone_ph"}}">
-                </div>
-            </div>
-            <div class="ch-save-bar">
-                <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
-                    <span class="material-symbols-outlined" style="font-size:16px;">person_add</span> {{t .Lang "cst_register_btn"}}
-                </button>
-            </div>
-        </form>
-    </div>
-</section>
+    </section>
 
-<!-- Assign existing student -->
-{{if and .Students .Classrooms}}
-<section class="ch-section">
-    <div class="ch-section-intro">
-        <div class="ch-section-meta">
-            <div class="ch-label" style="margin-bottom:8px;">02 — {{t .Lang "cst_assign_label"}}</div>
-            <h3>{{t .Lang "cst_assign_title"}}</h3>
-            <p>{{t .Lang "cst_assign_help"}}</p>
+    {{if and .Students .Classrooms}}
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <span class="ch-section-num">02 — {{t .Lang "cst_assign_label"}}</span>
+                <h3>{{t .Lang "cst_assign_title"}}</h3>
+                <p>{{t .Lang "cst_assign_help"}}</p>
+            </div>
+            <form method="POST" action="/admin/center/students/assign" class="ch-form-stack">
+                {{csrfField .CSRFToken}}
+                <div class="row-2">
+                    <div>
+                        <label>{{t .Lang "cst_title"}}</label>
+                        <select name="student_id" required>
+                            <option value="">{{t .Lang "cst_select_student"}}</option>
+                            {{range .Students}}
+                            <option value="{{.ID}}">{{.Name}}{{if .Email}} ({{.Email}}){{end}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                    <div>
+                        <label>{{t .Lang "cc_title"}}</label>
+                        <select name="classroom_id" required>
+                            <option value="">{{t .Lang "cc_select_assign"}}</option>
+                            {{range .Classrooms}}
+                            <option value="{{.ID}}">{{.Name}}{{if .TeacherName}} — {{.TeacherName}}{{end}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                </div>
+                <div class="ch-save-bar">
+                    <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                        <span class="material-symbols-outlined" style="font-size:16px;">assignment_ind</span> {{t .Lang "cst_assign_btn"}}
+                    </button>
+                </div>
+            </form>
         </div>
-        <form method="POST" action="/admin/center/students/assign" class="ch-form-stack">
-            {{csrfField .CSRFToken}}
-            <div class="row-2">
-                <div>
-                    <label>{{t .Lang "cst_title"}}</label>
-                    <select name="student_id" required>
-                        <option value="">{{t .Lang "cst_select_student"}}</option>
-                        {{range .Students}}
-                        <option value="{{.ID}}">{{.Name}}{{if .Email}} ({{.Email}}){{end}}</option>
-                        {{end}}
-                    </select>
-                </div>
-                <div>
-                    <label>{{t .Lang "cc_title"}}</label>
-                    <select name="classroom_id" required>
-                        <option value="">{{t .Lang "cc_select_assign"}}</option>
-                        {{range .Classrooms}}
-                        <option value="{{.ID}}">{{.Name}}{{if .TeacherName}} — {{.TeacherName}}{{end}}</option>
-                        {{end}}
-                    </select>
-                </div>
-            </div>
-            <div class="ch-save-bar">
-                <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
-                    <span class="material-symbols-outlined" style="font-size:16px;">assignment_ind</span> {{t .Lang "cst_assign_btn"}}
-                </button>
-            </div>
-        </form>
-    </div>
-</section>
-{{end}}
-
-<!-- Roster — flush table, no card -->
-<section class="ch-section">
-    <div class="ch-section-head" style="margin-top:0;">
-        <h2>{{t .Lang "cst_roster_title"}}</h2>
-        <span class="ch-label">{{len .Students}} {{t .Lang "cst_total"}}</span>
-    </div>
-
-    {{if .Students}}
-    <div class="ch-toolbar">
-        <div class="ch-search">
-            <span class="material-symbols-outlined">search</span>
-            <input type="text" id="ch-student-search" placeholder="{{t .Lang "cst_search_ph"}}" oninput="chFilterRows()">
-        </div>
-        <span class="ch-count" id="ch-student-count">{{len .Students}} {{t .Lang "cst_total"}}</span>
-    </div>
-
-    <div style="overflow-x:auto;">
-        <table class="ch-table-bare">
-            <thead>
-                <tr>
-                    <th>{{t .Lang "ct_col_name"}}</th>
-                    <th>{{t .Lang "ct_col_email"}}</th>
-                    <th>{{t .Lang "ct_phone"}}</th>
-                    <th>{{t .Lang "cc_title"}}</th>
-                    <th>{{t .Lang "cst_enrolled"}}</th>
-                    <th>{{t .Lang "ct_last_login"}}</th>
-                </tr>
-            </thead>
-            <tbody id="ch-student-tbody">
-                {{range .Students}}
-                <tr data-search="{{.Name}} {{.Email}} {{.Phone}} {{.ClassroomNames}}">
-                    <td class="strong">{{.Name}}</td>
-                    <td>{{if .Email}}{{.Email}}{{else}}<span style="color:#cbd5e0;">—</span>{{end}}</td>
-                    <td>{{if .Phone}}<span class="ch-mono" style="font-size:0.75rem;">{{.Phone}}</span>{{else}}<span style="color:#cbd5e0;">—</span>{{end}}</td>
-                    <td>
-                        {{if gt .ClassroomCount 0}}
-                            <span class="ch-pill info">{{.ClassroomCount}} {{t $.Lang "cc_title"}}</span>
-                            {{if .ClassroomNames}}<div style="font-size:0.6875rem;color:#9ca3af;margin-top:3px;font-family:'JetBrains Mono',monospace;">{{.ClassroomNames}}</div>{{end}}
-                        {{else}}
-                            <span class="ch-pill muted">{{t $.Lang "cst_not_assigned"}}</span>
-                        {{end}}
-                    </td>
-                    <td class="ch-mono" style="font-size:0.75rem;color:#9ca3af;">{{.CreatedAt.Format "02 Jan 2006"}}</td>
-                    <td class="ch-mono" style="font-size:0.75rem;color:#9ca3af;">{{if .LastLoginAt}}{{.LastLoginAt.Format "02 Jan, 15:04"}}{{else}}<span style="color:#cbd5e0;">{{t $.Lang "cst_never"}}</span>{{end}}</td>
-                </tr>
-                {{end}}
-            </tbody>
-        </table>
-    </div>
-
-    <script>
-    function chFilterRows(){
-        var q = (document.getElementById('ch-student-search').value || '').toLowerCase().trim();
-        var rows = document.querySelectorAll('#ch-student-tbody tr');
-        var shown = 0;
-        rows.forEach(function(r){
-            var hay = (r.getAttribute('data-search') || '').toLowerCase();
-            var match = !q || hay.indexOf(q) !== -1;
-            r.style.display = match ? '' : 'none';
-            if (match) shown++;
-        });
-        document.getElementById('ch-student-count').textContent = shown + ' / ' + rows.length;
-    }
-    </script>
-    {{else}}
-    <div class="ch-empty">
-        <span class="material-symbols-outlined">school</span>
-        <p>{{t .Lang "cst_empty"}}</p>
-        <p class="hint">{{t .Lang "cst_empty_hint"}}</p>
-    </div>
+    </section>
     {{end}}
-</section>
+</div>
+
+<!-- Roster panel — table inside its own quiet surface -->
+<div class="ch-panel">
+    <section class="ch-section">
+        <div class="ch-section-head" style="margin-top:0;">
+            <h2>{{t .Lang "cst_roster_title"}}</h2>
+            <span class="ch-label">{{len .Students}} {{t .Lang "cst_total"}}</span>
+        </div>
+
+        {{if .Students}}
+        <div class="ch-toolbar">
+            <div class="ch-search">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="ch-student-search" placeholder="{{t .Lang "cst_search_ph"}}" oninput="chFilterRows()">
+            </div>
+            <span class="ch-count" id="ch-student-count">{{len .Students}} {{t .Lang "cst_total"}}</span>
+        </div>
+
+        <div style="overflow-x:auto;">
+            <table class="ch-table-bare">
+                <thead>
+                    <tr>
+                        <th>{{t .Lang "ct_col_name"}}</th>
+                        <th>{{t .Lang "ct_col_email"}}</th>
+                        <th>{{t .Lang "ct_phone"}}</th>
+                        <th>{{t .Lang "cc_title"}}</th>
+                        <th>{{t .Lang "cst_enrolled"}}</th>
+                        <th>{{t .Lang "ct_last_login"}}</th>
+                    </tr>
+                </thead>
+                <tbody id="ch-student-tbody">
+                    {{range .Students}}
+                    <tr data-search="{{.Name}} {{.Email}} {{.Phone}} {{.ClassroomNames}}">
+                        <td class="strong">{{.Name}}</td>
+                        <td>{{if .Email}}{{.Email}}{{else}}<span style="color:#cbd5e0;">—</span>{{end}}</td>
+                        <td>{{if .Phone}}<span class="ch-mono" style="font-size:0.75rem;">{{.Phone}}</span>{{else}}<span style="color:#cbd5e0;">—</span>{{end}}</td>
+                        <td>
+                            {{if gt .ClassroomCount 0}}
+                                <span class="ch-pill info">{{.ClassroomCount}} {{t $.Lang "cc_title"}}</span>
+                                {{if .ClassroomNames}}<div style="font-size:0.6875rem;color:#9ca3af;margin-top:3px;font-family:'JetBrains Mono',monospace;">{{.ClassroomNames}}</div>{{end}}
+                            {{else}}
+                                <span class="ch-pill muted">{{t $.Lang "cst_not_assigned"}}</span>
+                            {{end}}
+                        </td>
+                        <td class="ch-mono" style="font-size:0.75rem;color:#9ca3af;">{{.CreatedAt.Format "02 Jan 2006"}}</td>
+                        <td class="ch-mono" style="font-size:0.75rem;color:#9ca3af;">{{if .LastLoginAt}}{{.LastLoginAt.Format "02 Jan, 15:04"}}{{else}}<span style="color:#cbd5e0;">{{t $.Lang "cst_never"}}</span>{{end}}</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+        function chFilterRows(){
+            var q = (document.getElementById('ch-student-search').value || '').toLowerCase().trim();
+            var rows = document.querySelectorAll('#ch-student-tbody tr');
+            var shown = 0;
+            rows.forEach(function(r){
+                var hay = (r.getAttribute('data-search') || '').toLowerCase();
+                var match = !q || hay.indexOf(q) !== -1;
+                r.style.display = match ? '' : 'none';
+                if (match) shown++;
+            });
+            document.getElementById('ch-student-count').textContent = shown + ' / ' + rows.length;
+        }
+        </script>
+        {{else}}
+        <div class="ch-empty" style="border:none;padding:2rem 0;">
+            <span class="material-symbols-outlined">school</span>
+            <p>{{t .Lang "cst_empty"}}</p>
+            <p class="hint">{{t .Lang "cst_empty_hint"}}</p>
+        </div>
+        {{end}}
+    </section>
+</div>
 
 {{template "admin_foot" .}}

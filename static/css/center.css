@@ -254,60 +254,77 @@
 
 /* ─── Cardless patterns ─── */
 
+/* Single page surface — one quiet panel that holds many sections,
+   divided by hairlines. Used for settings, students, anything dense. */
+.ch-panel {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  overflow: hidden;
+}
+
 /* Editorial section — vertical block separated by hairline rule. No box. */
 .ch-section {
-  padding: 1.75rem 0;
+  padding: 1.75rem 1.75rem;
   border-top: 1px solid #eef0f4;
 }
-.ch-section:first-of-type { border-top: none; padding-top: 0.5rem; }
+.ch-panel > .ch-section:first-child,
+.ch-section:first-of-type { border-top: none; }
 .ch-section-intro {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 2.5rem;
+  grid-template-columns: 240px 1fr;
+  gap: 3rem;
   align-items: start;
 }
 .ch-section-intro .ch-section-meta h3 {
   font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #1a1a2e;
-  margin: 0 0 0.25rem;
-  letter-spacing: -0.01em;
+  margin: 0 0 0.375rem;
+  letter-spacing: -0.015em;
+}
+.ch-section-intro .ch-section-meta .ch-section-num {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #b8b8cc;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
 }
 .ch-section-intro .ch-section-meta p {
   font-size: 0.8125rem;
   color: #8b8ba3;
-  line-height: 1.5;
+  line-height: 1.55;
   margin: 0;
-  max-width: 200px;
+  max-width: 220px;
 }
 @media (max-width: 820px) {
+  .ch-section { padding: 1.25rem 1.125rem; }
   .ch-section-intro { grid-template-columns: 1fr; gap: 1rem; }
   .ch-section-intro .ch-section-meta p { max-width: none; }
 }
 
-/* Single-column stacked form — labels on top, generous spacing, no panel */
-.ch-form-stack {
-  display: grid;
-  gap: 1.125rem;
-  max-width: 520px;
-}
+/* Single-column stacked form — uses normal labels and the existing .input chrome */
+.ch-form-stack { display: grid; gap: 1rem; max-width: 540px; }
 .ch-form-stack label {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.6875rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #374151;
   display: block;
   margin-bottom: 6px;
+  letter-spacing: -0.005em;
 }
+.ch-form-stack label .req { color: #ef4444; margin-left: 2px; }
 .ch-form-stack .help {
   font-size: 0.75rem;
   color: #9ca3af;
-  margin-top: 5px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  letter-spacing: 0.01em;
+  margin-top: 6px;
+  line-height: 1.45;
 }
 .ch-form-stack .row-2 {
   display: grid;
@@ -317,23 +334,46 @@
 @media (max-width: 560px) {
   .ch-form-stack .row-2 { grid-template-columns: 1fr; }
 }
+/* Inputs inside a stack use the global .input look */
+.ch-form-stack input[type="text"],
+.ch-form-stack input[type="email"],
+.ch-form-stack input[type="tel"],
+.ch-form-stack input[type="number"],
+.ch-form-stack select,
+.ch-form-stack textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  background: #fff;
+  color: #1a1a2e;
+  font-family: 'Manrope', system-ui, sans-serif;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ch-form-stack input:focus,
+.ch-form-stack select:focus,
+.ch-form-stack textarea:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
 
-/* Save bar — thin sticky-ish action row at bottom of form */
+/* Save bar — thin action row at bottom of a form section */
 .ch-save-bar {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding-top: 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
 }
 .ch-save-bar .ch-meta {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: #9ca3af;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.01em;
 }
 
-/* Bare table — table flush on the page, no card wrapper */
+/* Bare table — flush table, no card wrapper, hairline rows */
 .ch-table-bare {
   width: 100%;
   border-collapse: collapse;
@@ -368,7 +408,7 @@
 }
 .ch-table-bare .strong { color: #1a1a2e; font-weight: 600; }
 
-/* Toolbar — search + filters row above a table, no card */
+/* Toolbar — search + filters row above a table */
 .ch-toolbar {
   display: flex;
   align-items: center;
@@ -376,16 +416,13 @@
   margin: 0.25rem 0 1rem;
   flex-wrap: wrap;
 }
-.ch-toolbar .ch-search {
-  flex: 1 1 260px;
-  position: relative;
-}
+.ch-toolbar .ch-search { flex: 1 1 260px; position: relative; }
 .ch-toolbar .ch-search input {
   width: 100%;
-  padding: 8px 12px 8px 34px;
+  padding: 9px 12px 9px 36px;
   font-size: 0.8125rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1.5px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
   background: #fafafb;
   color: #1a1a2e;
   font-family: 'Manrope', system-ui, sans-serif;
@@ -393,12 +430,13 @@
 }
 .ch-toolbar .ch-search input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #818cf8;
   background: #fff;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
 }
 .ch-toolbar .ch-search .material-symbols-outlined {
   position: absolute;
-  left: 10px; top: 50%;
+  left: 11px; top: 50%;
   transform: translateY(-50%);
   font-size: 18px;
   color: #9ca3af;
@@ -416,17 +454,17 @@
 .ch-strip {
   display: flex;
   gap: 2.5rem;
-  padding: 0.25rem 0 1.5rem;
+  padding: 0.25rem 0 0;
   flex-wrap: wrap;
 }
 .ch-strip > div { min-width: 70px; }
 .ch-strip .ch-strip-num {
   font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
   font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: -0.02em;
+  font-size: 1.625rem;
+  letter-spacing: -0.025em;
   color: #1a1a2e;
-  line-height: 1.1;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
 .ch-strip .ch-strip-num.ok    { color: #059669; }
@@ -438,30 +476,6 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #9ca3af;
-  margin-top: 4px;
-}
-
-/* Inline input style for ch-form-stack — matches existing .input feel without depending on it */
-.ch-form-stack input[type="text"],
-.ch-form-stack input[type="email"],
-.ch-form-stack input[type="tel"],
-.ch-form-stack input[type="number"],
-.ch-form-stack select,
-.ch-form-stack textarea {
-  width: 100%;
-  padding: 9px 12px;
-  font-size: 0.875rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #fff;
-  color: #1a1a2e;
-  font-family: 'Manrope', system-ui, sans-serif;
-  transition: border-color 0.15s;
-}
-.ch-form-stack input:focus,
-.ch-form-stack select:focus,
-.ch-form-stack textarea:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  margin-top: 5px;
+  font-weight: 600;
 }

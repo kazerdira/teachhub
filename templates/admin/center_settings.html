@@ -28,20 +28,20 @@
 <form method="POST" action="/admin/center/settings">
     {{csrfField .CSRFToken}}
 
-    <!-- Identity -->
-    <section class="ch-section">
-        <div class="ch-section-intro">
-            <div class="ch-section-meta">
-                <div class="ch-label" style="margin-bottom:8px;">01 — {{t .Lang "cs_section_identity_label"}}</div>
-                <h3>{{t .Lang "cs_section_identity"}}</h3>
-                <p>{{t .Lang "cs_section_identity_help"}}</p>
-            </div>
-            <div class="ch-form-stack">
-                <div>
-                    <label>{{t .Lang "cs_center_name"}} *</label>
-                    <input type="text" name="name" required value="{{.Center.Name}}">
+    <div class="ch-panel">
+        <!-- Identity -->
+        <section class="ch-section">
+            <div class="ch-section-intro">
+                <div class="ch-section-meta">
+                    <span class="ch-section-num">01 — {{t .Lang "cs_section_identity_label"}}</span>
+                    <h3>{{t .Lang "cs_section_identity"}}</h3>
+                    <p>{{t .Lang "cs_section_identity_help"}}</p>
                 </div>
-                <div class="row-2">
+                <div class="ch-form-stack">
+                    <div>
+                        <label>{{t .Lang "cs_center_name"}} <span class="req">*</span></label>
+                        <input type="text" name="name" required value="{{.Center.Name}}">
+                    </div>
                     <div>
                         <label>{{t .Lang "cs_address"}}</label>
                         <input type="text" name="address" value="{{.Center.Address}}">
@@ -52,68 +52,70 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Contact -->
-    <section class="ch-section">
-        <div class="ch-section-intro">
-            <div class="ch-section-meta">
-                <div class="ch-label" style="margin-bottom:8px;">02 — {{t .Lang "cs_section_contact_label"}}</div>
-                <h3>{{t .Lang "cs_section_contact"}}</h3>
-                <p>{{t .Lang "cs_section_contact_help"}}</p>
-            </div>
-            <div class="ch-form-stack">
-                <div class="row-2">
-                    <div>
-                        <label>{{t .Lang "cs_phone"}}</label>
-                        <input type="text" name="phone" value="{{.Center.Phone}}" placeholder="{{t .Lang "ct_phone_ph"}}">
-                    </div>
-                    <div>
-                        <label>{{t .Lang "cs_email"}}</label>
-                        <input type="email" name="email" value="{{.Center.Email}}" placeholder="contact@center.com">
+        <!-- Contact -->
+        <section class="ch-section">
+            <div class="ch-section-intro">
+                <div class="ch-section-meta">
+                    <span class="ch-section-num">02 — {{t .Lang "cs_section_contact_label"}}</span>
+                    <h3>{{t .Lang "cs_section_contact"}}</h3>
+                    <p>{{t .Lang "cs_section_contact_help"}}</p>
+                </div>
+                <div class="ch-form-stack">
+                    <div class="row-2">
+                        <div>
+                            <label>{{t .Lang "cs_phone"}}</label>
+                            <input type="text" name="phone" value="{{.Center.Phone}}" placeholder="{{t .Lang "ct_phone_ph"}}">
+                        </div>
+                        <div>
+                            <label>{{t .Lang "cs_email"}}</label>
+                            <input type="email" name="email" value="{{.Center.Email}}" placeholder="contact@center.com">
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Save -->
-    <section class="ch-section">
-        <div class="ch-section-intro">
-            <div class="ch-section-meta">
-                <div class="ch-label">{{t .Lang "cs_save_label"}}</div>
+        <!-- Save -->
+        <section class="ch-section" style="background:#fafbfc;">
+            <div class="ch-section-intro">
+                <div class="ch-section-meta">
+                    <span class="ch-section-num">{{t .Lang "cs_save_label"}}</span>
+                    <p style="margin-top:0;">{{t .Lang "cs_save_hint"}}</p>
+                </div>
+                <div class="ch-save-bar" style="margin-top:0;">
+                    <button type="submit" class="btn-primary" style="padding:0.65rem 1.5rem;font-size:0.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                        <span class="material-symbols-outlined" style="font-size:16px;">save</span> {{t .Lang "cs_save"}}
+                    </button>
+                </div>
             </div>
-            <div class="ch-save-bar">
-                <button type="submit" class="btn-primary" style="padding:0.65rem 1.5rem;font-size:0.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
-                    <span class="material-symbols-outlined" style="font-size:16px;">save</span> {{t .Lang "cs_save"}}
-                </button>
-                <span class="ch-meta">{{t .Lang "cs_save_hint"}}</span>
-            </div>
-        </div>
-    </section>
+        </section>
+    </div>
 </form>
 
-<!-- Pricing — read-only block -->
-<section class="ch-section">
-    <div class="ch-section-intro">
-        <div class="ch-section-meta">
-            <div class="ch-label" style="margin-bottom:8px;">03 — {{t .Lang "cs_section_pricing_label"}}</div>
-            <h3>{{t .Lang "cs_pricing_title"}}</h3>
-            <p>{{t .Lang "cs_pricing_help"}}</p>
-        </div>
-        <div>
-            <div class="ch-strip">
-                <div>
-                    <div class="ch-strip-num brand">{{printf "%.0f" .Center.PricePerTeacher}}<span style="font-size:0.875rem;color:#8b8ba3;font-weight:500;margin-left:4px;">{{.Center.Currency}}</span></div>
-                    <div class="ch-strip-label">{{t .Lang "cd_per_month"}} · {{t .Lang "cb_per_active_teacher"}}</div>
-                </div>
+<!-- Pricing — separate quiet panel below -->
+<div class="ch-panel" style="margin-top:1.25rem;">
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <span class="ch-section-num">03 — {{t .Lang "cs_section_pricing_label"}}</span>
+                <h3>{{t .Lang "cs_pricing_title"}}</h3>
+                <p>{{t .Lang "cs_pricing_help"}}</p>
             </div>
-            <a href="/admin/center/billing" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#6366f1;text-decoration:none;letter-spacing:0.04em;">
-                {{t .Lang "cs_pricing_link"}} →
-            </a>
+            <div>
+                <div class="ch-strip" style="margin-bottom:1rem;">
+                    <div>
+                        <div class="ch-strip-num brand">{{printf "%.0f" .Center.PricePerTeacher}}<span style="font-size:0.875rem;color:#8b8ba3;font-weight:500;margin-left:4px;">{{.Center.Currency}}</span></div>
+                        <div class="ch-strip-label">{{t .Lang "cd_per_month"}} · {{t .Lang "cb_per_active_teacher"}}</div>
+                    </div>
+                </div>
+                <a href="/admin/center/billing" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#6366f1;text-decoration:none;letter-spacing:0.04em;font-weight:600;">
+                    {{t .Lang "cs_pricing_link"}} →
+                </a>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+</div>
 
 {{template "admin_foot" .}}
