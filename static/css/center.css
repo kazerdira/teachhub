@@ -1,0 +1,253 @@
+/* ─── TeachHub Center owner — shared design language ─────────────
+   Loaded on /admin/center/* pages. Light theme, with monospace
+   numerals, serif italic accents, and signal-color discipline.
+*/
+
+.ch-mono { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+.ch-label {
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b8ba3;
+}
+
+/* Page header — small icon + title + monospace breadcrumb-ish meta */
+.ch-page-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.ch-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.04);
+  text-decoration: none;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.ch-back-btn:hover { background: rgba(99,102,241,0.1); }
+.ch-back-btn .material-symbols-outlined { color: #6b7280; font-size: 18px; }
+
+.ch-page-head h1 {
+  font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+.ch-page-head h1 em {
+  font-style: italic;
+  font-weight: 500;
+  color: #6366f1;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.ch-page-head-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Section heading divider */
+.ch-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 2rem 0 0.875rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.ch-section-head h2 {
+  font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Avatar — serif italic initial, signal-color via class */
+.ch-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: #fff;
+  display: grid; place-items: center;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  flex-shrink: 0;
+  position: relative;
+}
+.ch-avatar.lg { width: 44px; height: 44px; font-size: 1.25rem; }
+.ch-avatar.sage  { background: linear-gradient(135deg, #34d399, #047857); }
+.ch-avatar.ocean { background: linear-gradient(135deg, #60a5fa, #1e40af); }
+.ch-avatar.rust  { background: linear-gradient(135deg, #fb923c, #c2410c); }
+.ch-avatar.amber { background: linear-gradient(135deg, #fbbf24, #b45309); }
+.ch-avatar.inactive { opacity: 0.45; filter: grayscale(0.4); }
+.ch-avatar-online::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #fff;
+}
+
+/* Pulse-style stat row (used on dashboard, billing summary, etc.) */
+.ch-pulse {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ch-pulse.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.ch-pulse.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.ch-pulse-cell { background: #fff; padding: 1rem 1.125rem; }
+.ch-pulse-num {
+  font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.875rem;
+  line-height: 1.05;
+  color: #1a1a2e;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+.ch-pulse-num.warn { color: #d97706; }
+.ch-pulse-num.ok   { color: #10b981; }
+.ch-pulse-num.brand { color: #6366f1; }
+.ch-pulse-num.sm   { font-size: 1.375rem; }
+.ch-pulse-delta {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: #8b8ba3;
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 980px) { .ch-pulse, .ch-pulse.cols-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .ch-pulse, .ch-pulse.cols-3, .ch-pulse.cols-2 { grid-template-columns: 1fr; } }
+
+/* Generic content card */
+.ch-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 1.25rem 1.375rem;
+}
+.ch-card-tight { padding: 0.875rem 1rem; }
+
+/* Inline form — responsive grid of labelled inputs ending with a button */
+.ch-form-inline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+.ch-form-inline label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* Toast / banner row (success / error / info / warning) */
+.ch-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.ch-toast.ok    { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.2); color: #065f46; }
+.ch-toast.err   { background: rgba(239,68,68,0.06);  border-color: rgba(239,68,68,0.2);  color: #991b1b; }
+.ch-toast.info  { background: rgba(99,102,241,0.05); border-color: rgba(99,102,241,0.18); color: #3730a3; }
+.ch-toast.warn  { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.25); color: #92400e; }
+.ch-toast .material-symbols-outlined { font-size: 20px; flex-shrink: 0; }
+
+/* Status pills */
+.ch-pill {
+  display: inline-block;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.ch-pill.ok    { color: #047857; background: rgba(16,185,129,0.1); }
+.ch-pill.warn  { color: #b45309; background: rgba(245,158,11,0.12); }
+.ch-pill.err   { color: #b91c1c; background: rgba(239,68,68,0.1); }
+.ch-pill.info  { color: #4f46e5; background: rgba(99,102,241,0.1); }
+.ch-pill.muted { color: #6b7280; background: rgba(107,114,128,0.1); }
+
+/* Dense, low-chrome table */
+.ch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.ch-table thead tr { background: rgba(0,0,0,0.015); }
+.ch-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #8b8ba3;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.ch-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  color: #4b5563;
+  vertical-align: middle;
+}
+.ch-table tr:last-child td { border-bottom: none; }
+.ch-table tbody tr:hover { background: rgba(99,102,241,0.025); }
+.ch-table .num {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ch-table .strong { color: #1a1a2e; font-weight: 600; }
+
+/* Empty state */
+.ch-empty {
+  background: #fff;
+  border: 1px dashed rgba(0,0,0,0.1);
+  border-radius: 12px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+.ch-empty .material-symbols-outlined { font-size: 40px; color: #d1d5db; }
+.ch-empty p  { font-size: 0.875rem; color: #6b7280; margin: 0.75rem 0 0; }
+.ch-empty .hint { font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem; }
+
+/* Card grid with consistent gap */
+.ch-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}

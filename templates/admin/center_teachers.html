@@ -1,20 +1,20 @@
 {{template "admin_head" .}}
 
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
-    <div style="display:flex;align-items:center;gap:12px;">
-        <a href="/admin/center" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
-            <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
-        </a>
-        <div>
-            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "ct_title"}}</h1>
-            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "ct_per_seat"}}</p>
-        </div>
+<div class="ch-page-head">
+    <a href="/admin/center" class="ch-back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
+    <div>
+        <div class="ch-label" style="margin-bottom:2px;">{{.Center.Name}}</div>
+        <h1>{{t .Lang "ct_title"}} <em>{{len .Teachers}}</em></h1>
+    </div>
+    <div class="ch-page-head-actions">
+        <span class="ch-pill info">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "ct_per_seat"}}</span>
     </div>
 </div>
 
 {{if .Query.error}}
-<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
-    <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
+<div class="ch-toast err">
+    <span class="material-symbols-outlined">error</span>
+    <span>
     {{if eq .Query.error "username_taken"}}{{t .Lang "ct_err_username"}}
     {{else if eq .Query.error "missing_fields"}}{{t .Lang "ct_err_missing"}}
     {{else if eq .Query.error "self"}}{{t .Lang "ct_err_self"}}
@@ -24,34 +24,37 @@
 {{end}}
 
 {{if .Created}}
-<div class="card" style="padding:1rem 1.25rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);display:flex;align-items:center;gap:10px;">
-    <span class="material-symbols-outlined" style="color:#059669;font-size:20px;">check_circle</span>
-    <span style="font-size:0.875rem;color:#065f46;">{{t .Lang "ct_created_ok"}} <strong>@{{.Created}}</strong> — {{t .Lang "ct_credentials_in_card"}}</span>
+<div class="ch-toast ok">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{t .Lang "ct_created_ok"}} <strong>@{{.Created}}</strong> — {{t .Lang "ct_credentials_in_card"}}</span>
 </div>
 {{end}}
 
 {{if .Reset}}
-<div class="card" style="padding:1rem 1.25rem;margin-bottom:1.5rem;border-left:4px solid #6366f1;background:rgba(99,102,241,0.05);display:flex;align-items:center;gap:10px;">
-    <span class="material-symbols-outlined" style="color:#6366f1;font-size:20px;">lock_reset</span>
-    <span style="font-size:0.875rem;color:#3730a3;">{{t .Lang "ct_reset_ok"}} <strong>@{{.Reset}}</strong> — {{t .Lang "ct_credentials_in_card"}}</span>
+<div class="ch-toast info">
+    <span class="material-symbols-outlined">lock_reset</span>
+    <span>{{t .Lang "ct_reset_ok"}} <strong>@{{.Reset}}</strong> — {{t .Lang "ct_credentials_in_card"}}</span>
 </div>
 {{end}}
 
 <!-- Add Teacher Form -->
-<div class="card" style="padding:1.5rem;margin-bottom:2rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">{{t .Lang "ct_add_title"}}</h2>
-    <form method="POST" action="/admin/center/teachers/create" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;align-items:end;">
+<div class="ch-card" style="margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.875rem;">
+        <span class="material-symbols-outlined" style="color:#6366f1;font-size:18px;">person_add</span>
+        <h2 style="font-size:0.9375rem;font-weight:700;color:#1a1a2e;margin:0;letter-spacing:-0.01em;">{{t .Lang "ct_add_title"}}</h2>
+    </div>
+    <form method="POST" action="/admin/center/teachers/create" class="ch-form-inline">
         {{csrfField .CSRFToken}}
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_fullname"}} *</label>
+            <label>{{t .Lang "ct_fullname"}} *</label>
             <input type="text" name="display_name" required class="input" style="width:100%;" placeholder="{{t .Lang "ct_name_ph"}}">
         </div>
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_email"}} *</label>
+            <label>{{t .Lang "ct_email"}} *</label>
             <input type="email" name="email" required class="input" style="width:100%;" placeholder="teacher@example.com">
         </div>
         <div>
-            <label style="font-size:0.75rem;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">{{t .Lang "ct_phone"}}</label>
+            <label>{{t .Lang "ct_phone"}}</label>
             <input type="text" name="phone" class="input" style="width:100%;" placeholder="{{t .Lang "ct_phone_ph"}}">
         </div>
         <div>
@@ -60,33 +63,47 @@
             </button>
         </div>
     </form>
-    <p style="font-size:0.75rem;color:#8b8ba3;margin:0.75rem 0 0;">
+    <p class="ch-label" style="margin:0.75rem 0 0;text-transform:none;letter-spacing:0.02em;font-size:0.75rem;color:#8b8ba3;">
         {{t .Lang "ct_each_billed"}} <strong style="color:#6366f1;">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "ct_per_seat"}}</strong>.
     </p>
 </div>
 
 <!-- Teachers Cards -->
 {{if .Teachers}}
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;">
+<div class="ch-grid-cards">
     {{range .Teachers}}
-    <div class="card" style="padding:1.25rem;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
-            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;font-weight:700;flex-shrink:0;">
-                {{slice (or .DisplayName .Username) 0 1}}
+    <div class="ch-card" style="padding:1.125rem 1.25rem;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:0.875rem;">
+            <div class="ch-avatar lg {{if not .Active}}inactive{{end}} {{if .LastLoginAt}}ch-avatar-online{{end}}">{{slice (or .DisplayName .Username) 0 1}}</div>
+            <div style="min-width:0;flex:1;">
+                <div style="font-weight:600;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:0.9375rem;">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</div>
+                <div class="ch-mono" style="font-size:0.6875rem;color:#8b8ba3;">@{{.Username}}</div>
             </div>
-            <div style="min-width:0;">
-                <div style="font-weight:700;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</div>
-                <div style="font-size:0.75rem;color:#8b8ba3;">@{{.Username}}</div>
+            {{if eq .Role "owner"}}<span class="ch-pill info">{{t $.Lang "ct_role_owner"}}</span>
+            {{else if not .Active}}<span class="ch-pill err">{{t $.Lang "ct_inactive"}}</span>
+            {{else}}<span class="ch-pill ok">{{t $.Lang "ct_activate" | lower}}</span>{{end}}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.875rem;padding:0.625rem 0;border-top:1px solid rgba(0,0,0,0.05);border-bottom:1px solid rgba(0,0,0,0.05);">
+            <div>
+                <div class="ch-label">{{t $.Lang "cd_stat_classes"}}</div>
+                <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.125rem;font-weight:700;color:#1a1a2e;font-variant-numeric:tabular-nums;">{{.ClassroomCount}}</div>
             </div>
-            {{if eq .Role "owner"}}<span class="badge" style="background:rgba(99,102,241,0.1);color:#6366f1;margin-left:auto;flex-shrink:0;">{{t $.Lang "ct_role_owner"}}</span>
-            {{else if not .Active}}<span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;margin-left:auto;flex-shrink:0;">{{t $.Lang "ct_inactive"}}</span>{{end}}
+            <div>
+                <div class="ch-label">{{t $.Lang "cd_stat_students"}}</div>
+                <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.125rem;font-weight:700;color:#1a1a2e;font-variant-numeric:tabular-nums;">{{.StudentCount}}</div>
+            </div>
         </div>
-        <div style="font-size:0.75rem;color:#6b7280;display:grid;gap:2px;margin-bottom:0.75rem;">
-            {{if .Email}}<div>✉ {{.Email}}</div>{{end}}
-            {{if .Phone}}<div>📞 {{.Phone}}</div>{{end}}
-            <div>{{.ClassroomCount}} {{t $.Lang "cd_stat_classes"}} · {{.StudentCount}} {{t $.Lang "cd_stat_students"}}</div>
-            <div>{{if .LastLoginAt}}{{t $.Lang "ct_last_login"}} {{.LastLoginAt.Format "02 Jan 2006"}}{{else}}{{t $.Lang "ct_never_logged_in"}}{{end}}</div>
+
+        <div style="font-size:0.75rem;color:#6b7280;display:grid;gap:3px;margin-bottom:0.875rem;">
+            {{if .Email}}<div style="display:flex;align-items:center;gap:6px;"><span class="material-symbols-outlined" style="font-size:14px;color:#9ca3af;">mail</span><span style="word-break:break-all;">{{.Email}}</span></div>{{end}}
+            {{if .Phone}}<div style="display:flex;align-items:center;gap:6px;"><span class="material-symbols-outlined" style="font-size:14px;color:#9ca3af;">call</span>{{.Phone}}</div>{{end}}
+            <div class="ch-mono" style="font-size:0.6875rem;color:#9ca3af;display:flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:14px;">schedule</span>
+                {{if .LastLoginAt}}{{t $.Lang "ct_last_login"}} {{timeAgo .LastLoginAt.UTC}}{{else}}{{t $.Lang "ct_never_logged_in"}}{{end}}
+            </div>
         </div>
+
         {{if eq .Role "teacher"}}
         {{if .PendingPassword}}
         <details style="margin-bottom:0.75rem;border:1px dashed rgba(99,102,241,0.35);border-radius:8px;background:rgba(99,102,241,0.04);">
@@ -95,26 +112,26 @@
             </summary>
             <div style="padding:0.5rem 0.75rem 0.75rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
                 <div>
-                    <div style="font-size:0.625rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">{{t $.Lang "ct_username"}}</div>
-                    <div style="font-family:monospace;font-size:0.8125rem;font-weight:700;color:#1a1a2e;user-select:all;word-break:break-all;">{{.Username}}</div>
+                    <div class="ch-label">{{t $.Lang "ct_username"}}</div>
+                    <div class="ch-mono" style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;user-select:all;word-break:break-all;">{{.Username}}</div>
                 </div>
                 <div>
-                    <div style="font-size:0.625rem;color:#8b8ba3;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">{{t $.Lang "ct_password"}}</div>
-                    <div style="font-family:monospace;font-size:0.8125rem;font-weight:700;color:#1a1a2e;user-select:all;word-break:break-all;">{{.PendingPassword}}</div>
+                    <div class="ch-label">{{t $.Lang "ct_password"}}</div>
+                    <div class="ch-mono" style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;user-select:all;word-break:break-all;">{{.PendingPassword}}</div>
                 </div>
             </div>
         </details>
         {{end}}
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <form method="POST" action="/admin/center/teachers/{{.ID}}/toggle">
                 {{csrfField $.CSRFToken}}
-                <button type="submit" style="font-size:0.75rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.1);background:#fff;cursor:pointer;color:#374151;">
+                <button type="submit" style="font-size:0.75rem;padding:5px 12px;border-radius:6px;border:1px solid rgba(0,0,0,0.1);background:#fff;cursor:pointer;color:#374151;font-weight:500;">
                     {{if .Active}}{{t $.Lang "ct_deactivate"}}{{else}}{{t $.Lang "ct_activate"}}{{end}}
                 </button>
             </form>
             <form method="POST" action="/admin/center/teachers/{{.ID}}/reset-password">
                 {{csrfField $.CSRFToken}}
-                <button type="submit" style="font-size:0.75rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.05);cursor:pointer;color:#6366f1;">
+                <button type="submit" style="font-size:0.75rem;padding:5px 12px;border-radius:6px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.05);cursor:pointer;color:#6366f1;font-weight:500;">
                     {{t $.Lang "ct_reset_password"}}
                 </button>
             </form>
@@ -124,8 +141,9 @@
     {{end}}
 </div>
 {{else}}
-<div class="card" style="padding:2rem;text-align:center;">
-    <p style="color:#8b8ba3;font-size:0.875rem;">{{t .Lang "ct_empty"}}</p>
+<div class="ch-empty">
+    <span class="material-symbols-outlined">groups</span>
+    <p>{{t .Lang "ct_empty"}}</p>
 </div>
 {{end}}
 

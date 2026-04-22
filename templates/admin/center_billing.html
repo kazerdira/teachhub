@@ -1,91 +1,90 @@
 {{template "admin_head" .}}
 
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem;">
-    <a href="/admin/center" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
-        <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
-    </a>
+<div class="ch-page-head">
+    <a href="/admin/center" class="ch-back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
     <div>
-        <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "cb_title"}}</h1>
-        <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.Center.Name}}</p>
+        <div class="ch-label" style="margin-bottom:2px;">{{.Center.Name}}</div>
+        <h1>{{t .Lang "cb_title"}}</h1>
     </div>
 </div>
 
 {{if gt .UnpaidCount 0}}
-<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:0.875rem 1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;">
-    <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;flex-shrink:0;">warning</span>
-    <span style="font-size:0.875rem;color:#92400e;font-weight:500;">
-        {{.UnpaidCount}} {{t .Lang "cb_unpaid_count"}} — {{printf "%.0f" .UnpaidTotal}} {{.Center.Currency}} {{t .Lang "cb_due"}}
+<div class="ch-toast warn">
+    <span class="material-symbols-outlined">warning</span>
+    <span>
+        <strong>{{.UnpaidCount}}</strong> {{t .Lang "cb_unpaid_count"}} — <strong>{{printf "%.0f" .UnpaidTotal}} {{.Center.Currency}}</strong> {{t .Lang "cb_due"}}
     </span>
 </div>
 {{end}}
 
-<!-- Summary cards -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:2rem;">
-    <div class="card" style="padding:1.25rem;">
-        <div style="font-size:0.75rem;color:#8b8ba3;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">{{t .Lang "cb_current_month"}}</div>
-        <div style="font-size:1.5rem;font-weight:800;color:#1a1a2e;">{{printf "%.0f" .Estimate}} {{.Center.Currency}}</div>
-        <div style="font-size:0.75rem;color:#8b8ba3;margin-top:4px;">{{.ActiveTeacherCount}} {{t .Lang "cd_active_teachers_x"}} {{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}</div>
+<!-- Pulse-style summary -->
+<div class="ch-pulse cols-3" style="margin-bottom:2rem;">
+    <div class="ch-pulse-cell">
+        <div class="ch-label">{{t .Lang "cb_current_month"}}</div>
+        <div class="ch-pulse-num brand">{{printf "%.0f" .Estimate}}<span style="font-size:0.875rem;color:#8b8ba3;font-weight:500;margin-left:4px;">{{.Center.Currency}}</span></div>
+        <div class="ch-pulse-delta">{{.ActiveTeacherCount}} {{t .Lang "cd_active_teachers_x"}} {{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}</div>
     </div>
-    <div class="card" style="padding:1.25rem;">
-        <div style="font-size:0.75rem;color:#8b8ba3;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">{{t .Lang "cb_next_invoice"}}</div>
-        <div style="font-size:1.5rem;font-weight:800;color:#1a1a2e;">{{.NextInvoiceDate.Format "January 2006"}}</div>
-        <div style="font-size:0.75rem;color:#8b8ba3;margin-top:4px;">{{t .Lang "cb_billed_first_of_month"}}</div>
+    <div class="ch-pulse-cell">
+        <div class="ch-label">{{t .Lang "cb_next_invoice"}}</div>
+        <div class="ch-pulse-num sm">{{.NextInvoiceDate.Format "02 Jan 2006"}}</div>
+        <div class="ch-pulse-delta">{{t .Lang "cb_billed_first_of_month"}}</div>
     </div>
-    <div class="card" style="padding:1.25rem;">
-        <div style="font-size:0.75rem;color:#8b8ba3;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;">{{t .Lang "cb_pricing"}}</div>
-        <div style="font-size:1.5rem;font-weight:800;color:#1a1a2e;">{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}</div>
-        <div style="font-size:0.75rem;color:#8b8ba3;margin-top:4px;">{{t .Lang "cb_per_active_teacher"}}</div>
+    <div class="ch-pulse-cell">
+        <div class="ch-label">{{t .Lang "cb_pricing"}}</div>
+        <div class="ch-pulse-num">{{printf "%.0f" .Center.PricePerTeacher}}<span style="font-size:0.875rem;color:#8b8ba3;font-weight:500;margin-left:4px;">{{.Center.Currency}}</span></div>
+        <div class="ch-pulse-delta">{{t .Lang "cb_per_active_teacher"}}</div>
     </div>
 </div>
 
-<!-- Invoices table -->
-<h2 style="font-size:1.125rem;font-weight:700;color:#1a1a2e;margin:0 0 1rem;">{{t .Lang "cb_invoices_history"}}</h2>
+<!-- Invoices -->
+<div class="ch-section-head" style="margin-top:0;">
+    <h2>{{t .Lang "cb_invoices_history"}}</h2>
+    <span class="ch-label">{{len .Invoices}} {{if eq (len .Invoices) 1}}invoice{{else}}invoices{{end}}</span>
+</div>
 
 {{if .Invoices}}
-<div class="card" style="padding:0;overflow:hidden;">
-    <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
-        <thead>
-            <tr style="background:rgba(99,102,241,0.04);">
-                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cb_period"}}</th>
-                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cb_teachers"}}</th>
-                <th style="text-align:right;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cb_amount"}}</th>
-                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cb_status"}}</th>
-                <th style="text-align:left;padding:0.75rem 1rem;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">{{t .Lang "cb_paid_at"}}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{range .Invoices}}
-            <tr style="border-top:1px solid rgba(0,0,0,0.05);">
-                <td style="padding:0.75rem 1rem;color:#1a1a2e;font-weight:600;">{{.PeriodMonth.Format "January 2006"}}</td>
-                <td style="padding:0.75rem 1rem;color:#374151;">{{.TeacherCount}} × {{printf "%.0f" .PricePerTeacher}} {{.Currency}}</td>
-                <td style="padding:0.75rem 1rem;text-align:right;color:#1a1a2e;font-weight:700;">{{printf "%.2f" .TotalAmount}} {{.Currency}}</td>
-                <td style="padding:0.75rem 1rem;">
-                    {{if eq .Status "paid"}}
-                    <span class="badge" style="background:rgba(16,185,129,0.1);color:#059669;">{{t $.Lang "cb_paid"}}</span>
-                    {{else if eq .Status "unpaid"}}
-                    <span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;">{{t $.Lang "cb_unpaid"}}</span>
-                    {{else}}
-                    <span class="badge" style="background:rgba(107,114,128,0.1);color:#6b7280;">{{.Status}}</span>
-                    {{end}}
-                </td>
-                <td style="padding:0.75rem 1rem;color:#8b8ba3;font-size:0.8125rem;">
-                    {{if .PaidAt}}{{.PaidAt.Format "02 Jan 2006"}}{{if .PaidMethod}} · {{.PaidMethod}}{{end}}{{else}}—{{end}}
-                </td>
-            </tr>
-            {{end}}
-        </tbody>
-    </table>
+<div class="ch-card" style="padding:0;overflow:hidden;">
+    <div style="overflow-x:auto;">
+        <table class="ch-table">
+            <thead>
+                <tr>
+                    <th>{{t .Lang "cb_period"}}</th>
+                    <th>{{t .Lang "cb_teachers"}}</th>
+                    <th class="num">{{t .Lang "cb_amount"}}</th>
+                    <th>{{t .Lang "cb_status"}}</th>
+                    <th>{{t .Lang "cb_paid_at"}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Invoices}}
+                <tr>
+                    <td class="strong">{{.PeriodMonth.Format "January 2006"}}</td>
+                    <td><span class="ch-mono" style="font-size:0.75rem;color:#6b7280;">{{.TeacherCount}} × {{printf "%.0f" .PricePerTeacher}} {{.Currency}}</span></td>
+                    <td class="num strong" style="font-size:0.9375rem;">{{printf "%.2f" .TotalAmount}} <span style="color:#8b8ba3;font-weight:500;font-size:0.75rem;">{{.Currency}}</span></td>
+                    <td>
+                        {{if eq .Status "paid"}}<span class="ch-pill ok">{{t $.Lang "cb_paid"}}</span>
+                        {{else if eq .Status "unpaid"}}<span class="ch-pill err">{{t $.Lang "cb_unpaid"}}</span>
+                        {{else}}<span class="ch-pill muted">{{.Status}}</span>{{end}}
+                    </td>
+                    <td class="ch-mono" style="font-size:0.75rem;color:#9ca3af;">
+                        {{if .PaidAt}}{{.PaidAt.Format "02 Jan 2006"}}{{if .PaidMethod}} · {{.PaidMethod}}{{end}}{{else}}—{{end}}
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
 </div>
 {{else}}
-<div class="card" style="padding:2.5rem;text-align:center;">
-    <span class="material-symbols-outlined" style="font-size:40px;color:#d1d5db;">receipt_long</span>
-    <p style="font-size:0.875rem;color:#8b8ba3;margin:0.75rem 0 0;">{{t .Lang "cb_no_invoices"}}</p>
+<div class="ch-empty">
+    <span class="material-symbols-outlined">receipt_long</span>
+    <p>{{t .Lang "cb_no_invoices"}}</p>
 </div>
 {{end}}
 
-<div style="margin-top:1.5rem;padding:1rem;background:rgba(99,102,241,0.04);border-radius:10px;font-size:0.8125rem;color:#6b7280;">
-    <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;color:#6366f1;">info</span>
-    {{t .Lang "cb_invoice_help"}}
+<div class="ch-toast info" style="margin-top:1.5rem;">
+    <span class="material-symbols-outlined">info</span>
+    <span>{{t .Lang "cb_invoice_help"}}</span>
 </div>
 
 {{template "admin_foot" .}}
