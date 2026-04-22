@@ -91,56 +91,55 @@
 </div>
 {{end}}
 
-<!-- Classroom List -->
+<!-- Classroom Cards -->
 {{if .Classrooms}}
-<div class="ch-card" style="padding:0;overflow:hidden;">
-    <div style="overflow-x:auto;">
-        <table class="ch-table">
-            <thead>
-                <tr>
-                    <th>{{t .Lang "cc_col_classroom"}}</th>
-                    <th>{{t .Lang "cc_col_teacher"}}</th>
-                    <th>{{t .Lang "cc_col_subject"}}</th>
-                    <th>{{t .Lang "cc_col_level"}}</th>
-                    <th class="num">{{t .Lang "cc_col_students"}}</th>
-                    <th>{{t .Lang "cc_col_code"}}</th>
-                    <th>{{t .Lang "cc_col_created"}}</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {{range .Classrooms}}
-                <tr>
-                    <td>
-                        <a href="/admin/classroom/{{.ID}}" class="strong" style="text-decoration:none;color:#1a1a2e;transition:color 0.15s;" onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#1a1a2e'">{{.Name}}</a>
-                    </td>
-                    <td>
-                        <span class="ch-pill info">{{.TeacherName}}</span>
-                    </td>
-                    <td>
-                        {{if .Subject}}{{$subj := subjectInfo .Subject}}<span style="font-size:0.8125rem;">{{$subj.Emoji}} {{if eq $.Lang "fr"}}{{$subj.Fr}}{{else}}{{$subj.En}}{{end}}</span>{{else}}<span style="color:#cbd5e0;">—</span>{{end}}
-                    </td>
-                    <td>
-                        {{if .Level}}<span class="ch-mono" style="font-size:0.75rem;color:#6b7280;">{{.Level}}</span>{{else}}<span style="color:#cbd5e0;">—</span>{{end}}
-                    </td>
-                    <td class="num strong">{{.StudentCount}}</td>
-                    <td>
-                        <span class="ch-mono" style="font-size:0.75rem;color:#6366f1;background:rgba(99,102,241,0.06);padding:2px 6px;border-radius:4px;font-weight:600;">{{.JoinCode}}</span>
-                    </td>
-                    <td class="ch-mono" style="font-size:0.75rem;color:#9ca3af;">{{.CreatedAt.Format "02 Jan 2006"}}</td>
-                    <td style="text-align:right;">
-                        <form method="POST" action="/admin/center/classrooms/{{.ID}}/delete" style="display:inline;" onsubmit="return confirm('{{t $.Lang "cc_delete_confirm"}}')">
-                            {{csrfField $.CSRFToken}}
-                            <button type="submit" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'" title="Delete classroom">
-                                <span class="material-symbols-outlined" style="font-size:18px;color:#ef4444;">delete</span>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {{end}}
-            </tbody>
-        </table>
+<div class="ch-grid-cards">
+    {{range .Classrooms}}
+    <div class="ch-card ch-card-hover" style="padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;">
+        <!-- Name + join code -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+            <div style="min-width:0;flex:1;">
+                <a href="/admin/classroom/{{.ID}}" style="font-size:0.9375rem;font-weight:700;color:#1a1a2e;text-decoration:none;letter-spacing:-0.015em;line-height:1.25;display:block;transition:color 0.15s;" onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#1a1a2e'">{{.Name}}</a>
+                <div style="margin-top:5px;">
+                    <span class="ch-pill info" style="font-size:0.6rem;">{{.TeacherName}}</span>
+                </div>
+            </div>
+            <div style="flex-shrink:0;text-align:right;">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#6366f1;background:rgba(99,102,241,0.08);padding:4px 9px;border-radius:6px;font-weight:700;letter-spacing:0.06em;white-space:nowrap;border:1px solid rgba(99,102,241,0.15);">{{.JoinCode}}</div>
+            </div>
+        </div>
+
+        <!-- Subject + Level -->
+        {{if or .Subject .Level}}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            {{if .Subject}}
+                {{$subj := subjectInfo .Subject}}
+                <span style="font-size:0.8125rem;background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.06);border-radius:6px;padding:2px 8px;color:#4b5563;">{{$subj.Emoji}} {{if eq $.Lang "fr"}}{{$subj.Fr}}{{else}}{{$subj.En}}{{end}}</span>
+            {{end}}
+            {{if .Level}}
+                <span class="ch-pill muted">{{.Level}}</span>
+            {{end}}
+        </div>
+        {{end}}
+
+        <!-- Footer: student count + date + delete -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:0.625rem;border-top:1px solid rgba(0,0,0,0.05);">
+            <div>
+                <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.25rem;font-weight:700;color:#1a1a2e;font-variant-numeric:tabular-nums;line-height:1.1;">{{.StudentCount}}</div>
+                <div class="ch-label" style="margin-top:2px;">{{t $.Lang "cc_col_students"}}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="ch-mono" style="font-size:0.6875rem;color:#9ca3af;">{{.CreatedAt.Format "02 Jan 06"}}</span>
+                <form method="POST" action="/admin/center/classrooms/{{.ID}}/delete" style="display:inline;" onsubmit="return confirm('{{t $.Lang "cc_delete_confirm"}}')">
+                    {{csrfField $.CSRFToken}}
+                    <button type="submit" style="background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;transition:background 0.15s;display:flex;align-items:center;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'" title="Delete">
+                        <span class="material-symbols-outlined" style="font-size:17px;color:#ef4444;">delete</span>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
+    {{end}}
 </div>
 {{else}}
 <div class="ch-empty">

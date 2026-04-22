@@ -72,7 +72,7 @@
 {{if .Teachers}}
 <div class="ch-grid-cards">
     {{range .Teachers}}
-    <div class="ch-card" style="padding:1.125rem 1.25rem;">
+    <div class="ch-card ch-card-hover" style="padding:1.125rem 1.25rem;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:0.875rem;">
             <div class="ch-avatar lg {{if not .Active}}inactive{{end}} {{if .LastLoginAt}}ch-avatar-online{{end}}">{{slice (or .DisplayName .Username) 0 1}}</div>
             <div style="min-width:0;flex:1;">
