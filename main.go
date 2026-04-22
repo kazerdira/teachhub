@@ -225,6 +225,21 @@ func main() {
 			}
 			return false
 		},
+		"timeAgo": func(t time.Time) string {
+			d := time.Since(t)
+			switch {
+			case d < time.Minute:
+				return "à l'instant"
+			case d < time.Hour:
+				return fmt.Sprintf("il y a %dmin", int(d.Minutes()))
+			case d < 24*time.Hour:
+				return fmt.Sprintf("il y a %dh", int(d.Hours()))
+			case d < 7*24*time.Hour:
+				return fmt.Sprintf("il y a %dj", int(d.Hours()/24))
+			default:
+				return t.Format("02 Jan")
+			}
+		},
 	}
 
 	tmpl := template.New("").Funcs(funcMap)

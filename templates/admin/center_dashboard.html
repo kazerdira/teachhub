@@ -1,117 +1,169 @@
 {{template "admin_head" .}}
 
-<div style="margin-bottom:2rem;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:0.25rem;">
-        <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;">
-            <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">domain</span>
-        </div>
-        <div>
-            <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{.Center.Name}}</h1>
-            <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{t .Lang "cd_subtitle"}}</p>
-        </div>
-    </div>
+<style>
+  .ch-mono { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .ch-label { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; color: #8b8ba3; }
+  .ch-hero h1 { font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif; font-weight: 300; font-size: 1.75rem; line-height: 1.25; color: #1a1a2e; letter-spacing: -0.02em; margin: 0; }
+  .ch-hero h1 em { font-style: italic; font-weight: 500; color: #6366f1; font-family: Georgia, 'Times New Roman', serif; }
+  .ch-hero h1 b { font-weight: 700; color: #1a1a2e; font-style: normal; }
+  .ch-hero h1 .warn { color: #d97706; font-weight: 600; }
+  .ch-pulse { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.06); border-radius: 12px; overflow: hidden; }
+  .ch-pulse-cell { background: #fff; padding: 1rem 1.125rem; }
+  .ch-pulse-num { font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif; font-weight: 700; font-size: 1.875rem; line-height: 1.05; color: #1a1a2e; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; }
+  .ch-pulse-num.warn { color: #d97706; }
+  .ch-pulse-num.ok { color: #10b981; }
+  .ch-pulse-delta { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; color: #8b8ba3; margin-top: 4px; letter-spacing: 0.02em; }
+  .ch-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+  @media (max-width: 980px) { .ch-pulse { grid-template-columns: 1fr 1fr; } .ch-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .ch-pulse { grid-template-columns: 1fr; } }
+  .ch-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid rgba(0,0,0,0.06); }
+  .ch-section-head h2 { font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif; font-size: 0.9375rem; font-weight: 700; color: #1a1a2e; margin: 0; letter-spacing: -0.01em; }
+  .ch-roster-row { display: grid; grid-template-columns: auto 1fr auto; gap: 0.875rem; align-items: center; padding: 0.6875rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+  .ch-roster-row:last-child { border-bottom: none; }
+  .ch-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#a855f7); color:#fff; display:grid; place-items:center; font-family: Georgia, serif; font-style: italic; font-size: 1.0625rem; font-weight: 500; flex-shrink: 0; position: relative; }
+  .ch-avatar.inactive { opacity: 0.45; filter: grayscale(0.4); }
+  .ch-avatar-online::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 10px; height: 10px; border-radius: 50%; background: #10b981; border: 2px solid #fff; }
+  .ch-r-name { font-size: 0.875rem; font-weight: 600; color: #1a1a2e; line-height: 1.2; }
+  .ch-r-name.inactive { color: #8b8ba3; font-weight: 500; }
+  .ch-r-meta { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; color: #8b8ba3; margin-top: 2px; letter-spacing: 0.02em; }
+  .ch-r-nums { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.75rem; color: #6b7280; text-align: right; font-variant-numeric: tabular-nums; }
+  .ch-r-nums b { color: #1a1a2e; font-weight: 600; }
+  .ch-feed { display: flex; flex-direction: column; gap: 0.5rem; }
+  .ch-feed-item { display: grid; grid-template-columns: 56px 1fr; gap: 0.625rem; padding: 0.625rem 0.75rem; background: #fafbfc; border-left: 2px solid transparent; border-radius: 0 6px 6px 0; font-size: 0.8125rem; color: #4b5563; line-height: 1.4; }
+  .ch-feed-item.k-quiz { border-left-color: #10b981; }
+  .ch-feed-item.k-submission { border-left-color: #6366f1; }
+  .ch-feed-item.k-join_request { border-left-color: #f59e0b; }
+  .ch-feed-item.k-live_session { border-left-color: #ef4444; }
+  .ch-feed-item.k-student_joined { border-left-color: #8b5cf6; }
+  .ch-feed-item b { color: #1a1a2e; font-weight: 600; }
+  .ch-feed-time { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.6875rem; color: #8b8ba3; padding-top: 1px; letter-spacing: 0.02em; }
+  .ch-feed-tag { display: inline-block; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; margin-right: 6px; vertical-align: 1px; line-height: 1.4; }
+  .ch-feed-item.k-quiz .ch-feed-tag { color: #047857; background: rgba(16,185,129,0.1); }
+  .ch-feed-item.k-submission .ch-feed-tag { color: #4f46e5; background: rgba(99,102,241,0.1); }
+  .ch-feed-item.k-join_request .ch-feed-tag { color: #b45309; background: rgba(245,158,11,0.12); }
+  .ch-feed-item.k-live_session .ch-feed-tag { color: #b91c1c; background: rgba(239,68,68,0.1); }
+  .ch-feed-item.k-student_joined .ch-feed-tag { color: #6d28d9; background: rgba(139,92,246,0.1); }
+  .ch-billing-strip { display:flex; align-items:center; gap:10px; padding:0.625rem 0.875rem; margin-top:1.25rem; border:1px solid rgba(0,0,0,0.06); border-radius:10px; background:#fafbfc; font-size:0.8125rem; color:#6b7280; flex-wrap:wrap; }
+  .ch-billing-strip b { color:#1a1a2e; font-weight:600; }
+  .ch-billing-strip a { margin-left:auto; font-size:0.75rem; color:#6366f1; text-decoration:none; font-weight:600; }
+  .ch-empty { padding: 1.25rem 0.5rem; text-align: center; font-size: 0.8125rem; color: #8b8ba3; }
+</style>
+
+<!-- Hero: narrative line -->
+<div class="ch-hero" style="margin-bottom:0.25rem;display:flex;align-items:center;gap:14px;">
+  <div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+    <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">domain</span>
+  </div>
+  <div style="min-width:0;">
+    <div class="ch-label" style="margin-bottom:2px;">{{.Center.Name}}{{if .Center.City}} · {{.Center.City}}{{end}}</div>
+    <h1>
+      {{- $tc := 0 }}{{ $sc := 0 }}{{ $cc := 0 }}
+      {{- if .Stats }}{{ $tc = .Stats.TeacherCount }}{{ $sc = .Stats.StudentCount }}{{ $cc = .Stats.ClassCount }}{{ end }}
+      <b>{{$tc}}</b> {{t .Lang "cd_stat_teachers"}} · <b>{{$sc}}</b> {{t .Lang "cd_stat_students"}} · <b>{{$cc}}</b> {{t .Lang "cd_stat_classes"}}
+      {{if .PendingRequests}} · <span class="warn">{{.PendingRequests}} {{t .Lang "cd_pending_short"}}</span>{{end}}
+    </h1>
+  </div>
 </div>
 
 {{if .HasUnpaidInvoice}}
-<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:0.875rem 1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;">
-    <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;flex-shrink:0;">warning</span>
-    <span style="font-size:0.875rem;color:#92400e;font-weight:500;">{{t .Lang "cd_unpaid_banner"}}</span>
-</div>
-{{end}}
-
-{{if gt .Center.PricePerTeacher 0.0}}
-<div style="display:flex;align-items:center;gap:10px;padding:0.625rem 0.875rem;margin-bottom:1.5rem;border:1px solid rgba(99,102,241,0.15);border-radius:10px;background:rgba(99,102,241,0.03);font-size:0.8125rem;color:#374151;flex-wrap:wrap;">
-    <span class="material-symbols-outlined" style="color:#6366f1;font-size:18px;">payments</span>
-    <span><strong>{{.ActiveTeacherCount}}</strong> {{t .Lang "cd_active_teachers_x"}} <strong>{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}</strong> = <strong style="color:#6366f1;">{{printf "%.0f" .MonthlyTotal}} {{.Center.Currency}}</strong>{{t .Lang "cd_per_month"}}</span>
-    <span style="color:#8b8ba3;">·</span>
-    <span style="color:#8b8ba3;">{{t .Lang "cd_next_invoice"}} {{.NextInvoiceDate.Format "January 2006"}}</span>
-    <a href="/admin/center/billing" style="margin-left:auto;font-size:0.75rem;color:#6366f1;text-decoration:none;font-weight:600;">{{t .Lang "cb_view_all"}} →</a>
-</div>
-{{end}}
-
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;">
-    <div class="card" style="padding:1rem;text-align:center;">
-        <div style="font-size:1.75rem;font-weight:800;color:#6366f1;">{{if .Stats}}{{.Stats.TeacherCount}}{{else}}0{{end}}</div>
-        <div style="font-size:0.75rem;color:#8b8ba3;margin-top:2px;">{{t .Lang "cd_stat_teachers"}}</div>
-    </div>
-    <div class="card" style="padding:1rem;text-align:center;">
-        <div style="font-size:1.75rem;font-weight:800;color:#10b981;">{{if .Stats}}{{.Stats.StudentCount}}{{else}}0{{end}}</div>
-        <div style="font-size:0.75rem;color:#8b8ba3;margin-top:2px;">{{t .Lang "cd_stat_students"}}</div>
-    </div>
-    <div class="card" style="padding:1rem;text-align:center;">
-        <div style="font-size:1.75rem;font-weight:800;color:#f59e0b;">{{if .Stats}}{{.Stats.ClassCount}}{{else}}0{{end}}</div>
-        <div style="font-size:0.75rem;color:#8b8ba3;margin-top:2px;">{{t .Lang "cd_stat_classes"}}</div>
-    </div>
-</div>
-
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-    <h2 style="font-size:1.125rem;font-weight:700;color:#1a1a2e;margin:0;">{{t .Lang "ct_title"}}</h2>
-    <a href="/admin/center/teachers" class="btn-primary" style="padding:0.5rem 1rem;font-size:0.8125rem;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
-        <span class="material-symbols-outlined" style="font-size:16px;">settings</span> {{t .Lang "ct_manage"}}
-    </a>
-</div>
-{{if .Teachers}}
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;">
-    {{range .Teachers}}
-    <div class="card" style="padding:1.25rem;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
-            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;font-weight:700;flex-shrink:0;">
-                {{slice (or .DisplayName .Username) 0 1}}
-            </div>
-            <div style="min-width:0;">
-                <div style="font-weight:700;color:#1a1a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</div>
-                <div style="font-size:0.75rem;color:#8b8ba3;">@{{.Username}}</div>
-            </div>
-            {{if not .Active}}<span class="badge" style="background:rgba(239,68,68,0.1);color:#dc2626;margin-left:auto;flex-shrink:0;">{{t $.Lang "ct_inactive"}}</span>{{end}}
-        </div>
-        <div style="font-size:0.75rem;color:#6b7280;display:grid;gap:2px;margin-bottom:0.75rem;">
-            {{if .Email}}<div>✉ {{.Email}}</div>{{end}}
-            {{if .Phone}}<div>📞 {{.Phone}}</div>{{end}}
-            <div>{{.ClassroomCount}} {{t $.Lang "cd_stat_classes"}} · {{.StudentCount}} {{t $.Lang "cd_stat_students"}}</div>
-            <div>{{if .LastLoginAt}}{{t $.Lang "ct_last_login"}} {{.LastLoginAt.Format "02 Jan 2006"}}{{else}}{{t $.Lang "ct_never_logged_in"}}{{end}}</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <form method="POST" action="/admin/center/teachers/{{.ID}}/toggle">
-                {{csrfField $.CSRFToken}}
-                <button type="submit" style="font-size:0.75rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(0,0,0,0.1);background:#fff;cursor:pointer;color:#374151;">
-                    {{if .Active}}{{t $.Lang "ct_deactivate"}}{{else}}{{t $.Lang "ct_activate"}}{{end}}
-                </button>
-            </form>
-            <form method="POST" action="/admin/center/teachers/{{.ID}}/reset-password">
-                {{csrfField $.CSRFToken}}
-                <button type="submit" style="font-size:0.75rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.05);cursor:pointer;color:#6366f1;">
-                    {{t $.Lang "ct_reset_password"}}
-                </button>
-            </form>
-        </div>
-    </div>
-    {{end}}
+<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:0.75rem 1rem;margin:1rem 0 1.25rem;display:flex;align-items:center;gap:10px;">
+  <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;flex-shrink:0;">warning</span>
+  <span style="font-size:0.875rem;color:#92400e;font-weight:500;">{{t .Lang "cd_unpaid_banner"}}</span>
 </div>
 {{else}}
-<div class="card" style="padding:2rem;text-align:center;">
-    <p style="color:#8b8ba3;font-size:0.875rem;">{{t .Lang "cd_no_teacher"}} <a href="/admin/center/teachers" style="color:#6366f1;text-decoration:none;font-weight:600;">{{t .Lang "cd_add_teacher_link"}}</a></p>
-</div>
+<div style="height:1.25rem;"></div>
 {{end}}
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1.5rem;">
-    <a href="/admin" class="card card-accent" style="padding:1.25rem;text-decoration:none;display:flex;align-items:center;gap:12px;">
-        <div style="width:40px;height:40px;border-radius:10px;background:rgba(99,102,241,0.1);display:flex;align-items:center;justify-content:center;">
-            <span class="material-symbols-outlined" style="color:#6366f1;font-size:20px;">dashboard</span>
-        </div>
-        <div>
-            <div style="font-size:0.875rem;font-weight:700;color:#1a1a2e;">{{t .Lang "cd_my_classes"}}</div>
-            <div style="font-size:0.75rem;color:#8b8ba3;">{{t .Lang "cd_manage_classes"}}</div>
-        </div>
-    </a>
-    <a href="/admin/center/settings" class="card card-accent" style="padding:1.25rem;text-decoration:none;display:flex;align-items:center;gap:12px;">
-        <div style="width:40px;height:40px;border-radius:10px;background:rgba(168,85,247,0.1);display:flex;align-items:center;justify-content:center;">
-            <span class="material-symbols-outlined" style="color:#a855f7;font-size:20px;">settings</span>
-        </div>
-        <div>
-            <div style="font-size:0.875rem;font-weight:700;color:#1a1a2e;">{{t .Lang "cd_settings"}}</div>
-            <div style="font-size:0.75rem;color:#8b8ba3;">{{t .Lang "cd_settings_desc"}}</div>
-        </div>
-    </a>
+<!-- Pulse row -->
+<div class="ch-pulse">
+  <div class="ch-pulse-cell">
+    <div class="ch-label">{{t .Lang "cd_pulse_today_sessions"}}</div>
+    <div class="ch-pulse-num{{if .Pulse}}{{if gt .Pulse.LiveSessionsToday 0}} ok{{end}}{{end}}">{{if .Pulse}}{{.Pulse.LiveSessionsToday}}{{else}}0{{end}}</div>
+    <div class="ch-pulse-delta">{{t .Lang "cd_pulse_live_today"}}</div>
+  </div>
+  <div class="ch-pulse-cell">
+    <div class="ch-label">{{t .Lang "cd_pulse_submissions"}}</div>
+    <div class="ch-pulse-num">{{if .Pulse}}{{.Pulse.SubmissionsToday}}{{else}}0{{end}}</div>
+    <div class="ch-pulse-delta">{{t .Lang "cd_pulse_today"}}</div>
+  </div>
+  <div class="ch-pulse-cell">
+    <div class="ch-label">{{t .Lang "cd_pulse_quiz_done"}}</div>
+    <div class="ch-pulse-num">{{if .Pulse}}{{.Pulse.QuizAttemptsToday}}{{else}}0{{end}}</div>
+    <div class="ch-pulse-delta">{{t .Lang "cd_pulse_today"}}</div>
+  </div>
+  <div class="ch-pulse-cell">
+    <div class="ch-label">{{t .Lang "cd_pulse_attention"}}</div>
+    <div class="ch-pulse-num{{if .PendingRequests}} warn{{end}}">{{.PendingRequests}}</div>
+    <div class="ch-pulse-delta">{{if .PendingRequests}}<a href="/admin/center/requests" style="color:#d97706;text-decoration:none;">{{t .Lang "cd_pulse_review"}} →</a>{{else}}{{t .Lang "cd_pulse_all_clear"}}{{end}}</div>
+  </div>
 </div>
+
+<!-- Two-column: roster + activity stream -->
+<div class="ch-grid">
+
+  <!-- Teacher roster -->
+  <div>
+    <div class="ch-section-head">
+      <h2>{{t .Lang "cd_teachers_today"}}</h2>
+      <a href="/admin/center/teachers" class="ch-label" style="text-decoration:none;color:#6366f1;">{{t .Lang "ct_manage"}} →</a>
+    </div>
+    {{if .Teachers}}
+      {{range .Teachers}}
+      <div class="ch-roster-row">
+        <div class="ch-avatar {{if not .Active}}inactive{{end}} {{if .LastLoginAt}}ch-avatar-online{{end}}">
+          {{slice (or .DisplayName .Username) 0 1}}
+        </div>
+        <div style="min-width:0;">
+          <div class="ch-r-name {{if not .Active}}inactive{{end}}">{{if .DisplayName}}{{.DisplayName}}{{else}}{{.Username}}{{end}}</div>
+          <div class="ch-r-meta">@{{.Username}} · {{.ClassroomCount}} {{t $.Lang "cd_stat_classes"}} · {{.StudentCount}} {{t $.Lang "cd_stat_students"}}</div>
+        </div>
+        <div class="ch-r-nums">
+          {{if .LastLoginAt}}<b>{{timeAgo .LastLoginAt.UTC}}</b><div style="font-size:0.6875rem;color:#8b8ba3;">{{t $.Lang "ct_last_login"}}</div>{{else}}<span style="color:#8b8ba3;">{{t $.Lang "ct_never_logged_in"}}</span>{{end}}
+        </div>
+      </div>
+      {{end}}
+    {{else}}
+      <div class="ch-empty">{{t .Lang "cd_no_teacher"}} <a href="/admin/center/teachers" style="color:#6366f1;text-decoration:none;font-weight:600;">{{t .Lang "cd_add_teacher_link"}}</a></div>
+    {{end}}
+  </div>
+
+  <!-- Activity stream -->
+  <div>
+    <div class="ch-section-head">
+      <h2>{{t .Lang "cd_activity"}}</h2>
+      <span class="ch-label">{{t .Lang "cd_recent"}}</span>
+    </div>
+    {{if .Feed}}
+    <div class="ch-feed">
+      {{range .Feed}}
+      <div class="ch-feed-item k-{{.Kind}}">
+        <div class="ch-feed-time">{{timeAgo .At}}</div>
+        <div>
+          {{if eq .Kind "submission"}}<span class="ch-feed-tag">{{t $.Lang "cd_kind_submission"}}</span><b>{{.Actor}}</b> · {{.Detail}} <span style="color:#8b8ba3;">({{.TeacherName}})</span>
+          {{else if eq .Kind "quiz"}}<span class="ch-feed-tag">{{t $.Lang "cd_kind_quiz"}}</span><b>{{.Actor}}</b> · {{.Detail}} <span style="color:#8b8ba3;">({{.TeacherName}})</span>
+          {{else if eq .Kind "join_request"}}<span class="ch-feed-tag">{{t $.Lang "cd_kind_join"}}</span><b>{{.Actor}}</b> {{t $.Lang "cd_kind_join_desc"}} {{.TeacherName}}{{if .ClassroomName}} · {{.ClassroomName}}{{end}}
+          {{else if eq .Kind "live_session"}}<span class="ch-feed-tag">{{t $.Lang "cd_kind_live"}}</span><b>{{.Actor}}</b> {{t $.Lang "cd_kind_live_desc"}} {{.Detail}}
+          {{else if eq .Kind "student_joined"}}<span class="ch-feed-tag">{{t $.Lang "cd_kind_student"}}</span><b>{{.Actor}}</b> {{t $.Lang "cd_kind_student_desc"}} {{.Detail}} <span style="color:#8b8ba3;">({{.TeacherName}})</span>
+          {{end}}
+        </div>
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <div class="ch-empty">{{t .Lang "cd_feed_empty"}}</div>
+    {{end}}
+  </div>
+</div>
+
+<!-- Slim billing strip (footer-ish) -->
+{{if gt .Center.PricePerTeacher 0.0}}
+<div class="ch-billing-strip">
+  <span class="material-symbols-outlined" style="color:#6366f1;font-size:18px;">payments</span>
+  <span><b>{{.ActiveTeacherCount}}</b> {{t .Lang "cd_active_teachers_x"}} <b>{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}}</b> = <b style="color:#6366f1;">{{printf "%.0f" .MonthlyTotal}} {{.Center.Currency}}</b>{{t .Lang "cd_per_month"}}</span>
+  <span style="color:#cbd5e0;">·</span>
+  <span>{{t .Lang "cd_next_invoice"}} <b>{{.NextInvoiceDate.Format "02 Jan 2006"}}</b></span>
+  <a href="/admin/center/billing">{{t .Lang "cb_view_all"}} →</a>
+</div>
+{{end}}
 
 {{template "admin_foot" .}}

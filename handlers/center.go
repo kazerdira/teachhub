@@ -28,6 +28,9 @@ func (h *Handler) CenterDashboard(c *gin.Context) {
 	teachers, _ := h.Store.ListCenterTeachers(c.Request.Context(), center.ID)
 	stats, _ := h.Store.GetCenterStats(c.Request.Context(), center.ID)
 	hasUnpaid := h.Store.HasUnpaidCenterInvoice(c.Request.Context(), center.ID)
+	pendingReqs := h.Store.CountCenterPendingJoinRequests(c.Request.Context(), center.ID)
+	feed, _ := h.Store.GetCenterActivityFeed(c.Request.Context(), center.ID, 12)
+	pulse, _ := h.Store.GetCenterTodayPulse(c.Request.Context(), center.ID)
 
 	activeCount := 0
 	for _, t := range teachers {
@@ -46,6 +49,10 @@ func (h *Handler) CenterDashboard(c *gin.Context) {
 		"MonthlyTotal":       float64(activeCount) * center.PricePerTeacher,
 		"HasUnpaidInvoice":   hasUnpaid,
 		"NextInvoiceDate":    nextInvoice,
+		"PendingRequests":    pendingReqs,
+		"Feed":               feed,
+		"Pulse":              pulse,
+		"Now":                now,
 	})
 }
 
