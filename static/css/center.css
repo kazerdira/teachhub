@@ -251,3 +251,217 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
 }
+
+/* ─── Cardless patterns ─── */
+
+/* Editorial section — vertical block separated by hairline rule. No box. */
+.ch-section {
+  padding: 1.75rem 0;
+  border-top: 1px solid #eef0f4;
+}
+.ch-section:first-of-type { border-top: none; padding-top: 0.5rem; }
+.ch-section-intro {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+.ch-section-intro .ch-section-meta h3 {
+  font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.01em;
+}
+.ch-section-intro .ch-section-meta p {
+  font-size: 0.8125rem;
+  color: #8b8ba3;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 200px;
+}
+@media (max-width: 820px) {
+  .ch-section-intro { grid-template-columns: 1fr; gap: 1rem; }
+  .ch-section-intro .ch-section-meta p { max-width: none; }
+}
+
+/* Single-column stacked form — labels on top, generous spacing, no panel */
+.ch-form-stack {
+  display: grid;
+  gap: 1.125rem;
+  max-width: 520px;
+}
+.ch-form-stack label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 6px;
+}
+.ch-form-stack .help {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 5px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: 0.01em;
+}
+.ch-form-stack .row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+}
+@media (max-width: 560px) {
+  .ch-form-stack .row-2 { grid-template-columns: 1fr; }
+}
+
+/* Save bar — thin sticky-ish action row at bottom of form */
+.ch-save-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+}
+.ch-save-bar .ch-meta {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  color: #9ca3af;
+  letter-spacing: 0.04em;
+}
+
+/* Bare table — table flush on the page, no card wrapper */
+.ch-table-bare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.ch-table-bare th {
+  text-align: left;
+  padding: 0.625rem 0.875rem 0.625rem 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #9ca3af;
+  border-bottom: 1px solid #eef0f4;
+}
+.ch-table-bare th:first-child { padding-left: 0; }
+.ch-table-bare td {
+  padding: 0.875rem 0.875rem 0.875rem 0;
+  border-bottom: 1px solid #f3f4f7;
+  color: #4b5563;
+  vertical-align: middle;
+}
+.ch-table-bare td:first-child { padding-left: 0; }
+.ch-table-bare tr:last-child td { border-bottom: none; }
+.ch-table-bare tbody tr { transition: background 0.1s; }
+.ch-table-bare tbody tr:hover { background: rgba(99,102,241,0.025); }
+.ch-table-bare .num {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ch-table-bare .strong { color: #1a1a2e; font-weight: 600; }
+
+/* Toolbar — search + filters row above a table, no card */
+.ch-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0.25rem 0 1rem;
+  flex-wrap: wrap;
+}
+.ch-toolbar .ch-search {
+  flex: 1 1 260px;
+  position: relative;
+}
+.ch-toolbar .ch-search input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  font-size: 0.8125rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafb;
+  color: #1a1a2e;
+  font-family: 'Manrope', system-ui, sans-serif;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ch-toolbar .ch-search input:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: #fff;
+}
+.ch-toolbar .ch-search .material-symbols-outlined {
+  position: absolute;
+  left: 10px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+.ch-toolbar .ch-count {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+/* Mini stat strip (no card chrome, just numbers + labels with whitespace) */
+.ch-strip {
+  display: flex;
+  gap: 2.5rem;
+  padding: 0.25rem 0 1.5rem;
+  flex-wrap: wrap;
+}
+.ch-strip > div { min-width: 70px; }
+.ch-strip .ch-strip-num {
+  font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  color: #1a1a2e;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.ch-strip .ch-strip-num.ok    { color: #059669; }
+.ch-strip .ch-strip-num.warn  { color: #d97706; }
+.ch-strip .ch-strip-num.brand { color: #6366f1; }
+.ch-strip .ch-strip-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Inline input style for ch-form-stack — matches existing .input feel without depending on it */
+.ch-form-stack input[type="text"],
+.ch-form-stack input[type="email"],
+.ch-form-stack input[type="tel"],
+.ch-form-stack input[type="number"],
+.ch-form-stack select,
+.ch-form-stack textarea {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #1a1a2e;
+  font-family: 'Manrope', system-ui, sans-serif;
+  transition: border-color 0.15s;
+}
+.ch-form-stack input:focus,
+.ch-form-stack select:focus,
+.ch-form-stack textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}

@@ -295,11 +295,26 @@ func (h *Handler) CenterStudents(c *gin.Context) {
 	classrooms, _ := h.Store.ListCenterClassrooms(ctx, center.ID)
 	studentCount := len(students)
 
+	assignedCount := 0
+	newThisMonth := 0
+	monthStart := time.Date(time.Now().Year(), time.Now().Month(), 1, 0, 0, 0, 0, time.Local)
+	for _, s := range students {
+		if s.ClassroomCount > 0 {
+			assignedCount++
+		}
+		if !s.CreatedAt.Before(monthStart) {
+			newThisMonth++
+		}
+	}
+
 	h.render(c, "center_students.html", gin.H{
-		"Center":       center,
-		"Students":     students,
-		"Classrooms":   classrooms,
-		"StudentCount": studentCount,
+		"Center":          center,
+		"Students":        students,
+		"Classrooms":      classrooms,
+		"StudentCount":    studentCount,
+		"AssignedCount":   assignedCount,
+		"UnassignedCount": studentCount - assignedCount,
+		"NewThisMonth":    newThisMonth,
 	})
 }
 

@@ -1,71 +1,119 @@
 {{template "admin_head" .}}
 
-<div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem;">
-    <a href="/admin/center" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);text-decoration:none;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='rgba(0,0,0,0.04)'">
-        <span class="material-symbols-outlined" style="color:#6b7280;font-size:18px;">arrow_back</span>
-    </a>
+<div class="ch-page-head">
+    <a href="/admin/center" class="ch-back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
     <div>
-        <h1 style="font-size:1.5rem;font-weight:800;color:#1a1a2e;margin:0;letter-spacing:-0.03em;">{{t .Lang "cs_title"}}</h1>
-        <p style="font-size:0.8125rem;color:#8b8ba3;margin:0;">{{.Center.Name}}</p>
+        <div class="ch-label" style="margin-bottom:2px;">{{.Center.Name}}</div>
+        <h1>{{t .Lang "cs_title"}}</h1>
     </div>
 </div>
 
 {{if .Query.saved}}
-<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);">
-    <span style="font-size:0.875rem;color:#059669;font-weight:500;">{{t .Lang "cs_saved"}}</span>
+<div class="ch-toast ok">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{t .Lang "cs_saved"}}</span>
 </div>
 {{end}}
 
 {{if .Query.error}}
-<div class="card" style="padding:1rem;margin-bottom:1.5rem;border-left:4px solid #ef4444;background:rgba(239,68,68,0.05);">
-    <span style="font-size:0.875rem;color:#dc2626;font-weight:500;">
+<div class="ch-toast err">
+    <span class="material-symbols-outlined">error</span>
+    <span>
     {{if eq .Query.error "name_required"}}{{t .Lang "cs_error_name"}}
     {{else}}{{t .Lang "cs_error_generic"}}{{end}}
     </span>
 </div>
 {{end}}
 
-<div class="card" style="padding:1.5rem;">
-    <form method="POST" action="/admin/center/settings" style="display:grid;gap:1.25rem;max-width:500px;">
-        {{csrfField .CSRFToken}}
+<form method="POST" action="/admin/center/settings">
+    {{csrfField .CSRFToken}}
 
+    <!-- Identity -->
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <div class="ch-label" style="margin-bottom:8px;">01 — {{t .Lang "cs_section_identity_label"}}</div>
+                <h3>{{t .Lang "cs_section_identity"}}</h3>
+                <p>{{t .Lang "cs_section_identity_help"}}</p>
+            </div>
+            <div class="ch-form-stack">
+                <div>
+                    <label>{{t .Lang "cs_center_name"}} *</label>
+                    <input type="text" name="name" required value="{{.Center.Name}}">
+                </div>
+                <div class="row-2">
+                    <div>
+                        <label>{{t .Lang "cs_address"}}</label>
+                        <input type="text" name="address" value="{{.Center.Address}}">
+                    </div>
+                    <div>
+                        <label>{{t .Lang "cs_city"}}</label>
+                        <input type="text" name="city" value="{{.Center.City}}">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <div class="ch-label" style="margin-bottom:8px;">02 — {{t .Lang "cs_section_contact_label"}}</div>
+                <h3>{{t .Lang "cs_section_contact"}}</h3>
+                <p>{{t .Lang "cs_section_contact_help"}}</p>
+            </div>
+            <div class="ch-form-stack">
+                <div class="row-2">
+                    <div>
+                        <label>{{t .Lang "cs_phone"}}</label>
+                        <input type="text" name="phone" value="{{.Center.Phone}}" placeholder="{{t .Lang "ct_phone_ph"}}">
+                    </div>
+                    <div>
+                        <label>{{t .Lang "cs_email"}}</label>
+                        <input type="email" name="email" value="{{.Center.Email}}" placeholder="contact@center.com">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Save -->
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <div class="ch-label">{{t .Lang "cs_save_label"}}</div>
+            </div>
+            <div class="ch-save-bar">
+                <button type="submit" class="btn-primary" style="padding:0.65rem 1.5rem;font-size:0.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                    <span class="material-symbols-outlined" style="font-size:16px;">save</span> {{t .Lang "cs_save"}}
+                </button>
+                <span class="ch-meta">{{t .Lang "cs_save_hint"}}</span>
+            </div>
+        </div>
+    </section>
+</form>
+
+<!-- Pricing — read-only block -->
+<section class="ch-section">
+    <div class="ch-section-intro">
+        <div class="ch-section-meta">
+            <div class="ch-label" style="margin-bottom:8px;">03 — {{t .Lang "cs_section_pricing_label"}}</div>
+            <h3>{{t .Lang "cs_pricing_title"}}</h3>
+            <p>{{t .Lang "cs_pricing_help"}}</p>
+        </div>
         <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_center_name"}} *</label>
-            <input type="text" name="name" required value="{{.Center.Name}}" class="input" style="width:100%;">
+            <div class="ch-strip">
+                <div>
+                    <div class="ch-strip-num brand">{{printf "%.0f" .Center.PricePerTeacher}}<span style="font-size:0.875rem;color:#8b8ba3;font-weight:500;margin-left:4px;">{{.Center.Currency}}</span></div>
+                    <div class="ch-strip-label">{{t .Lang "cd_per_month"}} · {{t .Lang "cb_per_active_teacher"}}</div>
+                </div>
+            </div>
+            <a href="/admin/center/billing" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#6366f1;text-decoration:none;letter-spacing:0.04em;">
+                {{t .Lang "cs_pricing_link"}} →
+            </a>
         </div>
-
-        <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_address"}}</label>
-            <input type="text" name="address" value="{{.Center.Address}}" class="input" style="width:100%;" placeholder="{{t .Lang "cs_address"}}">
-        </div>
-
-        <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_city"}}</label>
-            <input type="text" name="city" value="{{.Center.City}}" class="input" style="width:100%;" placeholder="{{t .Lang "cs_city"}}">
-        </div>
-
-        <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_phone"}}</label>
-            <input type="text" name="phone" value="{{.Center.Phone}}" class="input" style="width:100%;" placeholder="{{t .Lang "ct_phone_ph"}}">
-        </div>
-
-        <div>
-            <label style="font-size:0.8125rem;font-weight:600;color:#1a1a2e;display:block;margin-bottom:6px;">{{t .Lang "cs_email"}}</label>
-            <input type="email" name="email" value="{{.Center.Email}}" class="input" style="width:100%;" placeholder="contact@center.com">
-        </div>
-
-        <div style="padding-top:0.5rem;">
-            <button type="submit" class="btn-primary" style="padding:0.65rem 1.5rem;font-size:0.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
-                <span class="material-symbols-outlined" style="font-size:16px;">save</span> {{t .Lang "cs_save"}}
-            </button>
-        </div>
-    </form>
-</div>
-
-<!-- Pricing -->
-<div class="card" style="padding:1.5rem;margin-top:1.5rem;">
-    <h2 style="font-size:1rem;font-weight:700;color:#1a1a2e;margin:0 0 0.5rem;">{{t .Lang "cs_pricing_title"}}</h2>
-    <p style="font-size:0.875rem;color:#374151;">{{t .Lang "cs_price_per_teacher"}} <strong>{{printf "%.0f" .Center.PricePerTeacher}} {{.Center.Currency}} {{t .Lang "cd_per_month"}}</strong></p>
-</div>
+    </div>
+</section>
 
 {{template "admin_foot" .}}

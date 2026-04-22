@@ -972,6 +972,30 @@ var Translations = map[string]map[string]string{
 	"cs_phone":             {"en": "Phone", "fr": "Téléphone"},
 	"cs_email":             {"en": "Email", "fr": "Email"},
 
+	"cs_section_identity_label": {"en": "Identity", "fr": "Identité"},
+	"cs_section_identity":       {"en": "Identity", "fr": "Identité"},
+	"cs_section_identity_help":  {"en": "Public name and physical address of the center as it appears on documents.", "fr": "Nom public et adresse physique du centre tels qu'ils apparaissent sur les documents."},
+	"cs_section_contact_label":  {"en": "Contact", "fr": "Contact"},
+	"cs_section_contact":        {"en": "Contact", "fr": "Coordonnées"},
+	"cs_section_contact_help":   {"en": "How parents and the platform can reach you.", "fr": "Comment les parents et la plateforme peuvent vous joindre."},
+	"cs_section_pricing_label":  {"en": "Pricing", "fr": "Tarification"},
+	"cs_pricing_help":           {"en": "Subscription cost is set by the platform and applies per active teacher.", "fr": "Le coût d'abonnement est fixé par la plateforme et s'applique par enseignant actif."},
+	"cs_pricing_link":           {"en": "View invoice history", "fr": "Voir l'historique des factures"},
+	"cs_save_label":             {"en": "Save", "fr": "Enregistrer"},
+	"cs_save_hint":              {"en": "Changes apply immediately.", "fr": "Les modifications s'appliquent immédiatement."},
+
+	// CENTER STUDENTS extras (cst_)
+	"cst_total":             {"en": "total", "fr": "total"},
+	"cst_search_ph":         {"en": "Search by name, email, classroom…", "fr": "Rechercher par nom, email, classe…"},
+	"cst_roster_title":      {"en": "Roster", "fr": "Effectif"},
+	"cst_action_label":      {"en": "Add student", "fr": "Ajouter un élève"},
+	"cst_form_help":         {"en": "Register a new student in the center. They can be assigned to a classroom right after.", "fr": "Inscrivez un nouvel élève dans le centre. Vous pourrez l'affecter à une classe juste après."},
+	"cst_assign_label":      {"en": "Assign", "fr": "Affecter"},
+	"cst_assign_help":       {"en": "Place an existing student into a classroom managed by one of your teachers.", "fr": "Placez un élève existant dans une classe gérée par l'un de vos enseignants."},
+	"cst_strip_assigned":    {"en": "Assigned", "fr": "Affectés"},
+	"cst_strip_unassigned":  {"en": "Unassigned", "fr": "Sans classe"},
+	"cst_strip_new_month":   {"en": "New this month", "fr": "Nouveaux ce mois"},
+
 	// ─────────────────────────────────────────────────
 	// CENTER BILLING
 	// ─────────────────────────────────────────────────
