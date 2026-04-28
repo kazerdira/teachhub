@@ -109,6 +109,18 @@
             </div>
         </div>
 
+        <!-- Shareable join link -->
+        <div style="display:flex;align-items:center;gap:6px;background:#fafbfc;border:1px solid rgba(0,0,0,0.06);border-radius:8px;padding:5px 8px;min-width:0;">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#9ca3af;flex-shrink:0;">link</span>
+            <span class="ch-mono" title="{{$.BaseURL}}/join/{{.JoinCode}}" style="font-size:0.6875rem;color:#6b7280;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{$.BaseURL}}/join/{{.JoinCode}}</span>
+            <button type="button" onclick="chCopyJoin(this, '{{$.BaseURL}}/join/{{.JoinCode}}')" title="{{t $.Lang "cc_copy"}}" style="background:none;border:none;cursor:pointer;padding:3px;border-radius:4px;display:flex;align-items:center;color:#6366f1;flex-shrink:0;transition:background 0.15s;" onmouseover="this.style.background='rgba(99,102,241,0.1)'" onmouseout="this.style.background='transparent'">
+                <span class="material-symbols-outlined" style="font-size:15px;">content_copy</span>
+            </button>
+            <a href="/join/{{.JoinCode}}" target="_blank" rel="noopener" title="{{t $.Lang "cc_open"}}" style="padding:3px;border-radius:4px;display:flex;align-items:center;color:#9ca3af;flex-shrink:0;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#9ca3af'">
+                <span class="material-symbols-outlined" style="font-size:15px;">open_in_new</span>
+            </a>
+        </div>
+
         <!-- Subject + Level -->
         {{if or .Subject .Level}}
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
@@ -148,5 +160,28 @@
     <p class="hint">{{t .Lang "cc_empty_hint"}}</p>
 </div>
 {{end}}
+
+<script>
+function chCopyJoin(btn, url){
+    function ok(){
+        var icon = btn.querySelector('.material-symbols-outlined');
+        if(!icon) return;
+        var orig = icon.textContent;
+        icon.textContent = 'check';
+        btn.style.color = '#10b981';
+        setTimeout(function(){ icon.textContent = orig; btn.style.color = '#6366f1'; }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(ok).catch(function(){ fallback(); });
+    } else { fallback(); }
+    function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); ok(); } catch(e){}
+        document.body.removeChild(ta);
+    }
+}
+</script>
 
 {{template "admin_foot" .}}

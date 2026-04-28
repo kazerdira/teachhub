@@ -940,6 +940,8 @@ var Translations = map[string]map[string]string{
 	"cc_empty":             {"en": "No classrooms yet", "fr": "Aucune salle pour l'instant"},
 	"cc_empty_hint":        {"en": "Use the form above to create your first classroom.", "fr": "Utilisez le formulaire ci-dessus pour créer votre première salle."},
 	"cc_select_assign":     {"en": "Select classroom...", "fr": "Sélectionnez une salle..."},
+	"cc_copy":              {"en": "Copy join link", "fr": "Copier le lien d'inscription"},
+	"cc_open":              {"en": "Open join page", "fr": "Ouvrir la page d'inscription"},
 
 	// ─────────────────────────────────────────────────
 	// CENTER STUDENTS (cst_)
