@@ -1,0 +1,187 @@
+{{template "admin_head" .}}
+
+<div class="ch-page-head">
+    <a href="/admin/center/students" class="ch-back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
+    <div>
+        <div class="ch-label" style="margin-bottom:2px;">{{.Center.Name}} · {{t .Lang "csd_breadcrumb"}}</div>
+        <h1>{{.Student.Name}}</h1>
+    </div>
+</div>
+
+{{if .Saved}}<div class="ch-toast ok"><span class="material-symbols-outlined">check_circle</span><span>{{t .Lang "csd_saved_ok"}}</span></div>{{end}}
+{{if .Error}}
+<div class="ch-toast err">
+    <span class="material-symbols-outlined">error</span>
+    <span>
+    {{if eq .Error "missing_name"}}{{t .Lang "cst_err_name"}}
+    {{else if eq .Error "update_failed"}}{{t .Lang "csd_err_update"}}
+    {{else if eq .Error "delete_failed"}}{{t .Lang "csd_err_delete"}}
+    {{else if eq .Error "assign_failed"}}{{t .Lang "cst_err_assign"}}
+    {{else if eq .Error "not_found"}}{{t .Lang "cst_err_notfound"}}
+    {{else}}{{t .Lang "cst_err_generic"}}{{end}}
+    </span>
+</div>
+{{end}}
+
+<!-- Activity strip -->
+<div class="ch-panel" style="margin-bottom:1.25rem;">
+    <section class="ch-section">
+        <div class="ch-strip">
+            <div>
+                <div class="ch-strip-num">{{len .Student.Memberships}}</div>
+                <div class="ch-strip-label">{{t .Lang "csd_classrooms"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num">{{.Student.SessionsAttended}}</div>
+                <div class="ch-strip-label">{{t .Lang "csd_sessions"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num">{{.Student.QuizAttempts}}</div>
+                <div class="ch-strip-label">{{t .Lang "csd_quiz_attempts"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num">{{.Student.Submissions}}</div>
+                <div class="ch-strip-label">{{t .Lang "csd_submissions"}}</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Profile + edit -->
+<div class="ch-panel" style="margin-bottom:1.25rem;">
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <span class="ch-section-num">01 — {{t .Lang "csd_profile_label"}}</span>
+                <h3>{{t .Lang "csd_profile_title"}}</h3>
+                <p>{{t .Lang "csd_profile_help"}}</p>
+            </div>
+            <form method="POST" action="/admin/center/students/{{.Student.ID}}/update" class="ch-form-stack">
+                {{csrfField .CSRFToken}}
+                <div>
+                    <label>{{t .Lang "cst_full_name"}} <span class="req">*</span></label>
+                    <input type="text" name="name" required value="{{.Student.Name}}">
+                </div>
+                <div class="row-2">
+                    <div>
+                        <label>{{t .Lang "ct_email"}}</label>
+                        <input type="email" name="email" value="{{.Student.Email}}" placeholder="student@example.com">
+                    </div>
+                    <div>
+                        <label>{{t .Lang "ct_phone"}}</label>
+                        <input type="text" name="phone" value="{{.Student.Phone}}" placeholder="{{t .Lang "ct_phone_ph"}}">
+                    </div>
+                </div>
+                <div class="ch-save-bar">
+                    <button type="submit" class="btn-primary" style="padding:0.6rem 1.25rem;font-size:0.8125rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                        <span class="material-symbols-outlined" style="font-size:16px;">save</span> {{t .Lang "csd_save_btn"}}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <span class="ch-section-num">02 — {{t .Lang "csd_meta_label"}}</span>
+                <h3>{{t .Lang "csd_meta_title"}}</h3>
+            </div>
+            <div class="ch-form-stack">
+                <div class="row-2">
+                    <div>
+                        <div class="ch-label">{{t .Lang "cst_enrolled"}}</div>
+                        <div class="ch-mono" style="font-size:0.8125rem;color:#4b5563;">{{.Student.CreatedAt.Format "02 Jan 2006, 15:04"}}</div>
+                    </div>
+                    <div>
+                        <div class="ch-label">{{t .Lang "ct_last_login"}}</div>
+                        <div class="ch-mono" style="font-size:0.8125rem;color:#4b5563;">
+                            {{if .Student.LastLoginAt}}{{.Student.LastLoginAt.Format "02 Jan 2006, 15:04"}}{{if .Student.LastLoginIP}} <span style="color:#9ca3af;">· {{.Student.LastLoginIP}}</span>{{end}}{{else}}<span style="color:#cbd5e0;">{{t .Lang "cst_never"}}</span>{{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Memberships -->
+<div class="ch-panel" style="margin-bottom:1.25rem;">
+    <section class="ch-section">
+        <div class="ch-section-head" style="margin-top:0;">
+            <h2>{{t .Lang "csd_memberships_title"}}</h2>
+            <span class="ch-label">{{len .Student.Memberships}}</span>
+        </div>
+
+        {{if .Student.Memberships}}
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            {{range .Student.Memberships}}
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#fafbfc;border:1px solid rgba(0,0,0,0.06);border-radius:10px;">
+                <div style="flex:1;min-width:0;">
+                    <a href="/admin/center/classrooms/{{.ClassroomID}}" style="font-weight:700;color:#1a1a2e;text-decoration:none;font-size:0.875rem;letter-spacing:-0.01em;display:block;transition:color 0.15s;" onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#1a1a2e'">{{.ClassroomName}}</a>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:3px;">
+                        <span class="ch-pill info" style="font-size:0.6rem;">{{.TeacherName}}</span>
+                        {{if .Subject}}<span class="ch-pill muted" style="font-size:0.6rem;">{{.Subject}}</span>{{end}}
+                        {{if .Level}}<span class="ch-pill muted" style="font-size:0.6rem;">{{.Level}}</span>{{end}}
+                        {{if eq .Status "pending"}}<span class="ch-pill warn" style="font-size:0.6rem;">{{t $.Lang "csd_status_pending"}}</span>
+                        {{else if eq .Status "rejected"}}<span class="ch-pill err" style="font-size:0.6rem;">{{t $.Lang "csd_status_rejected"}}</span>
+                        {{else}}<span class="ch-pill ok" style="font-size:0.6rem;">{{t $.Lang "csd_status_approved"}}</span>{{end}}
+                    </div>
+                </div>
+                <div class="ch-mono" style="font-size:0.6875rem;color:#9ca3af;white-space:nowrap;">{{.JoinedAt.Format "02 Jan 06"}}</div>
+                <form method="POST" action="/admin/center/students/{{$.Student.ID}}/unassign" style="display:inline;" onsubmit="return confirm('{{t $.Lang "csd_unassign_confirm"}}')">
+                    {{csrfField $.CSRFToken}}
+                    <input type="hidden" name="classroom_id" value="{{.ClassroomID}}">
+                    <button type="submit" title="{{t $.Lang "csd_unassign_btn"}}" style="background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;display:flex;align-items:center;color:#ef4444;transition:background 0.15s;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+                        <span class="material-symbols-outlined" style="font-size:17px;">link_off</span>
+                    </button>
+                </form>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="ch-empty" style="border:none;padding:1.25rem 0;">
+            <p>{{t .Lang "csd_no_memberships"}}</p>
+        </div>
+        {{end}}
+
+        {{if .AvailableClassrooms}}
+        <form method="POST" action="/admin/center/students/{{.Student.ID}}/assign" style="margin-top:1rem;display:flex;gap:8px;align-items:flex-end;">
+            {{csrfField .CSRFToken}}
+            <div style="flex:1;">
+                <label>{{t .Lang "csd_assign_label"}}</label>
+                <select name="classroom_id" required>
+                    <option value="">{{t .Lang "cc_select_assign"}}</option>
+                    {{range .AvailableClassrooms}}
+                    <option value="{{.ID}}">{{.Name}}{{if .TeacherName}} — {{.TeacherName}}{{end}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="padding:0.6rem 1rem;font-size:0.8125rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:16px;">add_link</span> {{t .Lang "csd_assign_btn"}}
+            </button>
+        </form>
+        {{end}}
+    </section>
+</div>
+
+<!-- Danger zone -->
+<div class="ch-panel" style="margin-bottom:1.25rem;border-color:rgba(239,68,68,0.2);">
+    <section class="ch-section">
+        <div class="ch-section-intro">
+            <div class="ch-section-meta">
+                <span class="ch-section-num" style="color:#ef4444;">⚠ {{t .Lang "csd_danger_label"}}</span>
+                <h3>{{t .Lang "csd_danger_title"}}</h3>
+                <p>{{t .Lang "csd_danger_help"}}</p>
+            </div>
+            <form method="POST" action="/admin/center/students/{{.Student.ID}}/delete" onsubmit="return confirm('{{t .Lang "csd_delete_confirm"}}')">
+                {{csrfField .CSRFToken}}
+                <button type="submit" style="background:#ef4444;color:#fff;border:none;border-radius:8px;padding:0.6rem 1.25rem;font-size:0.8125rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                    <span class="material-symbols-outlined" style="font-size:16px;">delete_forever</span> {{t .Lang "csd_delete_btn"}}
+                </button>
+            </form>
+        </div>
+    </section>
+</div>
+
+{{template "admin_foot" .}}

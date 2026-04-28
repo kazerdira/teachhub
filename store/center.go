@@ -384,3 +384,179 @@ func (s *Store) ListCenterClassrooms(ctx context.Context, centerID int) ([]Class
 	}
 	return list, nil
 }
+
+// ─── Center student detail ──────────────────────────────
+
+// CenterStudentMembership — one (student, classroom) row inside a center.
+type CenterStudentMembership struct {
+	ClassroomID   int
+	ClassroomName string
+	Subject       string
+	Level         string
+	TeacherName   string
+	Status        string
+	JoinedAt      time.Time
+}
+
+// CenterStudentDetail — full student profile + memberships + activity counts.
+type CenterStudentDetail struct {
+	ID               int
+	Name             string
+	Email            string
+	Phone            string
+	CreatedAt        time.Time
+	LastLoginAt      *time.Time
+	LastLoginIP      string
+	Memberships      []CenterStudentMembership
+	QuizAttempts     int
+	SessionsAttended int
+	Submissions      int
+}
+
+func (s *Store) GetCenterStudentDetail(ctx context.Context, studentID, centerID int) (*CenterStudentDetail, error) {
+	d := &CenterStudentDetail{}
+	err := s.DB.QueryRow(ctx, `
+		SELECT s.id, s.name, COALESCE(s.email,''), COALESCE(s.phone,''),
+		       s.created_at, s.last_login_at, COALESCE(s.last_login_ip,'')
+		FROM student s WHERE s.id=$1 AND s.center_id=$2`, studentID, centerID).
+		Scan(&d.ID, &d.Name, &d.Email, &d.Phone, &d.CreatedAt, &d.LastLoginAt, &d.LastLoginIP)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.DB.Query(ctx, `
+		SELECT c.id, c.name, COALESCE(c.subject,''), COALESCE(c.level,''),
+		       COALESCE(a.display_name, a.username),
+		       cs.status, cs.joined_at
+		FROM classroom_student cs
+		JOIN classroom c ON c.id = cs.classroom_id
+		JOIN admin a ON a.id = c.admin_id
+		WHERE cs.student_id=$1 AND a.center_id=$2
+		ORDER BY cs.joined_at DESC`, studentID, centerID)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var m CenterStudentMembership
+			if err := rows.Scan(&m.ClassroomID, &m.ClassroomName, &m.Subject, &m.Level,
+				&m.TeacherName, &m.Status, &m.JoinedAt); err == nil {
+				d.Memberships = append(d.Memberships, m)
+			}
+		}
+	}
+
+	_ = s.DB.QueryRow(ctx, `
+		SELECT COUNT(*) FROM quiz_attempt qa
+		JOIN quiz q ON q.id = qa.quiz_id
+		JOIN classroom c ON c.id = q.classroom_id
+		JOIN admin a ON a.id = c.admin_id
+		WHERE qa.student_id=$1 AND a.center_id=$2`, studentID, centerID).Scan(&d.QuizAttempts)
+
+	_ = s.DB.QueryRow(ctx, `
+		SELECT COUNT(*) FROM live_attendance la
+		JOIN live_session ls ON ls.id = la.live_session_id
+		JOIN classroom c ON c.id = ls.classroom_id
+		JOIN admin a ON a.id = c.admin_id
+		WHERE la.student_id=$1 AND a.center_id=$2`, studentID, centerID).Scan(&d.SessionsAttended)
+
+	_ = s.DB.QueryRow(ctx, `
+		SELECT COUNT(*) FROM submission sb
+		JOIN assignment ag ON ag.id = sb.assignment_id
+		JOIN classroom c ON c.id = ag.classroom_id
+		JOIN admin a ON a.id = c.admin_id
+		WHERE sb.student_id=$1 AND a.center_id=$2`, studentID, centerID).Scan(&d.Submissions)
+
+	return d, nil
+}
+
+// UpdateCenterStudent updates basic profile fields for a student belonging to the center.
+func (s *Store) UpdateCenterStudent(ctx context.Context, studentID, centerID int, name, email, phone string) error {
+	_, err := s.DB.Exec(ctx,
+		`UPDATE student SET name=$3, email=$4, phone=$5 WHERE id=$1 AND center_id=$2`,
+		studentID, centerID, name, email, phone)
+	return err
+}
+
+// DeleteCenterStudent fully removes a student from the center (cascades all memberships, attempts, etc.).
+func (s *Store) DeleteCenterStudent(ctx context.Context, studentID, centerID int) error {
+	_, err := s.DB.Exec(ctx,
+		`DELETE FROM student WHERE id=$1 AND center_id=$2`, studentID, centerID)
+	return err
+}
+
+// ─── Center classroom detail ────────────────────────────
+
+// CenterClassroomStudent — student row shown inside a classroom detail page.
+type CenterClassroomStudent struct {
+	ID       int
+	Name     string
+	Email    string
+	Phone    string
+	Status   string
+	JoinedAt time.Time
+}
+
+// CenterClassroomDetail — classroom + roster + quizzes + counts.
+type CenterClassroomDetail struct {
+	Classroom
+	Students        []CenterClassroomStudent
+	Quizzes         []Quiz
+	SessionCount    int
+	AssignmentCount int
+}
+
+func (s *Store) GetCenterClassroomDetail(ctx context.Context, classroomID, centerID int) (*CenterClassroomDetail, error) {
+	d := &CenterClassroomDetail{}
+	err := s.DB.QueryRow(ctx, `
+		SELECT c.id, c.name, c.join_code, COALESCE(c.subject,''), COALESCE(c.level,''),
+		       a.id, COALESCE(a.display_name, a.username),
+		       c.created_at
+		FROM classroom c
+		JOIN admin a ON a.id = c.admin_id
+		WHERE c.id=$1 AND a.center_id=$2`, classroomID, centerID).
+		Scan(&d.Classroom.ID, &d.Classroom.Name, &d.Classroom.JoinCode,
+			&d.Classroom.Subject, &d.Classroom.Level, &d.Classroom.AdminID,
+			&d.Classroom.TeacherName, &d.Classroom.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.DB.Query(ctx, `
+		SELECT s.id, s.name, COALESCE(s.email,''), COALESCE(s.phone,''), cs.status, cs.joined_at
+		FROM classroom_student cs
+		JOIN student s ON s.id = cs.student_id
+		WHERE cs.classroom_id=$1
+		ORDER BY cs.status, s.name`, classroomID)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var st CenterClassroomStudent
+			if err := rows.Scan(&st.ID, &st.Name, &st.Email, &st.Phone, &st.Status, &st.JoinedAt); err == nil {
+				d.Students = append(d.Students, st)
+				if st.Status == "approved" {
+					d.Classroom.StudentCount++
+				}
+			}
+		}
+	}
+
+	qrows, err := s.DB.Query(ctx, `
+		SELECT id, title, COALESCE(description,''), published, deadline, created_at
+		FROM quiz WHERE classroom_id=$1 ORDER BY created_at DESC`, classroomID)
+	if err == nil {
+		defer qrows.Close()
+		for qrows.Next() {
+			var q Quiz
+			q.ClassroomID = classroomID
+			if err := qrows.Scan(&q.ID, &q.Title, &q.Description, &q.Published, &q.Deadline, &q.CreatedAt); err == nil {
+				d.Quizzes = append(d.Quizzes, q)
+			}
+		}
+	}
+
+	_ = s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM live_session WHERE classroom_id=$1`, classroomID).Scan(&d.SessionCount)
+	_ = s.DB.QueryRow(ctx, `SELECT COUNT(*) FROM assignment WHERE classroom_id=$1`, classroomID).Scan(&d.AssignmentCount)
+
+	return d, nil
+}
+
+

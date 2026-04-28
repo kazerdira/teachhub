@@ -1,0 +1,181 @@
+{{template "admin_head" .}}
+
+<div class="ch-page-head">
+    <a href="/admin/center/classrooms" class="ch-back-btn"><span class="material-symbols-outlined">arrow_back</span></a>
+    <div>
+        <div class="ch-label" style="margin-bottom:2px;">{{.Center.Name}} · {{t .Lang "ccd_breadcrumb"}}</div>
+        <h1>{{.Classroom.Name}}</h1>
+    </div>
+    <div class="ch-page-head-actions">
+        <a href="/admin/classroom/{{.Classroom.ID}}" class="ch-pill info" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+            <span class="material-symbols-outlined" style="font-size:14px;">open_in_new</span> {{t .Lang "ccd_open_teacher_view"}}
+        </a>
+    </div>
+</div>
+
+<!-- Meta + share link strip -->
+<div class="ch-panel" style="margin-bottom:1.25rem;">
+    <section class="ch-section">
+        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="material-symbols-outlined" style="font-size:18px;color:#6366f1;">person</span>
+                <div>
+                    <div class="ch-label">{{t .Lang "ccd_teacher"}}</div>
+                    <div style="font-weight:700;color:#1a1a2e;font-size:0.875rem;">{{.Classroom.TeacherName}}</div>
+                </div>
+            </div>
+            {{if .Classroom.Subject}}
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="material-symbols-outlined" style="font-size:18px;color:#9ca3af;">menu_book</span>
+                <div>
+                    <div class="ch-label">{{t .Lang "cc_col_subject"}}</div>
+                    <div style="font-weight:600;color:#4b5563;font-size:0.8125rem;">{{.Classroom.Subject}}</div>
+                </div>
+            </div>
+            {{end}}
+            {{if .Classroom.Level}}
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="material-symbols-outlined" style="font-size:18px;color:#9ca3af;">grade</span>
+                <div>
+                    <div class="ch-label">{{t .Lang "cc_col_level"}}</div>
+                    <div style="font-weight:600;color:#4b5563;font-size:0.8125rem;">{{.Classroom.Level}}</div>
+                </div>
+            </div>
+            {{end}}
+            <div style="display:flex;align-items:center;gap:8px;margin-left:auto;background:#fafbfc;border:1px solid rgba(0,0,0,0.06);border-radius:8px;padding:5px 10px;">
+                <span class="material-symbols-outlined" style="font-size:14px;color:#9ca3af;">link</span>
+                <span class="ch-mono" style="font-size:0.75rem;color:#6b7280;">{{.BaseURL}}/join/{{.Classroom.JoinCode}}</span>
+                <button type="button" onclick="chCopyJoin(this, '{{.BaseURL}}/join/{{.Classroom.JoinCode}}')" title="{{t .Lang "cc_copy"}}" style="background:none;border:none;cursor:pointer;padding:3px;border-radius:4px;display:flex;align-items:center;color:#6366f1;">
+                    <span class="material-symbols-outlined" style="font-size:15px;">content_copy</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="ch-section">
+        <div class="ch-strip">
+            <div>
+                <div class="ch-strip-num">{{.Classroom.StudentCount}}</div>
+                <div class="ch-strip-label">{{t .Lang "cst_strip_assigned"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num">{{len .Classroom.Quizzes}}</div>
+                <div class="ch-strip-label">{{t .Lang "ccd_quizzes"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num">{{.Classroom.AssignmentCount}}</div>
+                <div class="ch-strip-label">{{t .Lang "ccd_assignments"}}</div>
+            </div>
+            <div>
+                <div class="ch-strip-num">{{.Classroom.SessionCount}}</div>
+                <div class="ch-strip-label">{{t .Lang "ccd_sessions"}}</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Students -->
+<div class="ch-panel" style="margin-bottom:1.25rem;">
+    <section class="ch-section">
+        <div class="ch-section-head" style="margin-top:0;">
+            <h2>{{t .Lang "ccd_students_title"}}</h2>
+            <span class="ch-label">{{len .Classroom.Students}}</span>
+        </div>
+
+        {{if .Classroom.Students}}
+        <div style="overflow-x:auto;">
+            <table class="ch-table-bare">
+                <thead>
+                    <tr>
+                        <th>{{t .Lang "ct_col_name"}}</th>
+                        <th>{{t .Lang "ct_col_email"}}</th>
+                        <th>{{t .Lang "ct_phone"}}</th>
+                        <th>{{t .Lang "csd_status"}}</th>
+                        <th>{{t .Lang "csd_joined_at"}}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Classroom.Students}}
+                    <tr>
+                        <td class="strong"><a href="/admin/center/students/{{.ID}}" style="color:#1a1a2e;text-decoration:none;font-weight:700;" onmouseover="this.style.color='#6366f1'" onmouseout="this.style.color='#1a1a2e'">{{.Name}}</a></td>
+                        <td>{{if .Email}}{{.Email}}{{else}}<span style="color:#cbd5e0;">—</span>{{end}}</td>
+                        <td>{{if .Phone}}<span class="ch-mono" style="font-size:0.75rem;">{{.Phone}}</span>{{else}}<span style="color:#cbd5e0;">—</span>{{end}}</td>
+                        <td>
+                            {{if eq .Status "pending"}}<span class="ch-pill warn" style="font-size:0.6rem;">{{t $.Lang "csd_status_pending"}}</span>
+                            {{else if eq .Status "rejected"}}<span class="ch-pill err" style="font-size:0.6rem;">{{t $.Lang "csd_status_rejected"}}</span>
+                            {{else}}<span class="ch-pill ok" style="font-size:0.6rem;">{{t $.Lang "csd_status_approved"}}</span>{{end}}
+                        </td>
+                        <td class="ch-mono" style="font-size:0.75rem;color:#9ca3af;">{{.JoinedAt.Format "02 Jan 06"}}</td>
+                        <td style="text-align:right;">
+                            <form method="POST" action="/admin/center/students/{{.ID}}/unassign" style="display:inline;" onsubmit="return confirm('{{t $.Lang "csd_unassign_confirm"}}')">
+                                {{csrfField $.CSRFToken}}
+                                <input type="hidden" name="classroom_id" value="{{$.Classroom.ID}}">
+                                <button type="submit" title="{{t $.Lang "csd_unassign_btn"}}" style="background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;display:flex;align-items:center;color:#ef4444;">
+                                    <span class="material-symbols-outlined" style="font-size:17px;">link_off</span>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        {{else}}
+        <div class="ch-empty" style="border:none;padding:1.5rem 0;">
+            <span class="material-symbols-outlined">groups</span>
+            <p>{{t .Lang "ccd_no_students"}}</p>
+        </div>
+        {{end}}
+    </section>
+</div>
+
+<!-- Quizzes -->
+<div class="ch-panel">
+    <section class="ch-section">
+        <div class="ch-section-head" style="margin-top:0;">
+            <h2>{{t .Lang "ccd_quizzes_title"}}</h2>
+            <span class="ch-label">{{len .Classroom.Quizzes}}</span>
+        </div>
+
+        {{if .Classroom.Quizzes}}
+        <div style="display:flex;flex-direction:column;gap:8px;">
+            {{range .Classroom.Quizzes}}
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#fafbfc;border:1px solid rgba(0,0,0,0.06);border-radius:10px;">
+                <span class="material-symbols-outlined" style="color:#6366f1;font-size:20px;">quiz</span>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;color:#1a1a2e;font-size:0.875rem;">{{.Title}}</div>
+                    {{if .Description}}<div style="font-size:0.75rem;color:#9ca3af;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{.Description}}</div>{{end}}
+                </div>
+                {{if .Published}}<span class="ch-pill ok" style="font-size:0.6rem;">{{t $.Lang "ccd_published"}}</span>
+                {{else}}<span class="ch-pill muted" style="font-size:0.6rem;">{{t $.Lang "ccd_draft"}}</span>{{end}}
+                <span class="ch-mono" style="font-size:0.6875rem;color:#9ca3af;white-space:nowrap;">{{.CreatedAt.Format "02 Jan 06"}}</span>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="ch-empty" style="border:none;padding:1.5rem 0;">
+            <span class="material-symbols-outlined">quiz</span>
+            <p>{{t .Lang "ccd_no_quizzes"}}</p>
+        </div>
+        {{end}}
+    </section>
+</div>
+
+<script>
+function chCopyJoin(btn, url){
+    function ok(){
+        var icon = btn.querySelector('.material-symbols-outlined');
+        if(!icon) return;
+        var orig = icon.textContent;
+        icon.textContent = 'check';
+        btn.style.color = '#10b981';
+        setTimeout(function(){ icon.textContent = orig; btn.style.color = '#6366f1'; }, 1500);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(ok).catch(function(){});
+    }
+}
+</script>
+
+{{template "admin_foot" .}}

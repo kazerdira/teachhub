@@ -488,3 +488,169 @@ func (h *Handler) CenterDeleteClassroom(c *gin.Context) {
 	h.Store.DeleteClassroom(ctx, classroomID, teacherID)
 	c.Redirect(http.StatusFound, "/admin/center/classrooms?deleted=1")
 }
+
+// ─── Center Student Detail ──────────────────────────────
+
+func (h *Handler) CenterStudentDetail(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	studentID, _ := strconv.Atoi(c.Param("id"))
+	if studentID == 0 {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=not_found")
+		return
+	}
+	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+	detail, err := h.Store.GetCenterStudentDetail(ctx, studentID, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=not_found")
+		return
+	}
+	classrooms, _ := h.Store.ListCenterClassrooms(ctx, *admin.CenterID)
+	// Filter out classrooms the student is already in
+	already := make(map[int]bool)
+	for _, m := range detail.Memberships {
+		already[m.ClassroomID] = true
+	}
+	var available []store.Classroom
+	for _, cl := range classrooms {
+		if !already[cl.ID] {
+			available = append(available, cl)
+		}
+	}
+	h.render(c, "center_student_detail.html", gin.H{
+		"Center":              center,
+		"Student":             detail,
+		"AvailableClassrooms": available,
+		"Saved":               c.Query("saved") != "",
+		"Error":               c.Query("error"),
+	})
+}
+
+func (h *Handler) CenterUpdateStudent(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	studentID, _ := strconv.Atoi(c.Param("id"))
+	name := strings.TrimSpace(c.PostForm("name"))
+	email := strings.TrimSpace(c.PostForm("email"))
+	phone := strings.TrimSpace(c.PostForm("phone"))
+	if studentID == 0 || name == "" {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=missing_name", studentID))
+		return
+	}
+	if err := h.Store.UpdateCenterStudent(ctx, studentID, *admin.CenterID, name, email, phone); err != nil {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=update_failed", studentID))
+		return
+	}
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?saved=1", studentID))
+}
+
+func (h *Handler) CenterDeleteStudent(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	studentID, _ := strconv.Atoi(c.Param("id"))
+	if studentID == 0 {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=not_found")
+		return
+	}
+	if err := h.Store.DeleteCenterStudent(ctx, studentID, *admin.CenterID); err != nil {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=delete_failed", studentID))
+		return
+	}
+	c.Redirect(http.StatusFound, "/admin/center/students?deleted=1")
+}
+
+func (h *Handler) CenterUnassignStudent(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	studentID, _ := strconv.Atoi(c.Param("id"))
+	classroomID, _ := strconv.Atoi(c.PostForm("classroom_id"))
+	if studentID == 0 || classroomID == 0 {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=invalid", studentID))
+		return
+	}
+	// Verify student belongs to this center
+	student, err := h.Store.GetStudent(ctx, studentID)
+	if err != nil || student.CenterID == nil || *student.CenterID != *admin.CenterID {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=not_found")
+		return
+	}
+	// Verify classroom belongs to this center
+	classrooms, _ := h.Store.ListCenterClassrooms(ctx, *admin.CenterID)
+	found := false
+	for _, cl := range classrooms {
+		if cl.ID == classroomID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=not_found", studentID))
+		return
+	}
+	h.Store.RemoveStudentFromClassroom(ctx, studentID, classroomID)
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?saved=1", studentID))
+}
+
+// CenterAssignStudentToClass — assign from the student detail page.
+func (h *Handler) CenterAssignStudentFromDetail(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	studentID, _ := strconv.Atoi(c.Param("id"))
+	classroomID, _ := strconv.Atoi(c.PostForm("classroom_id"))
+	if studentID == 0 || classroomID == 0 {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=invalid", studentID))
+		return
+	}
+	student, err := h.Store.GetStudent(ctx, studentID)
+	if err != nil || student.CenterID == nil || *student.CenterID != *admin.CenterID {
+		c.Redirect(http.StatusFound, "/admin/center/students?error=not_found")
+		return
+	}
+	classrooms, _ := h.Store.ListCenterClassrooms(ctx, *admin.CenterID)
+	found := false
+	for _, cl := range classrooms {
+		if cl.ID == classroomID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=not_found", studentID))
+		return
+	}
+	if err := h.Store.AssignStudentToClassroom(ctx, studentID, classroomID); err != nil {
+		c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?error=assign_failed", studentID))
+		return
+	}
+	c.Redirect(http.StatusFound, fmt.Sprintf("/admin/center/students/%d?saved=1", studentID))
+}
+
+// ─── Center Classroom Detail ────────────────────────────
+
+func (h *Handler) CenterClassroomDetail(c *gin.Context) {
+	admin := c.MustGet("admin").(*store.Admin)
+	ctx := c.Request.Context()
+	classroomID, _ := strconv.Atoi(c.Param("id"))
+	if classroomID == 0 {
+		c.Redirect(http.StatusFound, "/admin/center/classrooms?error=not_found")
+		return
+	}
+	center, err := h.Store.GetCenter(ctx, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin")
+		return
+	}
+	detail, err := h.Store.GetCenterClassroomDetail(ctx, classroomID, *admin.CenterID)
+	if err != nil {
+		c.Redirect(http.StatusFound, "/admin/center/classrooms?error=not_found")
+		return
+	}
+	h.render(c, "center_classroom_detail.html", gin.H{
+		"Center":    center,
+		"Classroom": detail,
+	})
+}
